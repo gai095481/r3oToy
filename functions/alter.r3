@@ -44,25 +44,25 @@ Set Operations:
 
 ;; --- Reusable Helper Functions (TESTED) ---
 safe-sort: function [
-    {"Safely sort a `block!`, filtering out `logic!` values that cause `sort` errors."}
-    block [block!] "Block to sort."
+    "{Safely sort a `block!`, filtering out `logic!` values that cause `sort` errors.  }"
+    block [block!] "Block to sort.  "
     /local sorted-block
 ] [
     ;; Filter out any `logic!` values before sorting.
     sorted-block: copy []
     foreach item block [
-        ;; Only check the direct type of the item, don't try to evaluate words.
+        ;; Only check the direct type of the item, don't try to evaluate `word!`s.
         if not logic? item [
             append sorted-block item
         ]
     ]
-    attempt [sort sorted-block] ;; attempt `sort` in case of other unhandled types.
+    attempt [sort sorted-block] ;; `attempt` `sort` in case of other unhandled types.
 ]
 
 safe-block-compare: function [
-    {"Compare two blocks using `safe-sort` (order-insensitive after additions)."}
-    block1 [block!] "First block to compare."
-    block2 [block!] "Second block to compare."
+    "{Compare two `block!`s using `safe-sort` (order-insensitive after additions).  }"
+    block1 [block!] "First `block!` to compare.  "
+    block2 [block!] "Second `block!` to compare.  "
     /local sorted1 sorted2
 ] [
     sorted1: safe-sort copy block1
@@ -96,19 +96,19 @@ print ["After:" blkFlags]
 either ["verbose"] = blkFlags [print "✅ PASSED"] [print "❌ FAILED"]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Example 03: Modify a bitset
+;; Example 03: Modify a `bitset!`
 ;; Use case: Efficiently managing sets of characters using `bitset!`.
 print ""
 bsVowels: make bitset! "aeiou"
 print ["Before:" mold bsVowels]
-print ["Action:" "Adds or removes the `char!` literal `{#"y"}` from the vowels `bitset!`.  "]
+print ["Action:" "Adds or removes the character {y} from the vowels bitset."]
 alter bsVowels #"y"
 print ["After:" mold bsVowels]
 expected_bsVowels: make bitset! "aeiouy"
 either expected_bsVowels = bsVowels [print "✅ PASSED"] [print "❌ FAILED"]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Example 04: Demonstrate `alter/case` for adding and removing strings.
+;; Example 04: Demonstrate `alter/case` for adding and removing `string!`s.
 ;; Use case: Managing case-sensitive lists, such as specific identifiers or flags.
 print ""
 print "--- Example 04: `alter/case` ---"
@@ -126,7 +126,7 @@ print ""
 
 ;; Part 2: Removing with `/case` (item present, case matches)
 print "** Part 2: Removing with `/case` (matching case) **"
-blkOpts2: copy ["optionA" "OptionC" "optionB"] ; "OptionC" is present
+blkOpts2: copy ["optionA" "OptionC" "optionB"] ; "OptionC" is present.
 print ["Before (remove match):" mold blkOpts2]
 print ["Action (remove match):" {`alter/case` blkOpts2 "OptionC"}]
 alter/case blkOpts2 "OptionC"
@@ -137,12 +137,12 @@ print ""
 
 ;; Part 3: Using `alter/case` when item is NOT found (due to case) results in ADDITION
 print "** Part 3: `alter/case` when item not found due to case (results in ADDITION) **"
-blkOpts3: copy ["optionA" "OptionC" "optionB"] ; "OptionC" is present, "optionc" is not
+blkOpts3: copy ["optionA" "OptionC" "optionB"] ; "OptionC" is present, "optionc" is not.
 print ["Before (target 'optionc'):" mold blkOpts3]
 print ["Action (target 'optionc'):" {`alter/case` blkOpts3 "optionc"}]
-alter/case blkOpts3 "optionc" ; "optionc" (lowercase) is not found, so it's added
+alter/case blkOpts3 "optionc" ; "optionc" (lowercase) is not found, so it's added.
 print ["After (target 'optionc'):" mold blkOpts3]
-expected3: ["optionA" "OptionC" "optionB" "optionc"] ; Original "OptionC" remains, "optionc" is added
+expected3: ["optionA" "OptionC" "optionB" "optionc"] ; Original "OptionC" remains, "optionc" is added.
 either safe-block-compare expected3 blkOpts3 [
     print "PASS: 'OptionC' correctly untouched, 'optionc' correctly added.  "
 ] [
@@ -151,12 +151,12 @@ either safe-block-compare expected3 blkOpts3 [
 print ""
 
 ;; Part 4: Control - Using `alter` (no `/case`) when item is present with different case
-;; This shows that WITHOUT `/case`, "OptionC" WOULD be removed by "optionc"
+;; This shows that WITHOUT `/case`, "OptionC" WOULD be removed by "optionc".
 print "** Part 4: Control - `alter` (no `/case`) with differing case (results in REMOVAL) **"
-blkOpts4: copy ["optionA" "OptionC" "optionB"] ; "OptionC" is present
+blkOpts4: copy ["optionA" "OptionC" "optionB"] ; "OptionC" is present.
 print ["Before (control, no /case):" mold blkOpts4]
 print ["Action (control, no /case):" {`alter` blkOpts4 "optionc"}]
-alter blkOpts4 "optionc" ; No `/case`, so "optionc" finds and removes "OptionC"
+alter blkOpts4 "optionc" ; No `/case`, so "optionc" finds and removes "OptionC".
 print ["After (control, no /case):" mold blkOpts4]
 expected4: ["optionA" "optionB"]
 either safe-block-compare expected4 blkOpts4 [
@@ -220,7 +220,7 @@ processedFiles: collect [
 ]
 print ["Processed (kept and uppercased) files:" mold processedFiles]
 
-expectedProcessedFiles: ["IMAGE.JPG" "ARCHIVE.ZIP"] ;; Based on the logic
+expectedProcessedFiles: ["IMAGE.JPG" "ARCHIVE.ZIP"] ;; Based on the logic.
 either safe-block-compare expectedProcessedFiles processedFiles [
     print "PASS: Correctly identified and processed unique file types.  "
 ] [
@@ -233,7 +233,7 @@ print ""
 ;;
 ;; Purpose:
 ;; This example demonstrates a subtle but critically important Rebol behavior:
-;; how a literal `block!`, when passed repeatedly to a modifying function like `alter`
+;; how a literal `block!`, when passed repeatedly to a modifying `function` like `alter`
 ;; within a loop, can have its internal state (the `series!` it represents) modified
 ;; across those loop iterations.  It's a perfect learning example of how Rebol
 ;; can handle literals differently than variables in certain contexts, especially
@@ -249,15 +249,15 @@ print ""
 ;;     The `keep char_value` `block!` IS EXECUTED.
 ;;   - If `alter` returned `true` (`char_value` was not found and added), then `if not true` becomes `if false`.
 ;;     The `keep char_value` `block!` IS SKIPPED.
-;; Effectively, this idiom keeps characters that were present in the `LITERAL_BLOCK` at the
+;; Effectively, this idiom keeps `char!`s that were present in the `LITERAL_BLOCK` at the
 ;; moment `alter` was called for that specific `char!`.
 ;;
 ;; Educational Value:
-;; The "unexpected" behavior (e.g., a `char!` like 'l' being kept after the initial 'h' and 'e'
-;; from a conceptual `[h e]` list are removed, because the literal list itself changes)
+;; The "unexpected" behavior (e.g., a `char!` like `'l'` being kept after the initial `'h'` and `'e'`
+;; from a conceptual `[#"h" #"e"]` list are removed, because the literal list itself changes)
 ;; is highly valuable for understanding Rebol's internals.  It demonstrates why comprehending
 ;; these details matters for writing correct and predictable code.  This showcases that Rebol
-;; may reuse the underlying `series!` for a literal within a loop's scope.
+;; may reuse the underlying `series!` for a literal `block!` within a loop's scope.
 ;;
 ;; Warning & Best Practice:
 ;; Relying on this implicit modification of a shared literal structure across loop iterations
@@ -288,7 +288,7 @@ print ["         (This means `char!` was found in the literal's current state an
 
 resultCharsBlockEx08: collect [
     foreach char testStringEx08 [
-        ;; The literal `block!` [#"@" #"#" #"%" #"*" #"(" #")" #"!"] is passed.
+        ;; The literal `block!` `[#"@" #"#" #"%" #"*" #"(" #")" #"!"]` is passed.
         ;; Rebol reuses the underlying modifiable `series!` for this literal
         ;; across iterations of this `foreach` loop.  `alter` modifies this `series!`.
         if not alter [#"@" #"#" #"%" #"*" #"(" #")" #"!"] char [
@@ -300,30 +300,30 @@ resultCharsBlockEx08: collect [
 print ["Filtered `block!` (illustrating literal modification):" mold resultCharsBlockEx08]
 
 ;; Expected output is based on the trace of the literal `block!` being modified:
-;; For testStringEx08: "H@e#l%lo W*o(r)l!d"
-;; And literalBlockForAlter: [@" #" "%" "*" "(" ")" "!"]
+;; For `testStringEx08`: "H@e#l%lo W*o(r)l!d"
+;; And `literalBlockForAlter`: `[#"@" #"#" #"%" #"*" #"(" #")" #"!"]`
 
 ;; Trace:
-;; Char | Literal State Before alter         | `alter` finds? | `alter` returns | Literal State After `alter`         | Keep?
-;; -----|------------------------------------|--------------|---------------|-----------------------------------|------
-;; H    | [@"#"%"*()!]                       | No           | `true`          | [@"#"%"*()! H]                    | No
-;; @    | [@"#"%"*()! H]                     | Yes          | `false`         | [#"%"*()! H]                      | Yes (@)
-;; e    | [#"%"*()! H]                       | No           | `true`          | [#"%"*()! H e]                    | No
-;; #    | [#"%"*()! H e]                     | Yes          | `false`         | [%"*()! H e]                      | Yes (#)
-;; l    | [%"*()! H e]                       | No           | `true`          | [%"*()! H e l]                    | No
-;; %    | [%"*()! H e l]                     | Yes          | `false`         | ["*()! H e l]                      | Yes (%)
-;; l    | ["*()! H e l]                       | Yes          | `false`         | ["*()! H e]                        | Yes (l) <- 2nd 'l' from string found 'l' added to literal by 1st 'l'
-;; o    | ["*()! H e]                        | No           | `true`          | ["*()! H e o]                      | No
-;;      | (space)                            | No           | `true`          | ["*()! H e o  "]                  | No
-;; W    | ["*()! H e o  "]                   | No           | `true`          | ["*()! H e o  W"]                 | No
-;; *    | ["*()! H e o  W"]                  | Yes          | `false`         | ["()! H e o  W"]                  | Yes (*)
-;; o    | ["()! H e o  W"]                   | Yes          | `false`         | ["()! H e  W"]                    | Yes (o) <- 2nd 'o' from string found 'o' added to literal by 1st 'o'
-;; (    | ["()! H e  W"]                     | Yes          | `false`         | [")! H e  W"]                     | Yes (()
-;; r    | [")! H e  W"]                      | No           | `true`          | [")! H e  W r"]                   | No
-;; )    | [")! H e  W r"]                    | Yes          | `false`         | ["! H e  W r"]                    | Yes ())
-;; l    | ["! H e  W r"]                     | No           | `true`          | ["! H e  W r l"]                  | No      <- 3rd 'l' from string finds literal 'l' already removed
-;; !    | ["! H e  W r l"]                   | Yes          | `false`         | [" H e  W r l"]                   | Yes (!)
-;; d    | [" H e  W r l"]                    | No           | `true`          | [" H e  W r l d"]                 | No
+;; Char | Literal State Before `alter`       | `alter` finds? | `alter` returns | Literal State After `alter`       | Keep?
+;; -----|------------------------------------|----------------|-----------------|-----------------------------------|------
+;; H    | `[#"@" #"#" #"%" #"*" #"(" #")" #"!"]` | No             | `true`          | `[#"@" #"#" #"%" #"*" #"(" #")" #"!"] H` | No
+;; @    | `[#"@" #"#" #"%" #"*" #"(" #")" #"!"] H` | Yes            | `false`         | `[#"#" #"%" #"*" #"(" #")" #"!"] H`    | Yes (@)
+;; e    | `[#"#" #"%" #"*" #"(" #")" #"!"] H`    | No             | `true`          | `[#"#" #"%" #"*" #"(" #")" #"!"] H e`  | No
+;; #    | `[#"#" #"%" #"*" #"(" #")" #"!"] H e`  | Yes            | `false`         | `[#"%" #"*" #"(" #")" #"!"] H e`     | Yes (#)
+;; l    | `[#"%" #"*" #"(" #")" #"!"] H e`     | No             | `true`          | `[#"%" #"*" #"(" #")" #"!"] H e l`   | No
+;; %    | `[#"%" #"*" #"(" #")" #"!"] H e l`   | Yes            | `false`         | `[#"*" #"(" #")" #"!"] H e l`      | Yes (%)
+;; l    | `[#"*" #"(" #")" #"!"] H e l`      | Yes            | `false`         | `[#"*" #"(" #")" #"!"] H e`        | Yes (l) <- 2nd 'l' from `string!` found 'l' added to literal by 1st 'l'
+;; o    | `[#"*" #"(" #")" #"!"] H e`        | No             | `true`          | `[#"*" #"(" #")" #"!"] H e o`      | No
+;;      | (space)                            | No             | `true`          | `[#"*" #"(" #")" #"!"] H e o  `    | No
+;; W    | `[#"*" #"(" #")" #"!"] H e o  `    | No             | `true`          | `[#"*" #"(" #")" #"!"] H e o  W`   | No
+;; *    | `[#"*" #"(" #")" #"!"] H e o  W`   | Yes            | `false`         | `[#"(" #")" #"!"] H e o  W`       | Yes (*)
+;; o    | `[#"(" #")" #"!"] H e o  W`       | Yes            | `false`         | `[#"(" #")" #"!"] H e  W`         | Yes (o) <- 2nd 'o' from `string!` found 'o' added to literal by 1st 'o'
+;; (    | `[#"(" #")" #"!"] H e  W`         | Yes            | `false`         | `[#")" #"!"] H e  W`            | Yes (()
+;; r    | `[#")" #"!"] H e  W`            | No             | `true`          | `[#")" #"!"] H e  W r`          | No
+;; )    | `[#")" #"!"] H e  W r`          | Yes            | `false`         | `[#"!"] H e  W r`               | Yes ())
+;; l    | `[#"!"] H e  W r`               | No             | `true`          | `[#"!"] H e  W r l`             | No      <- 3rd 'l' from `string!` finds literal 'l' already removed
+;; !    | `[#"!"] H e  W r l`             | Yes            | `false`         | `[] H e  W r l`                 | Yes (!)
+;; d    | `[] H e  W r l`                 | No             | `true`          | `[] H e  W r l d`               | No
 
 expectedBlockEx08: [#"@" #"#" #"%" #"l" #"*" #"o" #"(" #")" #"!"]
 
@@ -380,12 +380,12 @@ formats: copy master-formats ; Work on a copy for this run/demonstration
 format-number: function [
     {Formats a number using a cycling list of format styles.
      Demonstrates correct list rotation for state management.  }
-    num [number!] "The number to format.  "
+    num [number!] "The `number!` to format.  "
     /local current-format formatted-string
 ][
     if empty? formats [
         print "Error: Formats list is empty!  Cannot pick a format.  "
-        return "ERROR_EMPTY_FORMATS" ; Or handle more gracefully
+        return "ERROR_EMPTY_FORMATS" ; Or handle more gracefully.
     ]
 
     current-format: first formats ; Get the current format style.
@@ -400,7 +400,7 @@ format-number: function [
             form num
         ]
         percentage [
-            ; Multiply by 100, round, convert to `integer!`, `form`, then `join` "%"
+            ; Multiply by 100, round, convert to `integer!`, `form`, then `join` "%".
             join form to-integer round (num * 100) "%"
         ]
         scientific [
@@ -415,7 +415,7 @@ format-number: function [
     formatted-string
 ]
 
-; Test the cycling behavior
+; Test the cycling behavior.
 print "Cycling through number formats:"
 results: copy []
 
