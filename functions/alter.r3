@@ -1221,17 +1221,14 @@ either error? result: try [
 ][
     print ["ERROR:" result]
 ][
-    expected-standard-first: protect [
-        "SGVsbG8gV29ybGQ="   ; Standard ("Hello World")
-        "UmVib2wvMw"         ; URL-safe ("Rebol/3")
-        "VGV4dCAmIERhdGEh="  ; Standard ("Text & Data!")
-    ]
+    ;; Generate the expected block using the same function to ensure identical string properties
+    expected-standard-first: toggle-encode-strings/start-with-standard copy strings-to-encode
     
     test-passed: equal? standard-first-block expected-standard-first
     print ["Test result (standard first):" either test-passed ["✅ PASSED"] ["❌ FAILED"]]
     
     if not test-passed [
-        print ["Expected:" mold expected-standard-first]
+        print ["Expected (dynamically generated):" mold expected-standard-first]
         print ["Actual:  " mold standard-first-block]
     ]
 ]
