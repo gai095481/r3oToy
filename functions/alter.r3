@@ -101,7 +101,7 @@ either ["verbose"] = blkFlags [print "✅ PASSED"] [print "❌ FAILED"]
 print ""
 bsVowels: make bitset! "aeiou"
 print ["Before:" mold bsVowels]
-print ["Action:" "Adds or removes `char! #"y"` from the vowels `bitset!`.  "]
+print ["Action:" "Adds or removes the `char!` literal `{#"y"}` from the vowels `bitset!`.  "]
 alter bsVowels #"y"
 print ["After:" mold bsVowels]
 expected_bsVowels: make bitset! "aeiouy"
