@@ -5,20 +5,26 @@ REBOL [
     Date: 2024-01-17
     Purpose: "Robust library for advanced array operations in Rebol 3"
     Notes: {
-        This library provides functions for creating and manipulating
-        multi-dimensional arrays in Rebol 3, with a focus on reliability
-        and proper error handling.
+        This library provides `functions` for creating and manipulating
+        multi-dimensional `arrays` in `Rebol 3`, with a focus on reliability
+        and proper error handling.  
     }
 ]
 
 ; --- Array Creation Functions ---
-function make-array [
-    "Creates a multi-dimensional array with specified dimensions"
-    dimensions [block!] "Block of dimensions for the array"
-    /with "Initialize array with a specific value"
-        value [any-type!] "Value to initialize array elements with"
+make-array: function [
+    {Creates a multi-dimensional `array`.  Specified by `dimensions`.
+    dimensions [block!] "Block of `dimensions` for the `array`.  Each `element` must be a positive `integer!`."
+    /with "Initialize `array` `elements` with a specific `value`."
+        value [any-type!] "The `value` to initialize `array` `elements` with.  Defaults to `none` if not provided."
+    Returns: [block!] The newly created multi-dimensional `array`.
+    Notes: {
+        Be cautious with very large `dimensions` as this can lead to significant memory allocation.  
+        Callers should sanitize untrusted inputs for `dimensions` to prevent potential Denial of Service.  
+    }
+    }
 ] [
-    ; Validate dimensions
+    ; Validate `dimensions`.
     if empty? dimensions [
         do make error! "Dimensions block cannot be empty"
     ]
@@ -32,18 +38,18 @@ function make-array [
         ]
     ]
 
-    ; Create array recursively
+    ; Create `array` recursively.
     initial-value: either with [value] [none]
 
-    make-nested: function [
+    make-nested: function [ ; Docstring for local functions is optional but good practice. Assuming none for now.
         dims [block!]
         curr-value [any-type!]
     ] [
         either empty? next dims [
-            ; Create 1D array for innermost dimension
+            ; Create 1D `array` for innermost `dimension`.
             array/initial first dims curr-value
         ] [
-            ; Create nested array for current dimension
+            ; Create nested `array` for current `dimension`.
             result: make block! first dims
             loop first dims [
                 append result make-nested next dims curr-value
@@ -56,12 +62,15 @@ function make-array [
 ]
 
 ; --- Array Access Functions ---
-function get-element [
-    "Safely access an array element at specified indices"
-    arr [block!] "Array to access"
-    indices [block!] "Block of indices to access"
+get-element: function [
+    {Safely access an `array` `element` at specified `indices`.
+    arr [block!] "The `array` to access."
+    indices [block!] "Block of `integer!` `indices` to access the `element`."
+    Returns: [any-type!] The `value` of the `element`.
+    Throws: [error!] If `indices` are invalid (e.g., out of bounds, wrong type).  
+    }
 ] [
-    ; Validate input
+    ; Validate input.
     if empty? indices [
         do make error! "Indices block cannot be empty"
     ]
@@ -79,18 +88,21 @@ function get-element [
     result
 ]
 
-function set-element [
-    "Safely modify an array element at specified indices"
-    arr [block!] "Array to modify"
-    indices [block!] "Block of indices to access"
-    value [any-type!] "New value to set"
+set-element: function [
+    {Safely modify an `array` `element` at specified `indices`.
+    arr [block!] "The `array` to modify.  This `array` is modified in place."
+    indices [block!] "Block of `integer!` `indices` to locate the `element`."
+    value [any-type!] "New `value` to set for the `element`."
+    Returns: [block!] The modified `arr`.
+    Throws: [error!] If `indices` are invalid (e.g., out of bounds, wrong type).  
+    }
 ] [
-    ; Validate input
+    ; Validate input.
     if empty? indices [
         do make error! "Indices block cannot be empty"
     ]
 
-    ; Navigate to parent block
+    ; Navigate to parent `block`.
     parent: arr
     for i 1 (length? indices) - 1 [
         idx: pick indices i
@@ -103,7 +115,7 @@ function set-element [
         parent: pick parent idx
     ]
 
-    ; Set value at final index
+    ; Set `value` at final `index`.
     final-idx: last indices
     if any [final-idx <= 0 final-idx > length? parent] [
         do make error! rejoin ["Final index out of bounds: " final-idx]
@@ -113,9 +125,19 @@ function set-element [
 ]
 
 ; --- Array Information Functions ---
-function get-dimensions [
-    "Get dimensions of a multi-dimensional array"
-    arr [block!] "Array to analyze"
+get-dimensions: function [
+    {Get `dimensions` of a multi-dimensional `array`.
+    arr [block!] "The `array` to analyze."
+    Returns: [block!] A `block!` of `integer!`s representing the `dimensions`.
+    Notes: {
+        For irregular `arrays` (where sub-`block`s at the same level have different lengths),
+        the reported `dimensions` are based on the path taken through the first `element` at each level.  
+        Use `valid-array?` to check for regularity.  
+        Returns `[]` if `arr` is not a `block!` or is an empty `block!`.  
+        Be cautious with extremely large or deeply nested `array` structures, as this may lead to performance
+        degradation or exhaust system limits.  Callers should sanitize untrusted inputs for `arr`.  
+    }
+    }
 ] [
     dims: copy []
     current: arr
@@ -130,14 +152,22 @@ function get-dimensions [
 ]
 
 ; --- Array Validation Functions ---
-function valid-array? [
-    "Check if array has consistent dimensions"
-    arr [block!] "Array to validate"
+valid-array?: function [
+    {Check if an `array` has consistent `dimensions` (i.e., is regular).
+    arr [block!] "The `array` to validate."
+    Returns: [logic!] `true` if the `array` is regular, `false` otherwise.
+    Notes: {
+        A scalar input (non-`block!`) will return `false`.  
+        An empty `block!` `[]` is considered a valid, regular `array`.  
+        Be cautious with extremely large or deeply nested `array` structures, as this may lead to performance
+        degradation or exhaust system limits.  Callers should sanitize untrusted inputs for `arr`.  
+    }
+    }
 ] [
     expected-dims: get-dimensions arr
     if empty? expected-dims [return true]
 
-    check-dims: function [
+    check-dims: function [ ; Docstring for local functions is optional but good practice. Assuming none for now.
         current [block!]
         level [integer!]
     ] [
