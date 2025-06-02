@@ -1,4 +1,42 @@
-REBOL[]
+REBOL [
+    Title: "Comprehensive Rebol 3 Block Manipulation Demonstrations"
+    Date: 17-Dec-2023 ; Generated on this date, adjust as needed
+    File: %untitled-script.r3
+    Author: "Person and AI assistant"
+    Version: "1.0.0"
+    Purpose: {
+        A collection of detailed examples demonstrating the creation, manipulation,
+        and copying of `block!` data types in Rebol 3 (Oldes branch). This script
+        serves as an educational resource, illustrating:
+
+        - Block Creation: Literal `[]`, `make block!`, `load` from string, and `to-block`.
+        - Basic Operations: Initial exploration of `append`, `pick`, and `replace`.
+        - Modification Actions: `append`, `insert`, `change`, `remove`, and `clear`,
+          including their common refinements (`/only`, `/part`, `/dup`).
+        - Copying Mechanisms: Shallow `copy`, `copy/part`, and `copy/deep` for
+          creating duplicates with varying levels of independence.
+        - Advanced Refinements: In-depth look at `/part` and `/dup` for `append` and `insert`,
+          and various combinations for `change`.
+        - `copy/types` Investigation: Observes the behavior of `copy/types` in
+          REBOL/Bulk 3.19.0, noting it does not filter as expected, and provides
+          a `filter-by-types` function as a workaround.
+        - Return Values: Explanation and demonstration of return values for actions.
+        - Common Patterns & Pitfalls: Highlights important concepts like shallow vs. deep
+          copies, handling series positions, and conditional logic.
+    }
+    Note: {
+        The examples are primarily designed for and tested with REBOL/Bulk 3.19.0
+        (Oldes branch). The observations regarding `copy/types` are specific to
+        this version's behavior. The script is verbose with `print` statements
+        to clearly show the outcome of each operation.
+    }
+    Keywords: [
+        rebol rebol3 block series list array manipulation demonstration tutorial
+        create make load to-block append insert change remove clear copy
+        /part /only /dup /deep /types shallow-copy deep-copy
+        refinements oldes-branch example
+    ]
+]
 
 blkFoo: copy []
 append blkFoo "cat"
