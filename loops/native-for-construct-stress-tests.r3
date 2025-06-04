@@ -1,14 +1,15 @@
 REBOL [
     Title: "REBOL 3 Oldes Native `for` Loop Construct - Comprehensive Test Suite and Analysis"
-    Date: 03-Jun-2025
+    Date: 04-Jun-2025
     File: %native-for-stress-tests.r3
-    Oldes-Note: "REBOL 3 Oldes refers to a specific community-driven branch of REBOL 3, and REBOL/Bulk 3.19.0 is a particular build from this lineage, known for certain behaviors tested herein."
-    Author: "Lutra AI and Claude 4 Sonnet AI"
+    Oldes-Note: "REBOL 3 Oldes is a specific community-driven branch of REBOL 3 and REBOL/Bulk 3.19.0 is a particular build from this lineage, known for certain behaviors tested herein."
+    Author: "Lutra AI, Claude 4 Sonnet AI"
+    Reviewer: "Jules AI"
     Version: "1.2.1"
     Status: "Reviewed and updated based on AI code review."
     Purpose: {
         Provides a comprehensive test suite and detailed analysis of REBOL 3 Oldes's
-        native `for` loop construct. This script documents both successful and
+        native `for` loop construct.  This script documents both successful and
         problematic behaviors to serve as a reference and guide for developers.
         It includes tests for:
         - Basic ascending and descending integer loops.
@@ -69,6 +70,7 @@ comment {
     While global state is generally minimized, it's practical for this
     self-contained test script.
 }
+
 test-state: make object! [
     current-test-num: 1
     pass-count: 0
@@ -160,6 +162,8 @@ comment {
     Result with native FOR: PASS
     Notes: Basic integer counting works correctly with native FOR.
 }
+
+
 run-test "Basic ascending loop 1-5" [
     do function [] [
         i: 0
@@ -357,10 +361,15 @@ run-test "Variable accessible in body" [
 comment {
     Test 13: Variable value after loop
     Purpose: Check the state of a local loop variable after loop execution, within a specific local scope.
-    Expected behavior: Given the test's scoping (`do function []`), the `i` in `reduce [result i]` refers to the local variable initialized to 100, which is effectively shielded from the `for` loop's own iteration variable if `for` localizes or shadows it. Thus, it appears as 100.
+    Expected behavior: Given the test's scoping (`do function []`), the `i` in `reduce [result i]` refers to the local variable initialized to 100,
+    which is effectively shielded from the `for` loop's own iteration variable if `for` localizes or shadows it. Thus, it appears as 100.
     Result with native FOR: PASS
-    Observed Behavior: In this specific test structure (`do function [] [ i: ... for i ... ]`), the `i` accessed by `reduce` after the loop retains its pre-loop value (100). This suggests that Rebol's `for` loop, when the loop variable `i` is already local to the immediate function scope, might use a shadowed iteration variable or behave in a way that the original local `i` remains unchanged by the loop's execution.
-    General Note on `for` Scope: While this test PASSES, it's important to note that `for` *can* modify variables in its parent context if they are not shielded by such immediate local scoping. True variable leakage or non-restoration is more evident when `for` acts on global variables or variables from less nested local scopes. This test's PASS highlights a specific nuance of `for` with pre-declared local loop variables.
+    Observed Behavior: In this specific test structure (`do function [] [ i: ... for i ... ]`), the `i` accessed by `reduce` after the loop retains
+    its pre-loop value (100). This suggests that Rebol's `for` loop, when the loop variable `i` is already local to the immediate function scope,
+    might use a shadowed iteration variable or behave in a way that the original local `i` remains unchanged by the loop's execution.
+    General Note on `for` Scope: While this test PASSES, it's important to note that `for` *can* modify variables in its parent context if
+    they are not shielded by such immediate local scoping. True variable leakage or non-restoration is more evident when `for` acts on global variables or
+    variables from less nested local scopes. This test's PASS highlights a specific nuance of `for` with pre-declared local loop variables.
     Recommendation: For predictable loop variable scoping, especially across different contexts, a custom safe wrapper is still advised.
 }
 run-test "Variable value after loop" [
@@ -447,7 +456,8 @@ particularly in languages where loop counters remain accessible after completion
 However, modern development practices increasingly emphasize functional programming principles and
 immutable state management, making variable preservation more relevant to contemporary software architecture.
 Enterprise applications with complex state management requirements benefit substantially from predictable variable scoping behavior.
-Multi-threaded systems, event-driven architectures, and component-based frameworks often require strict isolation between control structures and surrounding code contexts. The variable restoration capabilities of a custom safe wrapper would align with these architectural requirements while
+Multi-threaded systems, event-driven architectures, and component-based frameworks often require strict isolation between control structures and surrounding code contexts.
+The variable restoration capabilities of a custom safe wrapper would align with these architectural requirements while
 eliminating potential contamination vectors that could introduce subtle bugs in complex systems.
 
 - Zero Step Protection Analysis:
@@ -470,7 +480,8 @@ The minimal performance overhead of protective wrappers becomes negligible compa
 
 - Recommendation for Professional Development:
 The adoption of a custom safe wrapper as a standard practice reflects sound engineering judgment rather than excessive caution.
-Professional software development benefits from consistent patterns that eliminate categories of potential defects while maintaining code readability and maintainability. The wrapper approach provides insurance against edge cases while establishing reliable foundations for future development initiatives.
+Professional software development benefits from consistent patterns that eliminate categories of potential defects while maintaining code readability and maintainability.
+The wrapper approach provides insurance against edge cases while establishing reliable foundations for future development initiatives.
 The investment in comprehensive loop safety represents practical risk management for production environments where
 system reliability directly impacts business operations and user experience.
 The documented defects in REBOL's native implementation create unnecessary technical debt that defensive programming practices can effectively eliminate.
