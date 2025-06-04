@@ -2,9 +2,10 @@ REBOL [
     Title: "REBOL 3 Oldes Native `for` Loop Construct - Comprehensive Test Suite and Analysis"
     Date: 03-Jun-2025
     File: %native-for-stress-tests.r3
+    Oldes-Note: "REBOL 3 Oldes refers to a specific community-driven branch of REBOL 3, and REBOL/Bulk 3.19.0 is a particular build from this lineage, known for certain behaviors tested herein."
     Author: "Lutra AI and Claude 4 Sonnet AI"
     Version: "1.1.0"
-    Status: "Full AI review pending."
+    Status: "Reviewed and updated based on AI code review."
     Purpose: {
         Provides a comprehensive test suite and detailed analysis of REBOL 3 Oldes's
         native `for` loop construct. This script documents both successful and
@@ -39,10 +40,34 @@ REBOL [
         floating-point-precision zero-step infinite-loop variable-leakage
         oldes-branch REBOL/Bulk safe-for recommendation
     ]
+    Security-Considerations: {
+        1. Denial of Service (DoS): The native `for` loop's lack of zero-step protection (Test 14)
+           is a critical flaw. If loop parameters (start, end, step) are derived from
+           unvalidated external/untrusted input, an attacker can supply a step of zero,
+           causing the script to hang indefinitely, leading to a Denial of Service.
+           Always validate inputs when they control loop parameters. The provided
+           `safe-for` stub includes a check for zero step.
+
+        2. Variable Scope Leakage: The failure to restore the loop variable's original
+           value (Test 13) can lead to unpredictable behavior and subtle bugs.
+           In complex applications, if the leaked variable holds sensitive data or
+           influences security-critical logic later in the program flow, this could
+           indirectly contribute to information leakage or flawed access control.
+           The `safe-for` stub demonstrates scope preservation.
+
+        3. Floating-Point Precision: Inaccuracies with small fractional steps (Test 11)
+           can lead to incorrect loop execution counts. If such loops are used in
+           contexts involving financial calculations, resource allocation, or threshold-based
+           security decisions, these inaccuracies could result in exploitable logic errors.
+           Using a robust decimal arithmetic library or careful comparison (e.g., epsilon
+           comparison as in `safe-for`) is advised for such cases.
+    }
 ]
 
 
-; Test state object to track test execution
+; test-state: Global object to track test execution progress and results.
+; While global state is generally minimized, it's practical for this
+; self-contained test script.
 test-state: make object! [
     current-test-num: 1
     pass-count: 0
@@ -61,25 +86,34 @@ run-test: function [
     print ["TEST" test-state/current-test-num ":" test-name]
     test-state/current-test-num: test-state/current-test-num + 1
 
-    ; Use try/with for modern error handling
+    ; Execute the test code, capturing normal result or error object
+    ; `try/with` is used for robust error trapping.
     set/any 'result try/with test-code func [error] [error]
     error-msg: none
 
+    ; Case 1: Test code produced an error object.
     either error? :result [
+        ; Case 1a: Error occurred, but no error was expected.
         either not error? expected-result [
             error-msg: reform ["Got error:" result/id "but expected:" mold expected-result]
             success: false
         ][
+            ; Case 1b: Error occurred, and an error was expected.
+            ; Compare the error IDs for equality.
             success: (result/id = expected-result/id)
             if not success [
                 error-msg: reform ["Got error:" result/id "but expected error:" expected-result/id]
             ]
         ]
     ][
+        ; Case 2: Test code did NOT produce an error object (got a normal result).
         either error? expected-result [
+            ; Case 2a: No error occurred, but an error was expected.
             error-msg: reform ["Expected error:" expected-result/id "but got:" mold result]
             success: false
         ][
+            ; Case 2b: No error occurred, and a normal result was expected.
+            ; Standard equality check for non-error results.
             success: equal? :result expected-result
             if not success [
                 error-msg: reform ["Expected:" mold expected-result "but got:" mold :result]
@@ -100,11 +134,81 @@ run-test: function [
     print ""
 ]
 
+; --- Safe-For Wrapper (Conceptual Implementation) ---
+; The following 'safe-for' is a conceptual stub. A robust implementation
+; would be required for production use. It illustrates the key safety
+; features discussed in this test suite's recommendations.
+
+safe-for: func [
+    "Safely iterates a variable from start to end by a step value."
+    word [word!]            "Word to set (loop variable)"
+    start [any-number!]     "Starting value"
+    end [any-number!]       "Ending value"
+    step [any-number!]      "Step value"
+    body [block!]           "Block to evaluate for each step"
+    /local original-value current-value effective-step
+           loop-condition comparison-adjustment
+] [
+    if zero? step [
+        cause-error 'script 'invalid-arg "safe-for: Step value cannot be zero."
+    ]
+
+    original-value: either bound? word [get word] [none]
+    current-value: start
+    effective-step: step
+
+    ; Adjust comparison for floating point numbers to avoid precision pitfalls
+    ; This is a simplified epsilon comparison; robust versions might be more complex.
+    comparison-adjustment: either all [decimal? effective-step effective-step <> 0] [
+        abs effective-step * 0.00000001 ; Small epsilon
+    ] [0]
+
+    loop-condition: either effective-step > 0 [
+        [to-logic :current-value <= (:end + :comparison-adjustment)]
+    ] [
+        [to-logic :current-value >= (:end - :comparison-adjustment)]
+    ]
+
+    while loop-condition [
+        set word current-value
+        do body
+        current-value: current-value + effective-step
+    ]
+
+    ; Restore original value or unbind if it was not bound before
+    either original-value [
+        set word original-value
+    ] [
+        if find words-of self word [unset word] ; Unset only if it became global
+    ]
+    unset 'current-value ; Clean up local
+]
+
+comment {
+    Key features of a robust `safe-for`:
+    1. Zero-Step Check: Explicitly disallows a step of 0 to prevent infinite loops.
+    2. Scope Preservation: Stores the loop variable's original value (if any) and
+       restores it after the loop, preventing leakage.
+    3. Floating-Point Precision Handling: For decimal steps, incorporates an
+       epsilon comparison or similar technique to mitigate precision errors near
+       the loop boundary (the example above uses a simplified adjustment).
+    4. Compatibility: Aims to be a mostly drop-in replacement for native `for`
+       for common use cases, while adding safety.
+}
+; --- End of Safe-For Wrapper ---
+
 print "=== REBOL 3 OLDES NATIVE FOR LOOP TEST SUITE ==="
 print ["Started at:" now]
 print ""
 print "=== BASIC FUNCTIONALITY TESTS ==="
 print ""
+
+; Note on Test Structure:
+; Each test's execution block is wrapped in `do function [] [...]`.
+; This ensures that variables like `i` and `result` used within the
+; test logic are local to that specific test, preventing unintended
+; interactions or state leakage between tests. This is a standard
+; practice for creating self-contained test units.
 
 ;-------------------------------------------------------------------
 ; Test 1: Basic ascending loop 1-5.
@@ -372,6 +476,7 @@ print "- Zero step protection (preventing infinite loops)"
 print "- Production code where reliability is essential"
 print ""
 print "RECOMMENDATION: Use `safe-for` consistently in production code for all `for` loops"
+print "(A conceptual `safe-for` stub illustrating these principles is included above.)"
 
 comment {
 Question: Do programmers typically use these type of for loops or are these extreme use cases?
@@ -411,7 +516,7 @@ Web applications processing form input, data analysis tools handling empty datas
 algorithmic trading systems responding to market conditions represent common sources of dynamic step generation.
 While experienced programmers rarely write explicit zero step loops, the protection becomes valuable in robust error handling strategies.
 Production systems that process external data or respond to user input benefit from comprehensive validation logic that
-prevents system hangs regardless of input quality or calculation accuracy.
+    prevents system hangs (and potential Denial of Service) regardless of input quality or calculation accuracy.
 
 - Industry Application Patterns:
 Enterprise software development increasingly emphasizes defensive programming practices and comprehensive error handling.
