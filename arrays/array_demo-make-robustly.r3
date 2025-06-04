@@ -1,6 +1,7 @@
 REBOL [
     Title: "Rebol 3 Oldes Multi-Dimensional Array Manipulation Library with Test Suite"
-    Date: 04-Jun-2025
+    File: %array_demo-make-robustly.r3
+    Date: now/date
     Status: "AI reviewed as production ready."
     Author: "DeepSeek R1 v2025-05 and Jules AI assistant" ;; Original Author: "Trae AI Assistant", but had syntax errors.
     Version: "0.2.4"
@@ -622,3 +623,4 @@ assert-equal "VA11 result" result-va11 false
 ;; --- Final Summary ---
 print-summary
 ; Script last updated: 2024-06-04/12:00:00 UTC
+; Script last updated: 2024-06-04/12:30:00 UTC
