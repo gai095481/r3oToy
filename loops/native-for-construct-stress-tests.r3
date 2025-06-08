@@ -5,7 +5,7 @@ REBOL [
     Oldes-Note: "REBOL 3 Oldes is a specific community-driven branch of REBOL 3 and REBOL/Bulk 3.19.0 is a particular build from this lineage, known for certain behaviors tested herein."
     Author: "Lutra AI, Claude 4 Sonnet AI"
     Reviewer: "Jules AI"
-    Version: "1.2.1"
+    Version: 1.2.1
     Status: "Reviewed and updated based on AI code review."
     Purpose: {
         Provides a comprehensive test suite and detailed analysis of REBOL 3 Oldes's
