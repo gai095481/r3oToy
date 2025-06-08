@@ -3,7 +3,7 @@ REBOL [
     Date: 06-Jul-2025
     File: %untitled-script.r3
     Author: "Person and AI assistant"
-    Version: "1.0.0"
+    Version: 1.0.0
     Purpose: {
         A collection of detailed examples demonstrating the creation, manipulation,
         and copying of `block!` data types in Rebol 3 (Oldes branch). This script
