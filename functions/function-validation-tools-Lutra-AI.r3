@@ -3,7 +3,7 @@ REBOL [
     Date: 07-Jun-2025
     File: %function-validation-tools.r3
     Author: "Lutra AI Assistant guided by a person"
-    Version: "1.0.0"
+    Version: 1.0.0
     Status: "Minor improvements needed."
     Purpose: {
         Provides a comprehensive set of utilities for validating function existence
