@@ -14,6 +14,7 @@ I must internalize and strictly adhere to the following consolidated Rebol 3 Old
         - Error objects must follow the structured format: `make error! [type: 'User id: message message: "Descriptive error text"]`. The `id:` field must be a `word!` datatype (e.g., `message`, `custom-error-id`), not a `lit-word!` (e.g., not `'message`).
         - To test if a function call returns an error, the test harness should use: `result: try [call-function]`, then check `error? result`.
         - For more advanced error trapping within functions (e.g., catching specific error types or IDs), `try/with` can be used: `try/with [code-to-try] func [error-obj-word] [handler-code]`.
+        - `try/except` is deprecated and will be removed! Use `try/with` instead.
     - **Variable Reference Rules:** In iteration contexts such as `foreach`, use the variable directly to access its value (e.g., `foreach val data [print val]`). The colon prefix `:var` should only be used when explicitly passing the symbol itself rather than its value (e.g., `type? :val`).
     - **Logic Value Handling:** Before sorting operations, filter out `logic!` values using the correct syntax: `remove-each item data [logic? item]` (without the colon prefix on the item variable if accessing its value).
     - **Control Flow:** The `else` keyword is strictly prohibited. Use `either condition [true-branch] [false-branch]`, `case` or `switch` constructs instead.
