@@ -16,6 +16,44 @@ I must internalize and strictly adhere to the following consolidated Rebol 3 Old
     - **Error Handling Standards:**
         - Functions should _return_ error objects when error conditions are met.
         - Error objects must follow the structured format: `make error! [type: 'User id: message message: "Descriptive error text"]`. The `id:` field must be a `word!` datatype (e.g., `message`, `custom-error-id`), not a `lit-word!` (e.g., not `'message`).
+
+- Here are working examples of robust error handling and validation you adapt to your script:
+
+**1. Error Handling via try/with (instead of manual error construction)**
+```rebol
+try/with [
+    test-data: "Valid data string"
+    validate-series/with-extra
+        test-data
+        "data string in error context"
+        function [val][
+            print ["PASSED: Data validation successful:" val]
+        ]
+] function [error] [
+    print ["❌ FAILED during validation:" error/id]
+]
+```
+**The error object’s id is accessed as error/id. You do not manually construct an error; you let the error system handle it and respond based on its id/type.**
+
+**2. Returning Error Objects:**
+- Robust error reporting is done this way:
+```rebol
+safe-alter-series-type: function [
+    target-series [any-type!]
+    value-to-toggle [any-type!]
+][
+    either error? error-obj: try [
+        ; operation...
+    ][
+        print ["ERROR during alter:" mold error-obj]
+        error-obj ; Return the error object directly
+    ]
+]
+```
+**Again, instead of `make error!`, the code traps and passes on the error object.**
+
+**Prefer catching and processing errors, not constructing them!**
+
         - To test if a function call returns an error, the test harness should use: `result: try [call-function]`, then check `error? result`.
         - For more advanced error trapping within functions (e.g., catching specific error types or IDs), `try/with` can be used: `try/with [code-to-try] func [error-obj-word] [handler-code]`.
         - `try/except` is deprecated and will be removed! Use `try/with` instead.
