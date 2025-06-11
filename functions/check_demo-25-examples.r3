@@ -46,6 +46,8 @@ internal consistency of series data structures in Rebol 3 programs.
 ;;============================================================================
 ;; HELPER FUNCTION FOR SERIES VALIDATION
 ;;============================================================================
+;; This helper function centralizes all series validation logic to avoid code duplication.
+;; It provides a consistent interface for checking series validity and reporting results.
 validate-series: function [
     "Performs validation on a series value with comprehensive error handling"
     series-value [series!] "The series value to validate"
@@ -55,20 +57,50 @@ validate-series: function [
     /with-extra "Perform extra operations on successful validation"
     extra-fn [any-function!] "Function to perform extra operations on successful validation"
 ][
+    {Provide a standardized way to validate series data using the `check` function.
+
+    This function handles the common pattern of:
+    1. Displaying the original series
+    2. Validating it with `check`
+    3. Reporting success or failure
+    4. Optionally performing additional operations
+
+    Parameters:
+        series - Any Rebol series! value to validate
+        description - A string describing what is being validated
+        /with-formatting - Whether to use a custom formatter
+        formatter - A function to format the value for display (e.g., mold)
+        /with-extra - Whether to perform extra operations on success
+        extra-operation - A function to call with the validated series
+
+    Returns:
+        [logic!] True if validation succeeded, False if it failed
+
+    Example usage:
+        validate-series "Hello" "greeting string"
+        validate-series/with-formatting [1 2 3] "number block" :mold
+        validate-series/with-extra data "important data" func [val][print ["Length:" length? val]]
+    }
+
+    ;; Use formatter if provided, otherwise default to identity function
     formatted-value: either with-formatting [
         do [formatter series-value]
     ][
         series-value
     ]
 
+    ;; Output the original value:
     print reform ["Original " type-name ":" formatted-value]
 
+    ;; Try to validate with `check`, handle potential errors:
     checked-result: try [check series-value]
 
+    ;; Process the validation result:
     either error? checked-result [
         print reform [type-name " series integrity `check` ❌ FAILED with error:" checked-result/id]
         return false
     ][
+        ;; Success path:
         formatted-result: either with-formatting [
             do [formatter checked-result]
         ][
@@ -89,8 +121,18 @@ validate-series: function [
 ]
 
 ;;============================================================================
-;; EXAMPLE FUNCTIONS USING THE HELPER
+;; EXAMPLE FUNCTIONS USING THE HELPER FUNCTION.
 ;;============================================================================
+
+;; ==========================================================================
+;; EXAMPLE 1: Basic String Checking
+;;
+;; Purpose: Demonstrates the most basic use of `check` on a simple string.
+;; Key concepts:
+;; - Basic validation of a string series
+;; - Shows successful validation result
+;; - Demonstrates that `check` returns the original value when valid
+;; ==========================================================================
 example-01: function [
     "Demonstrates proper string validation using the `check` function with error handling."
 ][
@@ -108,6 +150,15 @@ example-01: function [
     validate-series my-string "string"
 ]
 
+;; ==========================================================================
+;; EXAMPLE 2: Block Checking
+;;
+;; Purpose: Demonstrates using `check` with block series.
+;; Key concepts:
+;; - Block validation with heterogeneous content
+;; - Shows that `check` works with any series type
+;; - Uses the mold function to display block contents clearly
+;; ==========================================================================
 example-02: function [
     "Demonstrates proper block validation using the `check` function with error handling."
 ][
@@ -125,6 +176,15 @@ example-02: function [
     validate-series/with-formatting my-block "block" :mold
 ]
 
+;; ==========================================================================
+;; EXAMPLE 3: Binary Data Checking
+;;
+;; Purpose: Demonstrates using `check` with binary data.
+;; Key concepts:
+;; - Binary data validation.
+;; - Converting between binary and string representations.
+;; - Shows that `check` works with binary series types.
+;; ==========================================================================
 example-03: function [
     "Demonstrates proper binary data validation using the `check` function with error handling."
 ][
@@ -146,7 +206,15 @@ example-03: function [
         func [val][print reform ["As string:" to-string val]]
 ]
 
-
+;; ==========================================================================
+;; EXAMPLE 4: Empty Series Checking
+;;
+;; Purpose: Demonstrates validation of empty series.
+;; Key concepts:
+;; - Empty string, block, and binary validation.
+;; - Shows that `check` properly handles empty series.
+;; - Demonstrates that empty series are valid series.
+;; ==========================================================================
 example-04: function [
     "Demonstrates validation of empty series using the `check` function."
 ][
@@ -173,6 +241,15 @@ example-04: function [
     validate-series/with-formatting empty-binary "empty binary" :mold
 ]
 
+;; ==========================================================================
+;; EXAMPLE 5: String Modification Checking
+;;
+;; Purpose: Demonstrates validation after string modifications.
+;; Key concepts:
+;; - String modification with append and validation
+;; - Shows that `check` verifies series after modification
+;; - Demonstrates multiple operations on the same series
+;; ==========================================================================
 example-05: function [
     "Demonstrates performance characteristics of `check` on large strings."
 ][
@@ -201,7 +278,15 @@ example-05: function [
         ]
 ]
 
-
+;; ==========================================================================
+;; EXAMPLE 6: Block Modification Checking
+;;
+;; Purpose: Demonstrates validation after block modifications.
+;; Key concepts:
+;; - Block modification with append and validation
+;; - Shows that `check` verifies blocks after modification
+;; - Uses mold for clear display of block contents
+;; ==========================================================================
 example-06: function [
     "Demonstrates validation of nested block structures using the `check` function."
 ][
@@ -233,6 +318,15 @@ example-06: function [
         ]
 ]
 
+;; ==========================================================================
+;; EXAMPLE 7: Function in Block Checking
+;;
+;; Purpose: Demonstrates validation of blocks containing functions.
+;; Key concepts:
+;; - Blocks with function values
+;; - Shows that `check` handles complex data types
+;; - Uses mold for clear display of block contents
+;; ==========================================================================
 example-07: function [
     "Demonstrates validation of strings after modifications using the `check` function."
 ][
@@ -264,6 +358,15 @@ example-07: function [
 ]
 
 
+;; ==========================================================================
+;; EXAMPLE 8: Nested Block Checking
+;;
+;; Purpose: Demonstrates validation of nested block structures.
+;; Key concepts:
+;; - Nested block validation
+;; - Shows that `check` handles complex nested structures
+;; - Uses mold for clear display of complex block contents
+;; ==========================================================================
 example-08: function [
     "Demonstrates validation of blocks after various insertion operations."
 ][
@@ -296,6 +399,15 @@ example-08: function [
     validate-series/with-formatting work-block "modified block (middle insert)" :mold
 ]
 
+;; ==========================================================================
+;; EXAMPLE 9: String Replacement Checking
+;;
+;; Purpose: Demonstrates validation after string replacements.
+;; Key concepts:
+;; - String replacement with change operation
+;; - Shows that `check` verifies series after modification
+;; - Demonstrates in-place modification of strings
+;; ==========================================================================
 example-09: function [
     "Demonstrates validation of binary data after various manipulation operations."
 ][
@@ -325,6 +437,15 @@ example-09: function [
     validate-series/with-formatting binary-data2 "modified binary (insert)" :mold
 ]
 
+;; ==========================================================================
+;; EXAMPLE 10: Block Clear Checking
+;;
+;; Purpose: Demonstrates validation after clearing a block.
+;; Key concepts:
+;; - Block clearing with clear operation
+;; - Shows that `check` verifies empty blocks
+;; - Demonstrates that clear preserves series structure
+;; ==========================================================================
 example-10: function [
     "Demonstrates validation of file path strings using the `check` function."
 ][
@@ -375,184 +496,294 @@ example-11: function [
         ]
 ]
 
-example-12: function [] [
-	email-value: none
-	email-string: none
-	checked-email: none
-	print "^/--- Example 12: Email String Checking ---"
-	print "Checking email converted to string..."
-	email-value: user@example.com
-	email-string: to-string email-value
+example-12: function [
+    "Demonstrates validation of email strings using the `check` function."
+][
+    {Validates email string integrity by converting an email value to a string
+    and processing it through the `check` function. Demonstrates that `check`
+    properly handles strings representing email addresses.
+    Parameters: None
+    Returns: [unset!] "No return value - function performs demonstration output"
+    Errors: None - function captures and handles all errors from check function internally.}
 
-	checked-email: check email-string
-	print ["Email as string:" checked-email]
-	print ["Email string structure validated"]
+    print "--- Example 12: Email String Checking ---"
+    print "Checking email converted to string..."
+
+    email-value: user@example.com
+    email-string: to-string email-value
+
+    validate-series/with-extra
+        email-string
+        "email string"
+        func [val][
+            print ["Email as string:" val]
+            print "Email string structure validated"
+        ]
 ]
 
-example-13: function [] [
-	multi-line: none
-	checked-multi: none
-	print "^/--- Example 13: Multi-line String Checking ---"
-	print "Checking multi-line string..."
-	multi-line: {Line 1
+example-13: function [
+    "Demonstrates validation of multi-line strings using the `check` function."
+][
+    {Validates multi-line string integrity by processing a complex string
+    through the `check` function. Demonstrates that `check` properly handles
+    strings with newlines and indentation.
+    Parameters: None
+    Returns: [unset!] "No return value - function performs demonstration output"
+    Errors: None - function captures and handles all errors from check function internally.}
+
+    print "--- Example 13: Multi-line String Checking ---"
+    print "Checking multi-line string..."
+
+    multi-line: {Line 1
 Line 2
 Line 3
     Indented line
 Final line}
 
-	checked-multi: check multi-line
-	print "Multi-line string structure:"
-	print checked-multi
-	print "^/Multi-line validation completed"
+    validate-series/with-extra
+        multi-line
+        "multi-line string"
+        func [val][
+            print "Multi-line string structure:"
+            print val
+            print "^/Multi-line validation completed"
+        ]
 ]
 
-example-14: function [] [
-	mixed-block: none
-	checked-mixed: none
-	print "^/--- Example 14: Block with Mixed Data Types ---"
-	print "Checking block with various data types..."
-	mixed-block: [
-		"string"
-		123
-		45.67
-		true
-		none
-		word
-		[nested block]
-		(to-binary "data")
-	]
+example-14: function [
+    "Demonstrates validation of blocks with mixed data types using the `check` function."
+][
+    {Validates mixed-type block integrity by processing a block containing various
+    data types through the `check` function. Demonstrates that `check` properly
+    handles blocks with heterogeneous content.
+    Parameters: None
+    Returns: [unset!] "No return value - function performs demonstration output"
+    Errors: None - function captures and handles all errors from check function internally.}
 
-	checked-mixed: check mixed-block
-	print ["Mixed type block validated"]
-	print ["Block contains" length? checked-mixed "elements"]
+    print "--- Example 14: Block with Mixed Data Types ---"
+    print "Checking block with various data types..."
+
+    mixed-block: [
+        "string"
+        123
+        45.67
+        true
+        none
+        word
+        [nested block]
+        (to-binary "data")
+    ]
+
+    validate-series/with-formatting/with-extra
+        mixed-block
+        "mixed-type block"
+        :mold
+        func [val][
+            print "Mixed type block validated"
+            print ["Block contains" length? val "elements"]
+        ]
 ]
 
-example-15: function [] [
-	work-block: none
-	print "^/--- Example 15: Checking After Block Removal Operations ---"
-	print "Checking block after removal operations..."
-	work-block: [a b c d e f g]
-	print ["Original:" mold work-block]
+example-15: function [
+    "Demonstrates validation after various block removal operations."
+][
+    {Validates block integrity after multiple removal operations by processing
+    the block through the `check` function after each operation. Demonstrates that
+    `check` properly verifies the series after common removal operations.
+    Parameters: None
+    Returns: [unset!] "No return value - function performs demonstration output"
+    Errors: None - function captures and handles all errors from check function internally.}
 
-	remove work-block
-	check work-block
-	print ["After remove first:" mold work-block]
+    print "--- Example 15: Checking After Block Removal Operations ---"
+    print "Checking block after removal operations..."
 
-	remove back tail work-block
-	check work-block
-	print ["After remove last:" mold work-block]
+    work-block: [a b c d e f g]
+    print ["Original:" mold work-block]
 
-	remove/part work-block 2
-	check work-block
-	print ["After remove/part 2:" mold work-block]
+    ;; Remove first element and validate
+    remove work-block
+    print ["After remove first:" mold work-block]
+    validate-series/with-formatting work-block "block after remove first" :mold
+
+    ;; Remove last element and validate
+    remove back tail work-block
+    print ["After remove last:" mold work-block]
+    validate-series/with-formatting work-block "block after remove last" :mold
+
+    ;; Remove part and validate
+    remove/part work-block 2
+    print ["After remove/part 2:" mold work-block]
+    validate-series/with-formatting work-block "block after remove/part" :mold
 ]
 
+example-16: function [
+    "Demonstrates validation of strings after parsing operations."
+][
+    {Validates string parts after splitting by processing each part through the `check` function.
+    Demonstrates that `check` properly verifies strings resulting from parsing operations.
+    Parameters: None
+    Returns: [unset!] "No return value - function performs demonstration output"
+    Errors: None - function captures and handles all errors from check function internally.}
 
-example-16: function [] [
-	source-string: none
-	parts: none
-	part: none
-	checked-part: none
-	print "^/--- Example 16: String Parsing Results Checking ---"
-	print "Checking strings after parsing operations..."
-	source-string: "word1,word2,word3,word4"
-	parts: split source-string ","
+    print "--- Example 16: String Parsing Results Checking ---"
+    print "Checking strings after parsing operations..."
 
-	foreach part parts [
-		checked-part: check part
-		print ["Parsed part validated:" checked-part]
-	]
+    source-string: "word1,word2,word3,word4"
+    parts: split source-string ","
+
+    foreach part parts [
+        validate-series part join "parsed part '" [part "'"]
+    ]
 ]
 
+example-17: function [
+    "Demonstrates validation of copied series."
+][
+    {Validates both original and copied series by processing them through the `check` function.
+    Demonstrates that `check` properly verifies both original and copied series.
+    Parameters: None
+    Returns: [unset!] "No return value - function performs demonstration output"
+    Errors: None - function captures and handles all errors from check function internally.}
 
-example-17: function [] [
-	original-block: none
-	copied-block: none
-	print "^/--- Example 17: Checking Copied Series ---"
-	print "Checking copied series..."
-	original-block: [1 2 3 4 5]
-	copied-block: copy original-block
+    print "--- Example 17: Checking Copied Series ---"
+    print "Checking copied series..."
 
-	print ["Original block valid:" either check original-block ["YES"]["NO"]]
-	print ["Copied block valid:" either check copied-block ["YES"]["NO"]]
+    original-block: [1 2 3 4 5]
+    copied-block: copy original-block
 
-	append copied-block 6
-	print ["Original after copy modified:" either check original-block ["YES"]["NO"]]
-	print ["Modified copy valid:" either check copied-block ["YES"]["NO"]]
+    print "Checking original block:"
+    validate-series/with-formatting original-block "original block" :mold
+
+    print "Checking copied block:"
+    validate-series/with-formatting copied-block "copied block" :mold
+
+    ;; Modify copied block and check both again
+    append copied-block 6
+    print "After modifying the copied block:"
+
+    print "Checking original block again:"
+    validate-series/with-formatting original-block "original block after copy modified" :mold
+
+    print "Checking modified copied block:"
+    validate-series/with-formatting copied-block "modified copied block" :mold
 ]
 
+example-18: function [
+    "Demonstrates validation of series at different positions."
+][
+    {Validates series at different positions by processing them through the `check` function.
+    Demonstrates that `check` properly verifies series regardless of position.
+    Parameters: None
+    Returns: [unset!] "No return value - function performs demonstration output"
+    Errors: None - function captures and handles all errors from check function internally.}
 
-example-18: function [] [
-	data-block: none
-	at-head: none
-	at-middle: none
-	at-tail: none
-	print "^/--- Example 18: Checking Series at Different Positions ---"
-	print "Checking series at various positions..."
-	data-block: [a b c d e f]
+    print "--- Example 18: Checking Series at Different Positions ---"
+    print "Checking series at various positions..."
 
-	at-head: head data-block
-	check at-head
-	print ["At head position - valid"]
+    data-block: [a b c d e f]
 
-	at-middle: at data-block 3
-	check at-middle
-	print ["At middle position - valid"]
+    ;; Check at head position
+    at-head: head data-block
+    validate-series/with-formatting/with-extra
+        at-head
+        "series at head position"
+        :mold
+        func [val][print "At head position - valid"]
 
-	at-tail: tail data-block
-	check at-tail
-	print ["At tail position - valid"]
+    ;; Check at middle position
+    at-middle: at data-block 3
+    validate-series/with-formatting/with-extra
+        at-middle
+        "series at middle position"
+        :mold
+        func [val][print "At middle position - valid"]
+
+    ;; Check at tail position
+    at-tail: tail data-block
+    validate-series/with-formatting/with-extra
+        at-tail
+        "series at tail position"
+        :mold
+        func [val][print "At tail position - valid"]
 ]
 
-example-19: function [] [
-	data-string: none
-	skipped-2: none
-	skipped-back: none
-	print "^/--- Example 19: Checking Skip Results ---"
-	print "Checking series after skip operations..."
-	data-string: "abcdefghijk"
+example-19: function [
+    "Demonstrates validation of series after skip operations."
+][
+    {Validates series after skip operations by processing them through the `check` function.
+    Demonstrates that `check` properly verifies series after position changes.
+    Parameters: None
+    Returns: [unset!] "No return value - function performs demonstration output"
+    Errors: None - function captures and handles all errors from check function internally.}
 
-	skipped-2: skip data-string 2
-	check skipped-2
-	print ["Skipped 2 chars:" copy skipped-2]
+    print "--- Example 19: Checking Skip Results ---"
+    print "Checking series after skip operations..."
 
-	skipped-back: skip skipped-2 -1
-	check skipped-back
-	print ["Skipped back 1:" copy skipped-back]
+    data-string: "abcdefghijk"
+
+    ;; Skip forward and validate
+    skipped-2: skip data-string 2
+    validate-series/with-extra
+        skipped-2
+        "series after skip 2"
+        func [val][print ["Skipped 2 chars:" copy val]]
+
+    ;; Skip backward and validate
+    skipped-back: skip skipped-2 -1
+    validate-series/with-extra
+        skipped-back
+        "series after skip back"
+        func [val][print ["Skipped back 1:" copy val]]
 ]
 
+example-20: function [
+    "Demonstrates validation of reversed series."
+][
+    {Validates series after reversal by processing them through the `check` function.
+    Demonstrates that `check` properly verifies series after the reverse operation.
+    Parameters: None
+    Returns: [unset!] "No return value - function performs demonstration output"
+    Errors: None - function captures and handles all errors from check function internally.}
 
-example-20: function [] [
-	original-block: none
-	checked-reversed: none
-	checked-restored: none
-	print "^/--- Example 20: Checking Reversed Series ---"
-	print "Checking reversed series..."
-	original-block: [1 2 3 4 5]
-	print ["Original:" mold original-block]
+    print "--- Example 20: Checking Reversed Series ---"
+    print "Checking reversed series..."
 
-	reverse original-block
-	checked-reversed: check original-block
-	print ["Reversed and validated:" mold checked-reversed]
+    original-block: [1 2 3 4 5]
+    print ["Original:" mold original-block]
 
-	reverse original-block
-	checked-restored: check original-block
-	print ["Restored and validated:" mold checked-restored]
+    ;; Reverse and validate
+    reverse original-block
+    print "After reversing:"
+    validate-series/with-formatting original-block "reversed block" :mold
+
+    ;; Restore and validate
+    reverse original-block
+    print "After restoring:"
+    validate-series/with-formatting original-block "restored block" :mold
 ]
 
-example-21: function [] [
-	unsorted-block: none
-	checked-sorted: none
-	print "^/--- Example 21: Checking Sorted Series ---"
-	print "Checking sorted series..."
-	unsorted-block: [5 2 8 1 9 3]
-	print ["Unsorted:" mold unsorted-block]
+example-21: function [
+    "Demonstrates validation of sorted series."
+][
+    {Validates series after sorting by processing them through the `check` function.
+    Demonstrates that `check` properly verifies series after the sort operation.
+    Parameters: None
+    Returns: [unset!] "No return value - function performs demonstration output"
+    Errors: None - function captures and handles all errors from check function internally.}
 
-	sort unsorted-block
-	checked-sorted: check unsorted-block
-	print ["Sorted and validated:" mold checked-sorted]
+    print "--- Example 21: Checking Sorted Series ---"
+    print "Checking sorted series..."
+
+    unsorted-block: [5 2 8 1 9 3]
+    print ["Unsorted:" mold unsorted-block]
+
+    ;; Sort and validate
+    sort unsorted-block
+    print "After sorting:"
+    validate-series/with-formatting unsorted-block "sorted block" :mold
 ]
 
+comment {
 example-22: function [] [
 	unicode-string: none
 	checked-unicode: none
@@ -573,63 +804,165 @@ example-22: function [] [
 		print ["ASCII fallback validated:" checked-unicode]
 	]
 ]
+}
 
-example-23: function [] [
-	test-data: none
-	validated-data: none
-	print "^/--- Example 23: Checking Series in Error Handling ---"
-	print "Using `check` in error handling context..."
+example-22: function [
+    "Demonstrates validation of series with Unicode content."
+][
+    {Validates series containing Unicode characters by processing them through the `check` function.
+    Demonstrates that `check` properly verifies series with international character sets.
+    Includes error handling for environments that might not support full Unicode.
+    Parameters: None
+    Returns: [unset!] "No return value - function performs demonstration output"
+    Errors: None - function captures and handles all errors from check function internally.}
 
-	try/with [
-		test-data: "Valid data string"
-		validated-data: check test-data
-		print ["Data validation successful:" validated-data]
-	] function [error] [
-		print ["Error during validation:" error/id]
-	]
+    print "--- Example 22: Checking Series with Unicode Content ---"
+    print "Checking series with Unicode characters..."
+
+    ;; Try with Unicode content first
+    simple-unicode: "Hello Café résumé naïve"
+    unicode-result: validate-series/with-extra
+        simple-unicode
+        "Unicode string"
+        func [val][
+            print ["Simple Unicode validated:" val]
+            print ["String length:" length? val]
+        ]
+
+    ;; If Unicode validation failed, try ASCII fallback
+    if not unicode-result [
+        print "Unicode check failed, trying ASCII alternative..."
+        simple-unicode: "Hello World - ASCII safe"
+        validate-series/with-extra
+            simple-unicode
+            "ASCII fallback string"
+            func [val][
+                print ["ASCII fallback validated:" val]
+                print ["String length:" length? val]
+            ]
+    ]
+] [
+    "Demonstrates validation of series with Unicode content."
+][
+    {Validates series containing Unicode characters by processing them through the `check` function.
+    Demonstrates that `check` properly verifies series with international character sets.
+    Includes error handling for environments that might not support full Unicode.
+    Parameters: None
+    Returns: [unset!] "No return value - function performs demonstration output"
+    Errors: None - function captures and handles all errors from check function internally.}
+
+    print "--- Example 22: Checking Series with Unicode Content ---"
+    print "Checking series with Unicode characters..."
+
+    ;; Try with simpler Unicode content
+    error-handler: func [error] [
+        print "Unicode check failed, trying ASCII alternative..."
+        simple-unicode: "Hello World - ASCII safe"
+        validate-series/with-extra
+            simple-unicode
+            "ASCII fallback string"
+            func [val][
+                print ["ASCII fallback validated:" val]
+                print ["String length:" length? val]
+            ]
+    ]
+
+    attempt/with [
+        simple-unicode: "Hello Café résumé naïve"
+        validate-series/with-extra
+            simple-unicode
+            "Unicode string"
+            func [val][
+                print ["Simple Unicode validated:" val]
+                print ["String length:" length? val]
+            ]
+    ] :error-handler
 ]
 
-example-24: function [] [
-	critical-data: none
-	item: none
-	print "^/--- Example 24: Checking Before Critical Operations ---"
-	print "Pre-validating series before critical operations..."
 
-	critical-data: [important config values here]
+example-23: function [
+    "Demonstrates using `check` within error handling contexts."
+][
+    {Validates series within an error handling context by processing them through
+    the `check` function inside a try/with block. Demonstrates proper integration
+    of `check` with Rebol's error handling mechanisms.
+    Parameters: None
+    Returns: [unset!] "No return value - function performs demonstration output"
+    Errors: None - function captures and handles all errors from check function internally.}
 
-	if check critical-data [
-		print "Data validated - proceeding with critical operation"
-		foreach item critical-data [
-			; Process each validated item
-		]
-		print "Critical operation completed safely"
-	]
+    print "^/--- Example 23: Checking Series in Error Handling ---"
+    print "Using `check` in error handling context..."
+
+    try/with [
+        test-data: "Valid data string"
+        validate-series/with-extra
+            test-data
+            "data string in error context"
+            func [val][
+                print ["Data validation successful:" val]
+            ]
+    ] function [error] [
+        print ["Error during validation:" error/id]
+    ]
 ]
 
-example-25: function [] [
-	sizes: none
-	size: none
-	test-block: none
-	i: none
-	start-time: none
-	end-time: none
-	time-diff: none
-	print "^/--- Example 25: Performance Testing with `check` ---"
-	print "Performance testing `check` function..."
 
-	sizes: [10 100 1000 10000]
+example-24: function [
+    "Demonstrates pre-validation of series before critical operations."
+][
+    {Validates series before performing critical operations by processing them through
+    the `check` function and only proceeding if validation succeeds. Demonstrates
+    proper usage of `check` as a safety mechanism.
+    Parameters: None
+    Returns: [unset!] "No return value - function performs demonstration output"
+    Errors: None - function captures and handles all errors from check function internally.}
 
-	foreach size sizes [
-		test-block: []
-		repeat i size [append test-block i]
+    print "^/--- Example 24: Checking Before Critical Operations ---"
+    print "Pre-validating series before critical operations..."
 
-		start-time: now/precise
-		check test-block
-		end-time: now/precise
+    critical-data: [important config values here]
 
-		time-diff: difference end-time start-time
-		print ["Size:" size "elements, Check time:" time-diff]
-	]
+    result: validate-series/with-extra
+        critical-data
+        "critical data block"
+        func [val][
+            print "Data validated - proceeding with critical operation"
+            foreach item val [
+                ; Process each validated item
+            ]
+            print "Critical operation completed safely"
+        ]
+
+    if not result [
+        print "Data validation failed - critical operation aborted"
+    ]
+]
+
+example-25: function [
+    "Demonstrates performance testing of the `check` function."
+][
+    {Tests the performance of the `check` function with blocks of increasing size.
+    Measures and reports the time taken to validate blocks of different sizes.
+    Parameters: None
+    Returns: [unset!] "No return value - function performs demonstration output"
+    Errors: None - function captures and handles all errors from check function internally.}
+
+    print "^/--- Example 25: Performance Testing with `check` ---"
+    print "Performance testing `check` function..."
+
+    sizes: [10 100 1000 10000]
+
+    foreach size sizes [
+        test-block: []
+        repeat i size [append test-block i]
+
+        start-time: now/precise
+        result: try [check test-block]
+        end-time: now/precise
+
+        time-diff: difference end-time start-time
+        print ["Size:" size "elements, Check time:" time-diff]
+    ]
 ]
 
 ;; Run all examples
