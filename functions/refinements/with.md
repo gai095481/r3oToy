@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+
 ### Authoritative Guide: "function/with" in REBOL/Bulk 3.19.0
 Written by Gemini Pro 2.5 2025-06 Preview, Claude 4 Sonnet.
 Updated by: Jules AI
