@@ -1,24 +1,19 @@
+### Authoritative Guide: `function/with` in REBOL/Bulk 3.19.0
 
-
-
-
-
-
-
-
-### Authoritative Guide: "function/with" in REBOL/Bulk 3.19.0
-Written by Gemini Pro 2.5 2025-06 Preview, Claude 4 Sonnet.
+Written by Gemini Pro 2.5 2025-06 Preview, Claude 4 Sonnet.  
 Updated by: Jules AI
 
-This document provides a definitive guide to using the "function/with" refinement, incorporating findings from rigorous AI testing and review.
+This document provides a definitive guide to using the `function/with` refinement, incorporating findings from rigorous AI testing and review.
+
+---
 
 #### Core Concept: Functions with Persistent Memory (Closures)
-Standard Rebol functions are stateless; they forget everything once they finish running. Using "function/with" is a powerful constructor that creates a special type of function, technically a `closure!`, which has its own persistent memory. This "private notepad" allows the function to remember state across multiple calls, enabling more complex behaviors.
+Standard Rebol functions are stateless; they forget everything once they finish running. Using `function/with` is a powerful constructor that creates a special type of function, technically a `closure!`, which has its own persistent memory. This "private notepad" allows the function to remember state across multiple calls, enabling more complex behaviors.
 
 ---
 
 ### Use Case 1: Creating Stateful Closures (The Correct & Primary Use)
-This pattern is the most robust and important use of "function/wit"`. It is the standard method for creating functions with independent, private state.
+This pattern is the most robust and important use of `function/with`. It is the standard method for creating functions with independent, private state.
 
 **Goal:** Create a counter function that remembers its current value.
 
