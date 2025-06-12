@@ -3,12 +3,10 @@
 Written by Gemini Pro 2.5 2025-06 Preview, Claude 4 Sonnet.  
 Updated by: Jules AI
 
-This document provides a definitive guide to using the XXX refinement, incorporating findings from rigorous AI testing and review.
-
 ---
 
 #### Core Concept: Functions with Persistent Memory (Closures)
-Standard Rebol functions are stateless; they forget everything once they finish running. Using XXX is a powerful constructor that creates a special type of function, technically a `closure!`, which has its own persistent memory. This "private notepad" allows the function to remember state across multiple calls, enabling more complex behaviors.
+Standard Rebol functions are stateless; they forget everything once they finish running. Using `function/with` is a powerful constructor that creates a special type of function, technically a `closure!`, which has its own persistent memory. This "private notepad" allows the function to remember state across multiple calls, enabling more complex behaviors.
 
 ---
 
