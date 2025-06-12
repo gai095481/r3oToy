@@ -4,14 +4,15 @@ Rebol 3 Oldes 'alter' Function Demo & QA (as it pertains to the `alter.r3` scrip
 ### Purpose
 To comprehensively demonstrate the `alter` function in Rebol 3 Oldes, highlighting its use cases, quirks, and verifying its behavior.
 
-### Core Features (of the Demo Script)
-The `alter.r3` script includes the following core features:
-*   Demonstrates `alter` with various data types such as `integer!`, `string!`, `char!`, `word!`, `file!`, `logic!`, `pair!`, `tuple!`, `url!`, `date!`, and `bitset!`.
-*   Shows addition and removal behavior of elements within series.
-*   Illustrates refinements like `/case` for case-sensitive operations.
-*   Provides "Before", "Action", "After", and "PASS/FAIL" output for each example to clearly track changes and expected outcomes.
-*   Includes helper functions like `safe-sort` and `safe-block-compare` for reliable and consistent testing, especially when order might not be guaranteed or deep comparison is needed.
-*   Contains detailed comments and "LESSONS LEARNED" sections for complex examples, offering deeper insights into `alter`'s behavior with specific scenarios.
+### Core Features (of the Demo Scripts)
+The `alter.r3` and `alter-ask.r3` scripts include the following core features:
+- Demonstrates `alter` with various data types such as `integer!`, `string!`, `char!`, `word!`, `file!`, `logic!`, `pair!`, `tuple!`, `url!`, `date!`, and `bitset!`.
+- Shows addition and removal behavior of elements within series.
+- Illustrates refinements like `/case` for case-sensitive operations.
+- Provides "Before", "Action", "After", and "PASS/FAIL" output for each example in `alter.r3` to clearly track changes and expected outcomes.
+- `alter-ask.r3` introduces interactive examples using `ask` for user-driven toggling.
+- Includes helper functions like `safe-sort` and `safe-block-compare` for reliable and consistent testing, especially when order might not be guaranteed or deep comparison is needed.
+- Contains detailed comments and "LESSONS LEARNED" sections for complex examples in `alter.r3`, offering deeper insights into `alter`'s behavior with specific scenarios.
 
 ## Comprehensive Guide & Demo of the `alter` Function
 **Author:** Gemini Pro AI & User Collaboration (from `alter.r3` project)
@@ -30,16 +31,16 @@ ALTER series value
 ````
 
 **DESCRIPTION:**  
-Append the specified value if not found in the target series, otherwise remove its first occurrence from the target series.  
-`alter` returns `true` if the value was **added** or `false` if the specified value was **removed**.  
-`alter` is a `function!` value.
+Append the specified `value` if not found in the target `series`, otherwise remove its first occurrence from the target `series`.
+`alter` returns `true` if the `value` was **added** or `false` if the specified `value` was **removed**.
+`alter` is a `function!` value.
 
 **ARGUMENTS:**
 - series `[series! port! bitset!]` (This series is **modified directly** by `alter`.)
 - value `[any-type!]` (The value to toggle in the series.)
 
 **REFINEMENTS:**
-- /case: Performs a **case-sensitive** comparison when finding value.  This is primarily relevant for `string!` series and when value is a `char!` or `string!`.  String comparisons are case-insensitive without the  `/case` function refinement .
+- `/case`: Performs a **case-sensitive** comparison when finding `value`.  This is primarily relevant for `string!` series and when `value` is a `char!` or `string!`.  String comparisons are case-insensitive without the `/case` function refinement.
 ### Key Insights & Practical Understanding
 - **Return Value is Crucial for Conditional Logic:**
     - Return `true` if value was NOT found and therefore **added**.
@@ -129,8 +130,8 @@ loop 4 [iteration]
 ]
 ;; This idiom was used effectively in Examples 11, 14, 15, 16, and 30 of alter.r3
 ```
-#### C. Case-Sensitive Toggling with /case
-```
+#### C. Case-Sensitive Toggling with `/case`
+```rebol
 manage-case-sensitive-options: function [
     "Toggle case-sensitive options in a list."
     options-list [block!] "List of string options (modified)."
@@ -180,8 +181,8 @@ toggle-char-in-bitset char-set #"c"
 toggle-char-in-bitset char-set #"b"
 ```
 #### E. Conditional Processing of Unique Items
-(Inspired by Example 07 in alter.r3: Identify unique file types)
-```
+(Inspired by Example 07 in `alter.r3`: Identify unique file types)
+```rebol
 process-unique-items: function [
     "Process only the first occurrence of each item in a list."
     items-to-process [block!] "The input list of items."
@@ -255,7 +256,7 @@ handle-logic-in-series: function [
     either can-sort? [
         attempt [sort data-block print ["Sorted (no logic!):" mold data-block]]
     ][
-        print ["Cannot directly sort block due to logic! values. Use safe-sort."]
+        print ["Cannot directly sort block due to logic! values.  Use safe-sort."]
         ;; safe-sort (as defined in alter.r3's helpers):
         ;; sorted-block: safe-sort copy data-block
         ;; print ["Safely sorted:" mold sorted-block]
@@ -267,9 +268,9 @@ mixed-data: ["b" #(true) "a"]
 handle-logic-in-series mixed-data "c"      ; "c" added
 handle-logic-in-series mixed-data #(true)  ; #(true) removed
 ```
-### Using `protect` for Constants
-When `alter` is used to modify a working copy of a master list or default configuration, the master list itself should be protected to prevent accidental modification.
-```
+### Using `protect` for Constants
+The master list itself should be protected to prevent accidental modification when `alter` is used to modify a *working copy* of a master list or default configuration.
+```rebol
 DEFAULT-USER-ROLES: ["guest" "viewer"]
 protect 'DEFAULT-USER-ROLES ; Protect the word binding the master list
 
@@ -294,27 +295,28 @@ assign-user-role user1-roles "viewer" ; Removes "viewer"
 ;; DEFAULT-USER-ROLES remains ["guest" "viewer"]
 print ["Master default roles (unchanged):" mold DEFAULT-USER-ROLES]
 ```
-### State Management Patterns with alter
-`alter` is excellent for managing state that persists across operations.
+### State Management Patterns with `alter`
+`alter` is excellent for managing state that persists across operations.
 
-- **Module-Level (or Global Script), State for Persistent Toggles:**  
-    (Similar to `corner-choice-state` in Ex. 30 or `debug-mode-state` in an earlier draft)
+- **Module-Level (or Global Script) State for Persistent Toggles:**
+    (Similar to `corner-choice-state` in Example 18 of `alter.r3` or `debug-mode-state` in an earlier draft)
+    ```rebol
+    application-settings: protect [enable-logging use-cache] ;; Initial active settings
     
- ```
- application-settings: protect [enable-logging use-cache] ;; Initial active settings
- 
- toggle-setting: function [setting-name [word!]] [
-	  print ["Toggling setting:" setting-name]
-	  was-added: alter application-settings setting-name ; Modifies global
-	  print [either was-added [" Setting ENABLED."] [" Setting DISABLED."]]
-	  print ["Current settings:" mold application-settings]
- ]
- 
- toggle-setting 'enable-logging  ;; Disables it
- toggle-setting 'show-tooltips   ;; Enables it (adds to list)
- ```
+    toggle-setting: function [
+        setting-name [word!]
+        /local was-added
+    ][
+        print ["Toggling setting:" setting-name]
+        was-added: alter application-settings setting-name ; Modifies global
+        print [either was-added [" Setting ENABLED."] [" Setting DISABLED."]]
+        print ["Current settings:" mold application-settings]
+    ]
 
-   Caution: Modifying global state can make programs harder to understand.  Use judiciously.
+    toggle-setting 'enable-logging  ;; Disables it
+    toggle-setting 'show-tooltips   ;; Enables it (adds to list)
+    ```
+    Caution: Modifying global state can make programs harder to understand.  Use judiciously.
     
 - **Function-Local State for Temporary Operations (Fresh each call if state variable is local):**  
     (Similar to `blkIndentState: copy [0 4]` in Ex. 10's `CreateZigzag`)
@@ -426,15 +428,14 @@ test-toggle-function :my-simple-toggle ["a" "b"] "b" 3```
 *   **In `if` / `either` / `unless` / `case`:** Using its Boolean return value.
 *   **On series produced by other functions:** `alter (find-all my-data some-pattern) some-value` (modifies the result block of `find-all`).
 ### Thread Safety Concern
-Standard Rebol 3 (Oldes branch) primarily uses a single-threaded execution model for script logic. Series modification functions like `alter` are not inherently "*thread-safe*" in the sense of preventing race conditions if you were to implement cooperative multitasking (e.g., using ports or other advanced techniques), and have multiple tasks attempt to `alter` the *exact same series instance* concurrently without external locking mechanisms.  This is not a concern in typical script usage.  Series access must be synchronized by the programmer if engaging in advanced concurrency patterns.
+Standard Rebol 3 (Oldes branch) primarily uses a single-threaded execution model for script logic.  Series modification functions like `alter` are not inherently "*thread-safe*" in the sense of preventing race conditions if you were to implement cooperative multitasking (e.g., using ports or other advanced techniques) and have multiple tasks attempt to `alter` the *exact same series instance* concurrently without external locking mechanisms.  This is not a concern in typical script usage.  The programmer must synchronize `series` access if engaging in advanced concurrency patterns.
 ### Related Functions 
- While `alter` is unique, be aware of these related series functions for
- different specific needs:
- *   Add ops: `append`, `insert`
- *   Search ops: `find`, `find-all`, `select`
- *   Delete ops: `clear`, `remove`, `remove-each`
- *   Data set ops: `complement`, `difference`, `exclude`, `intersect`, `union`, `unique`
+While `alter` is unique, be aware of these related `series` functions for different specific needs:
+- Add ops: `append`, `insert`
+- Search ops: `find`, `find-all`, `select`
+- Delete ops: `clear`, `remove`, `remove-each`
+- Data set ops: `complement`, `difference`, `exclude`, `intersect`, `union`, `unique`
 ### Conclusion
-`alter` is a dense and powerful Rebol function.  Its conciseness for toggling item presence is a significant advantage.  By understanding its direct modification of series, its precise return value (`true` if added, `false` if removed), and its interaction with literals and comparison rules, developers can leverage `alter` to write elegant and effective Rebol code.  The examples in the `alter.r3` script (on which this guide is based), aim to solidify these concepts through practical, well-tested demonstrations, incorporating many of the best practices and lessons learned during their development.
+`alter` is a dense and powerful Rebol function.  Its conciseness for toggling item presence is a significant advantage.  Developers can leverage `alter` to write elegant and effective Rebol code by understanding its direct modification of `series`, its precise return value (`true` if added, `false` if removed), and its interaction with literals and comparison rules.  The examples in the `alter.r3` script (on which this guide is based) aim to solidify these concepts through practical, well-tested demonstrations, incorporating many of the best practices and lessons learned during their development.
 
-This guide has been significantly enhanced by incorporating detailed feedback, addressing potential flaws in earlier illustrative snippets and adding sections on error handling, performance, testing, and state management patterns, all reflecting Rebol 3 Oldes Branch best practices.
+This guide has been significantly enhanced by incorporating detailed feedback, addressing potential flaws in earlier illustrative snippets, adding sections on error handling, performance, testing, and state management patterns, all reflecting Rebol 3 Oldes Branch best practices, and including references to interactive examples from `alter-ask.r3`.
