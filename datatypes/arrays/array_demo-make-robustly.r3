@@ -1,10 +1,10 @@
 REBOL [
     Title: "Rebol 3 Oldes Multi-Dimensional Array Manipulation Library with Test Suite"
     File: %array_demo-make-robustly.r3
-    Date: now/date
-    Status: "AI reviewed as production ready."
+    Updated: 13-Jun-2025
+    Status: "All Qa tests pass."
     Author: "DeepSeek R1 v2025-05 and Jules AI assistant" ;; Original Author: "Trae AI Assistant", but had syntax errors.
-    Version: "0.2.4"
+    Version: 0.2.4
     Purpose: {
         Provides a library for creating and manipulating multi-dimensional arrays
         (matrices) in Rebol 3 (Oldes branch).  This script includes functions for:
@@ -24,7 +24,7 @@ REBOL [
         and an extensive suite of test cases covering various scenarios, including
         valid operations, edge cases, and error conditions for each library function.
     }
-    Notes: {
+    Improvements: {
         This version has several key improvements:
         - Corrected array construction in `make-array` using `append/only` to ensure
           proper nesting of sub-arrays, rather than merging their contents.
@@ -95,14 +95,14 @@ Example-Driven: Live test cases became de facto usage examples.
 - **Deprecation Awareness**: `func` avoided due to scoping risks.
 - **Version-Specific Tests**: Verified behavior under 3.19.0 specifically.
 
-## Key Rebol 3 Takeaways
+## Key Rebol 3 Takeaways:
 Homoiconic Advantage: Block manipulation enabled powerful metaprogramming.
 Dynamic Typing Risks: Required rigorous type checks (integer?, block?).
 Selective Evaluation: Careful word handling prevented accidental evaluation.
 Error Model Strength: Structured errors provided actionable diagnostics.
 Conciseness Tradeoff: Compact syntax required heightened vigilance for edge cases.
 
-## Best Practices Confirmed
+## Best Practices Confirmed:
 Lexical Scoping: Always use `function` instead of `func`.
 Defensive Programming: Validate inputs at each layer.
 Test Isolation: Deep-copy test fixtures to prevent cross-contamination.
@@ -115,14 +115,14 @@ The final implementation embodies Rebol's philosophy of "doing more with
 less" while maintaining robustness through rigorous validation.
 }
 
-; --- Array Creation Functions ---
+;; --- Array Creation Functions ---
 make-array: function [
     {Creates a multi-dimensional array initialized with none or specified value.}
     dimensions [block!] "Block of positive integers for array dimensions"
     /with "Initialize with specific value"
         value [any-type!] "Initialization value (default: none)"
 ][
-    ; Validate dimensions
+    ;; Validate dimensions:
     if empty? dimensions [
         return make error! "Dimensions block cannot be empty"
     ]
@@ -136,7 +136,7 @@ make-array: function [
         ]
     ]
 
-    ; Create array recursively
+    ;; Create array recursively:
     initial-value: either with [:value] [none]
 
     make-nested: function [
@@ -149,7 +149,7 @@ make-array: function [
         ][
             result: make block! first dims
             loop first dims [
-                ; FIX: Use append/only to preserve nested structure
+                ;; FIXED: Use append/only to preserve nested structure
                 append/only result make-nested next dims :curr-value
             ]
             result
@@ -159,7 +159,7 @@ make-array: function [
     make-nested dimensions :initial-value
 ]
 
-; --- Array Access Functions ---
+;; --- Array Access Functions ---
 get-element: function [
     {Safely access an array element at specified indices.
 
@@ -174,16 +174,16 @@ get-element: function [
     arr [block!]
     indices [block!]
 ][
-    ; Validate input
+    ;; Validate input:
     if empty? indices [
-        return make error! "Indices block cannot be empty"
+        return make error! "Indices block cannot be empty."
     ]
 
     result: :arr
     forall indices [
         idx: first indices
 
-        ; Critical: Validate current result type
+        ;; Critical: Validate current result type:
         if not any-block? :result [
             return make error! rejoin [
                 "Path resolved to non-block at index: " idx
@@ -191,7 +191,7 @@ get-element: function [
             ]
         ]
 
-        ; Validate index
+        ;; Validate index:
         case [
             not integer? idx [
                 return make error! "All indices must be integers"
@@ -236,13 +236,13 @@ set-element: function [
     depth: length? indices
     final-idx: last indices
 
-    ; Navigate to parent of target
+    ;; Navigate to the parent of the target:
     if depth > 1 [
         for i 1 (depth - 1) 1 [
             idx: pick indices i
             case [
                 not integer? idx [
-                    return make error! "All indices must be integers"
+                    return make error! "All indices must be integers."
                 ]
                 idx <= 0 [
                     return make error! rejoin ["Index out of bounds (min 1): " idx]
@@ -251,17 +251,17 @@ set-element: function [
                     return make error! rejoin ["Index out of bounds (max " length? parent "): " idx]
                 ]
                 not any-block? :parent [  ; Critical type check
-                    return make error! "Path resolved to non-block during navigation"
+                    return make error! "Path resolved to non-block during navigation."
                 ]
             ]
             parent: pick parent idx
         ]
     ]
 
-    ; Validate final index
+    ;; Validate the final index:
     case [
         not any-block? :parent [
-            return make error! "Parent is not a block at final index"
+            return make error! "Parent is not a block at final index."
         ]
         final-idx <= 0 [
             return make error! rejoin ["Final index out of bounds (min 1): " final-idx]
@@ -270,16 +270,16 @@ set-element: function [
             return make error! rejoin ["Final index out of bounds (max " length? parent "): " final-idx]
         ]
         block? pick parent final-idx [  ; Security: Prevent sub-block replacement
-            return make error! "Cannot replace sub-block - set leaf elements only"
+            return make error! "Cannot replace sub-block - set leaf elements only."
         ]
     ]
 
-    ; Update value
+    ;; Update value:
     poke parent final-idx :value
     :arr
 ]
 
-; --- Array Information Functions ---
+;; --- Array Information Functions ---
 get-dimensions: function [
     {Get dimensions of a multi-dimensional array.
 
@@ -346,6 +346,7 @@ assert-equal: function [
 ] [
     set 'total-tests (get 'total-tests) + 1
     is-equal-result: false
+
     if (type? :actual) = (type? :expected) [
         if equal? :actual :expected [
             is-equal-result: true
@@ -354,10 +355,10 @@ assert-equal: function [
 
     either is-equal-result [
         set 'passed-tests (get 'passed-tests) + 1
-        print ["PASS:" title]
+        print ["✅ PASSED:" title]
     ][
         set 'failed-tests (get 'failed-tests) + 1
-        print ["FAIL:" title]
+        print ["❌ FAILED:" title]
         print ["  Expected Type:" type? :expected "Value:" mold :expected]
         print ["  Actual Type:  " type? :actual "Value:" mold :actual]
         if message [print ["  Message: " msg]]
@@ -373,11 +374,11 @@ assert-error: function [
 
     either error? error-obj [
         set 'passed-tests (get 'passed-tests) + 1
-        print ["PASS (Error Expected):" title]
+        print ["✅ PASSED (Error Expected):" title]
         print ["  Error:" mold error-obj]
     ][
         set 'failed-tests (get 'failed-tests) + 1
-        print ["FAIL (Error Expected, but not caught):" title]
+        print ["❌ FAILED (Error Expected, but not caught):" title]
         print ["  Code block:" mold code-block]
         print ["  Result:" mold :error-obj]
     ]
@@ -393,14 +394,14 @@ print-summary: function [] [
     ]
 ]
 
-; --- Start of Test Harness Code ---
+;; --- Start of Test Harness Code ---
 print "^/--- QA TESTING SECTION ---^/"
 
 total-tests: 0
 passed-tests: 0
 failed-tests: 0
 
-; --- Test Cases for make-array ---
+;; --- Test Cases for make-array ---
 print-test-title "MA1: Create 1D array [3]"
 expected: array/initial 3 none
 result-ma1: make-array [3]
@@ -447,8 +448,7 @@ assert-error "MA9 execution" [make-array [3 2.5]]
 print-test-title "MA10: Error - Mixed good/bad dimensions [3 'a']"
 assert-error "MA10 execution" [make-array [3 "a"]]
 
-
-; --- Setup for get-element and set-element tests ---
+;; --- Setup for get-element and set-element tests ---
 arr1D: [10 20 30]
 arr2D: [[1 2] [3 4]]
 arr3D: [[[5 6] [7 8]] [[9 10] [11 12]]]
@@ -493,8 +493,7 @@ assert-equal "GE10 result (sub-block)" result-ge10 [1 2]
 print-test-title "GE11: Error - arr1D, ['a'] (non-integer index)"
 assert-error "GE11 execution" [get-element arr1D ["a"]]
 
-
-; --- Test Cases for set-element ---
+;; --- Test Cases for set-element ---
 print-test-title "SE1: copy arr1D, [2], 99"
 se_arr1: copy arr1D
 result-se1: set-element se_arr1 [2] 99
@@ -543,7 +542,7 @@ se_arr10: copy arr1D
 assert-error "SE10 execution" [set-element se_arr10 ["a"] 99]
 
 
-; --- Test Cases for get-dimensions ---
+;; --- Test Cases for get-dimensions ---
 print-test-title "GD1: [none none none]"
 result-gd1: get-dimensions [none none none]
 assert-equal "GD1 result" result-gd1 [3]
@@ -575,8 +574,7 @@ assert-equal "GD7 result" result-gd7 [1 1 1]
 print-test-title "GD8: Error - Scalar 5 (due to type hint)"
 assert-error "GD8 execution" [get-dimensions 5]
 
-
-; --- Test Cases for valid-array? ---
+;; --- Test Cases for valid-array? ---
 print-test-title "VA1: [none none none]"
 result-va1: valid-array? [none none none]
 assert-equal "VA1 result" result-va1 true
@@ -620,7 +618,6 @@ print-test-title "VA11: [[1] [2 3]] (irregular)"
 result-va11: valid-array? [[1] [2 3]]
 assert-equal "VA11 result" result-va11 false
 
-;; --- Final Summary ---
+;; --- Final QA Results Summary ---
 print-summary
-; Script last updated: 2024-06-04/12:00:00 UTC
-; Script last updated: 2024-06-04/12:30:00 UTC
+
