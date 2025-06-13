@@ -8,7 +8,7 @@ In Rebol a **`block!`** is a fundamental data structure. It acts as a versatile 
 
 This guide covers the entire lifecycle of a block:
 - **Creation:** How to make new blocks.
-- **Modification:** How to add remove and change a block's contents.
+- **Modification:** How to add, remove and change a block's contents.
 - **Copying:** How to duplicate blocks and the critical differences between copy types.
 
 ## 2. Block Creation
