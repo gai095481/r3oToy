@@ -1,5 +1,5 @@
 REBOL [
-    Title: "Supporting Code Examples for Rebol Briefing Document (Reorganized)"
+    Title: "Demo of Rebol 3 Oldes Core Concepts Intro Part 1"
     Date: 15-Jun-2025
     File: %demo-Rebol-3-core concepts-intro-01.r3
     Author: "Gemini Pro Preview 2025-06, Claude 4 Sonnet AI Assistants"
