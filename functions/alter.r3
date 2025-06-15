@@ -1,4 +1,37 @@
-Rebol []
+REBOL [
+    Title: "Comprehensive Demonstration of the Native `alter` Function"
+    Date: 15-Jun-2025
+    File: %alter-function-demo.r3
+    Author: "Person and AI assistant"
+    Version: 1.1.0
+    Purpose: {
+    A collection of detailed examples demonstrating the `alter` function to serve as
+    an educational resource, illustrating how `alter` is used to toggle the presence of a value
+    in a series.
+    Key demonstrations include:
+    - Basic Toggling: Adding and removing items from blocks and strings.
+    - Datatype Support: Demo `alter` working with a wide range of datatypes
+      including `string!`, `block!`, `bitset!`, `char!`, `word!`, `file!`,
+      `logic!`, `pair!`, `tuple!`, `url!`, and `date!`.
+    - Case Sensitivity: Demo the use of the `/case` refinement for
+      case-sensitive toggling.
+    - State Management: Provide advanced examples of using `alter`'s return
+      value (`true` if an item was added, `false` if removed), to manage state
+      in loops for cycling, conditional processing and creating alternating patterns.
+    - Advanced Concepts: Explore subtle, but important behaviors, such as how
+      `alter` interacts with literal blocks within a loop and contrasts `alter`
+      with the correct idiom for list rotation (`append/take`).
+    }
+    Note: {
+        It is flush with `print` statements to clearly demo the outcome
+        of each of the 38 demonstrated examples. It also includes helper functions
+        like `safe-sort` and `safe-block-compare` for robust testing.
+    }
+    Keywords: [
+        rebol rebol3 alter series block string tutorial example
+        toggle set state-management add remove case bitset
+    ]
+]
 
 comment {
 STATUS: All examples work without syntax errors.
