@@ -27,10 +27,11 @@ Unlike most languages that use `=`, Rebol uses a **colon (`:`)** to perform assi
 
 | Notation | Name | Purpose | Example |
 | :--- | :--- | :--- | :--- |
-| `word` | **get-word** | "Get the natural value of the word." If it's a function it's evaluated; otherwise its value is returned. | `print "hello"` |
-| `:word` | **lit-word** | "Get the value of a word without evaluating it." Returns the function value itself not its result. Crucial for passing functions as arguments. | `type? :print` |
-| `'word` | **lit-word** | "Use the word as a literal symbol." It is not evaluated. This is essential for creating dialects (DSLs). | `draw ['circle 100]` |
-| `/word` | **refinement** | "Specifies a variation, option, or clarification in meaning." Used for functions and paths. | `copy/part data 5` |
+| `word` | **plain word** | Evaluates to the word's bound value. If bound to a function, the function executes; otherwise returns the assigned value. | `print "hello"` |
+| `:word` | **get-word** | Retrieves the value bound to a word without further evaluation. Essential for obtaining function values as data rather than executing them. | `type? :print` |
+| `'word` | **lit-word** | Represents the word itself as a literal symbol without evaluation. Creates word! datatype values, fundamental for dialects and metaprogramming. | `'circle` in `[circle 100]` |
+| `/word` | **refinement** | Specifies function options, variations, or path components. Modifies function behavior or accesses object members. | `copy/part data 5` |
+
 
 ### 2.3. Variables and Context (Scope)
 
