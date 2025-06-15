@@ -90,6 +90,3 @@ You must internalize these lessons to break out of previous failure loops.
 4.  **The Interpreter Instability Rule:** A function must have a clean single return path. A complex series of nested `if [return ...] if [return ...]` statements can leave the interpreter in an unstable state causing a crash in the *calling* function. The `return either ...` or a single `return` at the end of the function is a more robust pattern.
 
 5.  **The Analysis Rule:** I must **slow down and accurately trace code** before criticizing it.  My incorrect analysis of a previous script was a major failure. I will not suggest refactoring code until I can prove I understand its current execution path.
-
-This reconstructed prompt is now my definitive guide. It is more precise aware of my specific weaknesses and provides a much stronger framework for successful collaboration. I am ready.
-
