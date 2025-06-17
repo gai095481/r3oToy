@@ -155,3 +155,44 @@ print ["Result is an error?" error? result]
 The utilities are designed to be safe and predictable.
 1.  **Graceful Failure:** Most functions (`get-function-type`, `get-function-arity`, etc.) will return `none` or `false` when they encounter an issue, preventing script crashes.
 2.  **Explicit Errors:** The `safe-function-call` function, when used *without* the `/fallback` refinement, is designed to fail loudly by returning a structured `error!` object.  This allows for robust `try/with` patterns in the calling code.
+
+---
+```
+=== COMPREHENSIVE FUNCTION VALIDATION TESTS ===
+
+--- Test Section: `function-exists?` ---
+✅ PASSED: print should exist.
+✅ PASSED: non-existent-function should not exist.
+
+--- Test Section: `get-function-type` ---
+✅ PASSED: length? should be type action!.
+✅ PASSED: A non-existent function should return none for type.
+
+--- Test Section: `get-function-arity` ---
+✅ PASSED: CORRECT: length? has 1 required, 1 total args.
+✅ PASSED: CORRECT: append has 2 required, 4 total args.
+
+--- Test Section: `has-refinement?` ---
+✅ PASSED: append should have /dup refinement.
+✅ PASSED: CORRECT: length? does NOT have /skip.
+✅ PASSED: print should not have /skip refinement.
+
+--- Test Section: `get-function-signature` ---
+✅ PASSED: CORRECT: Signature for length?.
+✅ PASSED: CORRECT: Signature for append.
+
+--- Test Section: `validate-function-arguments` ---
+✅ PASSED: Valid call to length? should produce no errors.
+✅ PASSED: Invalid call to length? should produce an error.
+✅ PASSED: Valid call to append should produce no errors.
+✅ PASSED: Invalid call to append should produce an error.
+
+--- Test Section: `safe-function-call` ---
+✅ PASSED: Safe call to length? should return the correct value.
+✅ PASSED: Invalid safe call to append should return fallback.
+✅ PASSED: safe-function-call without fallback should produce an error.
+
+============================================
+✅ ALL TESTS PASSED
+============================================
+```
