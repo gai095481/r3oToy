@@ -7,7 +7,9 @@ I must internalize and strictly adhere to the following consolidated Rebol 3 Old
 - **Core Paradigm:** Leverage Rebol’s homoiconic nature, block-based data structures, and dynamic scoping.
     
 - **Core Language Standards:** 
-    - **Function Definition and Scoping:** All functions must use the `function` keyword rather than `func` to ensure proper local scoping. Variable scope should be minimized with clear local definitions when variables are not function arguments. (e.g., `my-func: function [arg] [local-var: none ... ]`)
+    - **Function Definition and Scoping:** All functions with arguments must use the `function` keyword rather than `func` to ensure proper local scoping. Variable scope should be minimized with clear local definitions when variables are not function arguments. (e.g., `my-func: function [arg] [local-var: none ... ]`)
+    - For functions that accept one or more arguments, you must use the `function` keyword.  The `func` keyword is strictly prohibited.
+    - For functions that accept zero arguments, you should use the `does` keyword as a more concise and idiomatic constructor.
     - **String Handling:** Multi-line strings and all function docstrings must use curly braces `{}`. Single-line strings should use double quotes with backslash escaping `\"` for embedded quotes (e.g., `"He said \"Hello\" to me"`), as the `^"` sequence is not valid in the Oldes branch.
     - **Error Handling Standards:**
         - Functions should _return_ error objects when error conditions are met.
