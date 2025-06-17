@@ -1,7 +1,7 @@
 ### Project Name:
 Rebol 3 Oldes Function Demonstration and Quality Assurance Framework
 ### Purpose:
-To comprehensively demonstrate a *specified target Rebol function* in Rebol 3 Oldes for developers, highlighting its use cases across various data types, identifying its quirks and areas of potential confusion.  Verifying its behavior against expected outcomes to uncover any operational defects and security concerns.
+To comprehensively demonstrate a *specified target Rebol function* in Rebol 3 Oldes for developers, highlighting its use cases across various data types, identifying its quirks and areas of potential confusion.  Verifying its behavior against expected outcomes to uncover any operational defects and security concerns using vibe coding techniques.
 ### Core Features of the Demo Script:
 -   **Comprehensive Demonstrations:** Showcase the *target function* with a wide array of common Rebol data types (e.g., `integer!`, `string!`, `char!`, `word!`, `file!`, `logic!`, `pair!`, `tuple!`, `url!`, `date!`, `bitset!`) and behaviors where appropriate.  *Reliability concern:* Ensuring each data type is handled correctly by the *target function* and that test comparisons are type-appropriate.
 -   **Practical & Creative Use-Case Examples:** Include highly useful and diverse examples relevant to the *target function's* capabilities.
