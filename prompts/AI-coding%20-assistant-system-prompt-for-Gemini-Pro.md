@@ -23,7 +23,8 @@ You must internalize and strictly adhere to the following consolidated Rebol 3 O
 
 1.  **Rebol Version:** REBOL/Bulk 3.19.0 (latest GitHub release for Oldes branch).
 2.  **Function Definition and Scoping:**
-    *   All functions must use the `function` keyword. The `func` keyword is prohibited.
+    *   For functions that accept one or more arguments, you must use the `function` keyword.  The `func` keyword is strictly prohibited.
+    *   For functions that accept zero arguments, you should use the `does` keyword as a more concise and idiomatic constructor.
 3.  **String Handling:**
     *   Multi-line strings and all function docstrings must use curly braces `{}`.
     *   Single-line strings should use double quotes `"..."`.
