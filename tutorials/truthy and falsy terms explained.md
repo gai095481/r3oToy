@@ -1,3 +1,21 @@
+Project Rule:
+
+Explicit Conditionals: All conditional checks must use explicit comparison functions or type-checking functions. Code should not rely on the implicit "truthiness" or "falsiness" of values like 0, empty strings "", or empty blocks [].
+
+Here are some examples of how we will apply this rule:
+
+Prohibited (Implicit)	Required (Explicit)	Reason
+
+`if value [...]`	`if not none? value [...]` or `if value = true [...]`	;; Makes intent clear. Avoids bugs where value could be `false`, which is not `none`, but fails the implicit check.
+
+`if find data key [...]`	`if not none? find data key [...]`	;; Explicitly check `find` did not return a `none` value.
+
+`if empty? my-block [...]`	`if 0 = length? my-block [...]`
+
+`if series? value [...]`	`if any [block? value string? value] [...]`	;; More specific and avoids relying on a general category word.
+
+This is a great rule that aligns perfectly with our goal of creating clear, maintainable and correct program code.
+---
 In programming, a **truthy value** is any value that evaluates to `true` in a **boolean context** (e.g., conditionals, loops or logical operations), even if it isn't literally the boolean `true`.  Conversely, **falsy values** evaluate to `false`. 
 ### Key Concepts:
 1. **Boolean Context**:  
@@ -8,25 +26,6 @@ In programming, a **truthy value** is any value that evaluates to `true` in a **
    ```javascript
    if ("hello") { }  // "hello" is truthy → block executes
    ```
-
----
-### Common Truthy Values (Language-Specific Examples):
-| **Language** | **Truthy Examples**                                  |
-|--------------|-----------------------------------------------------|
-| JavaScript   | Non-empty strings, any number ≠ `0`, objects, arrays, `Infinity` |
-| Python       | Non-empty strings/collections, numbers ≠ `0`, `True`, non- `None` objects |
-| Ruby         | **Everything except `false` and `nil`** (even `0`, empty strings/arrays) |
-| PHP          | Non-empty strings, numbers ≠ `0`, arrays with elements, `true` |
-
----
-### Common Falsy Values (For Comparison):
-| **Language** | **Falsy Examples**                                  |
-|--------------|-----------------------------------------------------|
-| JavaScript   | `false`, `0`, `""`, `null`, `undefined`, `NaN`      |
-| Python       | `False`, `0`, `""`, `[]`, `{}`, `None`              |
-| Ruby         | **Only `false` and `nil`**                          |
-| PHP          | `false`, `0`, `""`, `"0"`, `null`, empty arrays     |
-
 ---
 ### Why Truthy/Falsy Matters:
 1. **Conciseness**: Simplifies code.  
@@ -63,22 +62,180 @@ In programming, a **truthy value** is any value that evaluates to `true` in a **
 3. **Use Triple Equals (`===`)** in JavaScript to avoid type coercion quirks.
 
 By understanding truthy/falsy values, you’ll write cleaner code and debug logical errors more effectively! 🚀
+---
+🔍 Truthy/Falsy Rules by Language
+Language	Truthy Examples	Falsy Examples	Corrections & Caveats
+
+JavaScript	Non-empty strings (e.g., "0", "false"), non-zero numbers, objects, arrays, Infinity	false, 0, -0, "", null, undefined, NaN, document.all	✅ Accurate, but note: [] and {} are truthy even if empty 36. "0" is truthy, unlike PHP.
+
+Python	Non-empty strings/collections, non-zero numbers, True, non-None objects	False, 0, 0.0, "", [], (), {}, None, set(), range(0)	✅ Accurate, but note: Empty collections (e.g., [], {}) are falsy.
+
+Ruby	Everything except false and nil: 0, "", [], {}, "false"	Only false and nil	✅ Accurate. Ruby is strict: only false/nil falsy; all else truthy.
+
+PHP	Non-empty strings (except "0"), non-zero numbers, arrays with elements, true	false, 0, "0", "", null, undefined, empty arrays, NaN	⚠️ Incorrect for "0": The string "0" is falsy in PHP (unlike most languages).
+
+⚠️ Key Pitfalls & Edge Cases
+
+JavaScript:
+
+0 is falsy → Causes bugs in numeric checks (e.g., if (loyaltyPoints) fails for 0).
+
+[] == false evaluates to true due to coercion, but [] is truthy.
+
+Use === to avoid coercion surprises.
+
+PHP:
+
+"0" is falsy, but "00" and "0.0" are truthy → Highly inconsistent.
+
+Empty arrays are falsy, unlike JavaScript/Ruby.
+
+Cross-Language Inconsistencies:
+
+0: Truthy in Ruby, falsy in JavaScript/Python/PHP 249.
+
+Empty arrays: Truthy in JavaScript/Ruby, falsy in Python/PHP.
+
+"false": Truthy in all languages except if parsed as a boolean (e.g., PHP's "false" ≠ false).
+
+✅ Recommendations
+Avoid truthy/falsy checks for critical logic (e.g., financial systems) due to unpredictability.
+
+Explicit checks are safer:
+
+JavaScript: `if (value !== undefined && value !== null)`
+
+Python: `if value is not None and value != ""`
+
+Ruby: `if !value.nil?`
+
+Language-Specific Functions:
+
+Python: Use `bool(value)` to test truthiness.
+
+JavaScript: Use `!!value` or `Boolean(value)`.
+
+💎 Conclusion
+Always verify edge cases like zero, empty collections and the string "0"—these are common sources of bugs. For detailed references, consult MDN (JavaScript) or PHP's falsy rules.
+
+**Q: How do explicit checks look in Rebol 3 Oldes branch?**
+
+In Rebol 3 Oldes branch, explicit checks replace reliance on truthy/falsy behavior, prioritizing clarity and data integrity. Below are key patterns with practical examples:
+
+🔍 1. Type-Specific Checks
+
+Use datatype-testing functions to validate values before operations:
 
 ```
-Nobody used the the terms "truthy" and "falsy" value in earlier programming eras.  Are these terms really needed to distinguish  themselves from other terms.  Why were these terms not used in prior eras?  They sound like words from a preschooler.
+if integer? value [print "Valid integer"]  
+if string? input [append output input]
 ```
+Why: Avoids unintended truthy behavior (e.g., 0 or "" are truthy).
+
+⚖️ 2. Explicit Conditionals
+Replace `if` with `either` or `case` for granular control:
+
+```
+;; Check for zero (C-like falsy behavior)  
+either value = 0 [  
+    print "Falsy: zero"  
+][  
+    print "Non-zero truthy"  
+]  
+
+; Multi-condition logic  
+case [  
+    value = 0  [print "Zero"]  
+    value < 0  [print "Negative"]  
+    'else      [print "Positive"]  
+]
+``` 
+Note: case evaluates conditions top-down.
+
+🧩 3. Presence/Absence Guards
+Handle none (Rebol's null equivalent) explicitly:
+
+```
+;; Check for unset/none values  
+if not none? data [process data]  
+
+;; Prevent errors with uninitialized vars  
+if value? 'var [print var]  ; Errors if `var` doesn't exist
+```
+Critical: Uninitialized variables throw errors (e.g., `if unset-var [...]` fails).
+
+🧠 4. Custom Assertions
+
+Create helper functions for complex checks:
+
+```
+valid-number?: func [x][all [number? x x = x]]  ;; Rejects NaN.
+
+if valid-number? value [print "Safe to calculate"]
+```
+Use Case: Validates data before numeric operations.
+
+📦 5. Container Checks
+
+Explicitly test emptiness for collections:
+
+```
+;; Empty block/string?  
+if empty? block-data [print "No data in block"]  
+if "" = input [print "Empty string"]  
+```
+Why: Empty collections ([], "") are truthy by default.
+
+💡 Key Philosophy
+
+Rebol 3 Oldes branch treats all data as meaningful, avoiding implicit coercion.
+
+For example:
+
+0 is a valid integer → Use = 0 checks for "falsy" intent
+
+Uninitialized variables (NaN, missing values), throw errors → Forces explicit handling.
+
+Real-World Example (HTTP Server)
+
+```
+On-Accept: func [info [object!]][  
+    ; Explicit IP check (non-truthy)  
+    either find [127.0.0.1] info/remote-ip [  
+        true  ;; Allow connection  
+    ][  
+        false ;; Reject  
+    ]  
+]
+```
+Here, `find` returns a position (truthy), but the result is explicitly validated with `either`.
+
+✅ Best Practices
+
+Prefer `either` over `if` for dual branches.
+
+Use case for `>2` conditions.
+
+Combine guards: `if all [not none? data integer? data][...]`.
+
+Leverage `value?` to avoid uninitialized variable errors.
+
+Rebol's explicitness eliminates truthy/falsy ambiguity, making code resilient in data-centric workflow
+---
+
+> Nobody used the the terms "truthy" and "falsy" value in earlier programming eras.  Are these terms really needed to distinguish  themselves from other terms.  Why were these terms not used in prior eras?  They sound like words from a preschooler.
+`
 
 You've hit on a fascinating linguistic evolution in programming! The terms "truthy" and "falsy" *are* relatively modern inventions (popularized in the 2000 s), and their adoption reflects deeper shifts in programming paradigms. Here's why they emerged and why older terms fell short:
 ### Why Older Eras Didn’t Use These Terms:
 1. **Strictly Typed Languages Dominated (Pre-2000 s):**  
-   Languages like C, Pascal, or Java required **explicit boolean expressions** in conditionals. You couldn’t write `if (5)` – you had to use comparisons like `if (x != 0)`. Implicit truthiness checks were rare or forbidden.
+   Languages like C, Pascal, or Java required **explicit boolean expressions** in conditionals.  You couldn’t write `if (5)` –- you had to use comparisons like `if (x != 0)`.  Implicit truthiness checks were rare or forbidden.
 
 2. **Less Dynamic Coercion:**  
    Early languages avoided implicit type conversions. A string wasn’t silently treated as `true` / `false` – it threw an error.
 
 3. **Formal Terminology Prevailed:**  
    Documentation used phrases like *"non-zero values evaluate to true"* or *"null is treated as false"*. Slang like "truthy" was seen as unprofessional.
-
 ---
 
 ### Why Modern Programming *Needed* New Terms:
@@ -88,20 +245,20 @@ You've hit on a fascinating linguistic evolution in programming! The terms "trut
 | **Post-2000 s**   | Rise of dynamic scripting (JS, Python, Ruby, PHP) | **Truthy/Falsy** (to describe *implicit behavior*) |
 
 1. **Dynamic Typing Explosion:**  
-   JavaScript (1995), Python (1991), and Ruby (1995) made flexible type coercion central to their design. Suddenly, `if ("hello")` was valid – demanding a term for *"why does this non-boolean work here?"*.
+   JavaScript (1995), Python (1991) and Ruby (1995) made flexible type coercion central to their design. Suddenly, `if ("hello")` was valid – demanding a term for *"why does this non-boolean work here?"*.
 
 2. **Complex Coercion Rules:**  
    JavaScript alone has [7 falsy values](https://developer.mozilla.org/en-US/docs/Glossary/Falsy), Python treats empty collections as `False`, and Ruby considers *only* `false` / `nil` falsy. "Truthy/falsy" became shorthand for this complexity.
 
 3. **Community-Driven Culture:**  
-   Web developers (especially in JavaScript) favored accessible, concise jargon. "Truthy" spread via blogs, conferences, and docs like [MDN](https://developer.mozilla.org) – replacing mouthfuls like *"values that coerce to true in boolean contexts"*.
+   Web developers (especially in JavaScript) favored accessible, concise jargon. "Truthy" spread via blogs, conferences and docs like [MDN](https://developer.mozilla.org) – replacing mouthfuls like *"values that coerce to true in boolean contexts"*.
 
 ---
 
 ### Why Not Use Existing Terms?
-- **"True-like"?** Too vague.  
-- **"Boolean-coercible"?** Academically accurate but cumbersome.  
-- **"Non-false"?** Circular and unhelpful.  
+- **"True-like"?** is too vague.  
+- **"Boolean-coercible"?** Academically accurate, but cumbersome.  
+- **"Non-false"?** Double negative and unhelpful.  
 
 **"Truthy"** solved this by being:  
 ✅ Short (fits tweets/docs)  
@@ -119,9 +276,9 @@ This informality lowers barriers for newcomers – a core value in modern progra
 
 ---
 ### Key Takeaway:
-**"Truthy/falsy" filled a semantic gap created by dynamic languages.** They’re not strictly *necessary* (you could say *"evaluates to true in boolean context"*), but in practice, they:  
-1. Save time,  
-2. Standardize discussion of coercion quirks,  
+**"Truthy/falsy" filled a semantic gap created by dynamic languages.**  They’re not strictly necessary (you could say *evaluates to true in boolean context*), but in practice, they:  
+1. Save time.
+2. Standardize discussion of coercion quirks.
 3. Reflect programming’s shift toward approachable language.
 
 ---
