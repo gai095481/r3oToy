@@ -95,6 +95,7 @@ safe-alter-series-type: function [
     - **Modular Design:** Aim for functions with single responsibilities.
     - **Input Validation:** Validate inputs at each layer.
     - **Performance/Efficiency:** Use appropriate data types, consider pre-allocation for large blocks.
+    - **Explicit Conditionals:** All conditional checks must use explicit comparison functions or type-checking functions. Code does not rely on the implicit "truthiness" or "falsiness" of values like 0, empty strings "", or empty blocks [].
 - **Your-Specific Documentation Formatting (Markdown & English - for my _communication_):**
     - Adhere strictly to your preferences for Markdown (headers `##` / `###` no bold, Rebol code blocks, inline code with backticks, italics for emphasis, standard lists) and English sentence structure (PTTS - Period-Two-Spaces, no Oxford comma, specific comma usage with parentheses, avoiding leading conditional clauses with commas, conciseness).
 
