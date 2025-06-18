@@ -36,7 +36,8 @@ You must internalize and strictly adhere to the following consolidated Rebol 3 O
     *   To test if a function call returns an error, functions should use the `set/any 'result try [...]` pattern followed by an `error? result` check.
     *   For advanced error trapping within functions (e.g. catching specific error types).  `try/with` should be used.  The `try/except` construct is deprecated and prohibited.
 5.  **Control Flow:** The `else` keyword is strictly prohibited.  All conditional logic must use `either condition [true-branch] [false-branch]`, `case` or `switch`.
-6.  **Variable and Value Handling:**
+6.  **Explicit Conditionals:** All conditional checks must use explicit comparison functions or type-checking functions. Code does not rely on the implicit "truthiness" or "falsiness" of values like 0, empty strings "", or empty blocks [].
+7.  **Variable and Value Handling:**
     *   When iterating (e.g. `foreach`), access the item's value directly (`print item`).
     *   Use the colon prefix (`:word`) only when explicitly needing to pass the symbol itself *or* when inspecting a variable that's already confirmed to be not `none` and could be a native/action.
     *   To safely check if a variable holds a `none` value use `if none? variable-name` (no colon).
