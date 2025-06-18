@@ -4,17 +4,15 @@ Explicit Conditionals: All conditional checks must use explicit comparison funct
 
 Here are some examples of how we will apply this rule:
 
-Prohibited (Implicit)	Required (Explicit)	Reason
-
-`if value [...]`	`if not none? value [...]` or `if value = true [...]`	;; Makes intent clear. Avoids bugs where value could be `false`, which is not `none`, but fails the implicit check.
-
-`if find data key [...]`	`if not none? find data key [...]`	;; Explicitly check `find` did not return a `none` value.
-
-`if empty? my-block [...]`	`if 0 = length? my-block [...]`
-
-`if series? value [...]`	`if any [block? value string? value] [...]`	;; More specific and avoids relying on a general category word.
+| Prohibited (Implicit)    | Required (Explicit)                                    | Reason
+|--------------------------|--------------------------------------------------------|-----------------------------------------------------------------|
+`if value [...]`        	| `if not none? value [...]` or `if value = true [...]`	| Makes intent clear. Avoids bugs where value could be `false`, which is not `none`, but fails the implicit check.
+`if find data key [...]`   |	`if not none? find data key [...]`	                  | Explicitly check `find` did not return a `none` value.
+`if empty? my-block [...]`	| `if 0 = length? my-block [...]`                        | 
+`if series? value [...]`   |	`if any [block? value string? value] [...]`        	| More specific and avoids relying on a general category word.
 
 This is a great rule that aligns perfectly with our goal of creating clear, maintainable and correct program code.
+
 ---
 In programming, a **truthy value** is any value that evaluates to `true` in a **boolean context** (e.g., conditionals, loops or logical operations), even if it isn't literally the boolean `true`.  Conversely, **falsy values** evaluate to `false`. 
 ### Key Concepts:
