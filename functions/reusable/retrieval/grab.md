@@ -223,12 +223,38 @@ grab/path map-structure ['User 'Profile]
 | `block!` | **Case-Insensitive** | Default `word!` comparison semantics. |
 
 This difference in behavior is not a flaw in the `grab` function but rather a correct implementation that respects the distinct design philosophies of Rebol's primary data structures.  Developers must be mindful of the data type at each step of a path to predict the outcome of key-based lookups accurately.  Future enhancements may include `/case` or `/case-insensitive` refinements to provide explicit control over this behavior.
+
 ---
 ### Overall Conclusion
 
 *   For **simple positional access** in nested blocks, `grab/path` with a path of integers is fast and effective.
 *   For more complex, **key-based lookups** in a block of records, the best practice is to use a simple `foreach` loop combined with `grab` to provide safe access once the correct record is found.
 
+---
+```mermaid
+graph TD
+    subgraph "grab(data, key) - Single-Level"
+        A[Start] --> B{Is 'data' a block?};
+        B -->|Yes| C{Is 'key' an integer?};
+        B -->|No| D{Is 'data' a map?};
+        D -->|Yes| J[Handle Map];
+        D -->|No| K[Return Default or None];
+
+        C -->|Yes| E[Pick by index];
+        C -->|No| F[Find set-word key];
+
+        F --> G{Key Found?};
+        G -->|Yes| H[Try 'do' expression];
+        H -->|Success| I[Return Evaluated Result];
+        H -->|Error| P[Fallback: 'select' literal value];
+        P --> I;
+        G -->|No| K;
+        
+        E --> L[Normalize Word Result];
+        J --> L;
+        L --> I;
+    end
+```
 ---
 ### Features Considered for Future Releases
 
@@ -286,9 +312,8 @@ Recursion Depth Protection (Critical Stability)
 - `/pattern`, `/all`, `/lazy`, `/cache`
 - _Better Array Operations_
 
----
-
- ```
+ ---
+ 
 === Starting QA tests for `grab` ===
 
 --- Core Functionality Tests (Happy Path) ---
