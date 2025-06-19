@@ -2,8 +2,17 @@
 
 *A Practical Guide to One of Rebol 3's Most Essential Functions*
 
+The `pick` function is a fundamental `action!` in Rebol 3, designed for the primary purpose of element retrieval from an aggregate data structure.  Its capabilities extend to a wide range of types, making it a versatile and essential tool, while its canonical use is with the `block!` datatype.
+
 The `pick` function is the primary method for accessing elements within a `block!`, which is Rebol's fundamental list-like datatype.
 
+**Parameters:**
+
+_aggregate_: The source data structure for element retrieval. Other `series!` datatypes include `map!`, `string!`, `pair!`, `date!`,`port!`, `time!` `tuple!` and `bitset!`.
+
+_index_: Most commonly an `integer!` for positional access but can be other types depending on the aggregate `[any-type!]`, symbol, etc.
+
+---
 While its basic operation is straightforward, `pick` exhibits several nuanced behaviors depending on the structure of the block and the validity of the index.
 A comprehensive understanding of these behaviors is essential for writing robust, predictable Rebol applications.
 
