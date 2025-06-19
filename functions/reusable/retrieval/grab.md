@@ -21,8 +21,8 @@ Its interpretation depends on the `data` type and active refinements.
 
 **Refinements:**
 
-- **/path**: Instructs `grab` to interpret the `key` argument as a `block!` of keys or indices for recursive, deep-level traversal.
-- **/default** `[any-type!]`: Provides a fallback value to be returned in the event of any lookup failure.
+- `/path`: Instructs `grab` to interpret the `key` argument as a `block!` of keys or indices for recursive, deep-level traversal.
+- `/default` `[any-type!]`: Provides a fallback value to be returned in the event of any lookup failure.
 If `/default` is not used, `none` is returned on failure.
 
 ### Core Functionality and Behavior
@@ -33,7 +33,7 @@ The `grab` function operates in two primary modes: _single-level lookup_ and _pa
 
 When used without `/path`, `grab` retrieves a single value from the top level of the `data` structure.  Its behavior is specialized for the `data` type.
 
-##### For `block!` Data
+##### For `block!` (List) Data
 
 - **With `integer!` `key`**: `grab` performs a positional lookup.
 It correctly normalizes the quirky `word!` returns from `pick` for stored `logic!` or `none!` values into their proper datatypes.
@@ -70,7 +70,7 @@ The path traversal logic is intelligent and robust:
 - If any step in the traversal fails (e.g., a key is not found or an intermediate value is not a container),
 the process halts immediately and returns `none` or the default value.
 
-### Documented Limitations
+### Documented Limitations for `grab`
 
 - **Contextual Aliases**: The powerful block-parsing logic that allows `grab` to evaluate constructors cannot safely resolve variable aliases
 that depend on an outer scope.  For example, it cannot resolve `alias: user` if `user` is not defined locally within the `grab` function.
@@ -162,8 +162,69 @@ find-system-item: function [
 >> find-system-item "non-existent-key" 1
 == none
 ```
+---
 
-### Conclusion
+### **Analysis of Lettercase Sensitivity**
+
+A critical aspect of the `grab` function's behavior is its handling of case sensitivity during key-based lookups.  The function's behavior is not uniform; rather, it is inherited directly from the default semantics of the underlying Rebol datatype being accessed at each step of a lookup.  A clear understanding of this distinction is essential for predictable results, particularly when using the `/path` refinement.
+
+#### Lettercase Behavior with `map!` Datatypes
+
+When the `data` argument (or an intermediate value during a path traversal) is a `map!`, `grab` performs a **case-sensitive** lookup for that step.  This is a direct consequence of the `map!` datatype's design, which treats keys as case-sensitive to allow for maximum data precision.
+
+```rebol
+>> data-map: make map! [
+    key: "lowercase"
+    KEY: "UPPERCASE"
+]
+
+>> grab data-map 'key
+== "lowercase"
+
+>> grab data-map 'KEY
+== "UPPERCASE"
+```
+In this scenario, `'key` and `'KEY` are treated as two entirely distinct entries.
+
+#### Lettercase Behavior with `block!` Datatypes
+
+Conversely, when performing a key-based lookup on a `block!` containing `set-word!` keys, `grab` performs a **case-insensitive** lookup by default.  This behavior is inherited from the standard comparison semantics for `word!` types in Rebol.
+
+```rebol
+>> data-block: [
+    key: "value"
+]
+
+>> grab data-block 'key
+== "value"
+
+>> grab data-block 'KEY
+== "value"
+```
+In this case, `grab` successfully finds the `set-word!` `key:` when searching for `'KEY`.  It is important to note that while the *lookup* is case-insensitive, if a block contained both `key: 1` and `KEY: 2`, a search for `'key` would find the first match and return `1`.
+
+#### Lettercase Implications for Path Navigation
+
+This datatype-dependent behavior extends directly to the `/path` refinement.  The case sensitivity of each lookup is determined by the type of the *current* data segment being traversed.
+
+```rebol
+;; If `block-structure` contains block keys, this search is case-insensitive:
+grab/path block-structure ['User 'Profile]
+
+;; If `map-structure` contains map keys, this search is case-sensitive:
+grab/path map-structure ['User 'Profile]
+```
+
+#### Summary of Lettercase Sensitivity Behavior
+
+| Data Type Being Searched | Key Lookup Behavior | Inherited From |
+| :--- | :--- | :--- |
+| `map!` | **Case-Sensitive** | Default `map!` key semantics. |
+| `block!` | **Case-Insensitive** | Default `word!` comparison semantics. |
+
+This difference in behavior is not a flaw in the `grab` function but rather a correct implementation that respects the distinct design philosophies of Rebol's primary data structures.  Developers must be mindful of the data type at each step of a path to predict the outcome of key-based lookups accurately.  Future enhancements may include `/case` or `/case-insensitive` refinements to provide explicit control over this behavior.
+---
+### Overall Conclusion
 
 *   For **simple positional access** in nested blocks, `grab/path` with a path of integers is fast and effective.
 *   For more complex, **key-based lookups** in a block of records, the best practice is to use a simple `foreach` loop combined with `grab` to provide safe access once the correct record is found.
