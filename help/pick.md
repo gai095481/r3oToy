@@ -1,106 +1,96 @@
-## pick: Help Guide
-*A Practical Guide to one of Rebol 3's Most Essential Functions*
+## pick: A Technical Guide
 
-A function to access elements inside lists (known as the datatype **`block!`**), is `pick`.
+*A Practical Guide to One of Rebol 3's Most Essential Functions*
 
-This function seems simple at first, but as with any powerful tool, `pick` has nuances and behaviors that can be surprising.
-This detailed guide demonstrates how to `pick` effectively, while understanding the nuances you might not expect.
+The `pick` function is the primary mechanism for accessing elements within a `block!`, which is Rebol's fundamental list-like datatype.
 
-### The Basics: Getting an Element by Its Position
+While its basic operation is straightforward, `pick` exhibits several nuanced behaviors depending on the structure of the block and the validity of the index.
+A comprehensive understanding of these behaviors is essential for writing robust, predictable Rebol applications.
 
-A common use for `pick` is to getting a data element from inside a block by its numerical index position.
-**Important:** Rebol positions are **one-based**.  This means the first item is at position `1`, not `0` like in many other programming languages.
+### The Basics: Positional Element Access
 
+The canonical use for `pick` is retrieving a data element from a block by its numerical index. It is critical to note that Rebol uses a **one-based indexing** system, where the first element resides at position `1`.
+
+```rebol
+>> data-block: ["alpha" "bravo" "charlie"]
+
+>> pick data-block 1
+== "alpha"
+
+>> pick data-block 3
+== "charlie"
 ```
->> grocery-list: ["apples" "bananas" "cherries"]
+This represents the "happy path" or the ideal execution flow and it's simple and intuitive.
 
->> pick grocery-list 1
-== "apples"
+### Scenario: Out-of-Bounds Indexing
 
->> pick grocery-list 3
-== "cherries"
-```
-This is the "happy path," and it's simple and intuitive.
+The `pick` function doesn't generate an error if given an index outside the valid bounds of the block (e.g., less than 1 or greater than the block's length).
+Instead, it returns a value of the **`none!` datatype**.
 
-The **"happy path"** (also called the "sunny-day scenario"), refers to the **ideal, default execution flow of a program where everything proceeds as expected**, without errors, exceptions or edge cases.
+```rebol
+>> data-block: ["alpha" "bravo" "charlie"]
 
-### Senario: Handling Out-of-Bounds Access
+>> pick data-block 5      ; This position is out of bounds.
+== #(none)                ; This is a true `none!` value.
 
-You ask for a non-existent element by specifing an invalid index (less than 1 or greater than the length of the block):
-Newer programmers often expect a program crash or an error message. 
-However, `pick` is more forgiving.  It returns the `word!` `'none` if you ask for a position that is out of bounds.
-
-```
->> grocery-list: ["apples" "bananas" "cherries"]
-
->> pick grocery-list 5  ;; This position doesn't exist in the list.
-== #(none)              ;; This is the word 'none, not a true `none` value!
-
->> pick grocery-list 0  ;; Index 0 is invalid. Index -1 also returns the same.
+>> pick data-block 0      ; Index 0 is invalid.
 == #(none)
 ```
 
-> **Why the "Two Nones" Nuance?**
+> **Note on Verification:**
 >
-> This is one of the most important and subtle behaviors in Rebol 3 (proven by REPL testing).  The `#(none)` you see above is **not** the same as a true `none!` value.
->
-> *   `#(none)` is the **`word!`** `'none`.  It's just a symbol, like text.
-> *   The real "nothing" value is the **`datatype!` `none!`**.
->
-> This distinction is critical.  You must check if the result is equal to the `word! 'none` if you need to verify a `pick` operation failed.
-> ```
-> >> result: pick grocery-list 5
-> >> if (result = none) [print "Item not found!"]
-> Item not found!
+> Test for the `none!` datatype to verify if a `pick` operation has failed due to an out-of-bounds index using the idiomatic Rebol `none?` function.
+> ```rebol
+> >> result: pick data-block 5
+> >> if none? result [print "Index is out of bounds."]
+> Index is out of bounds.
 > ```
 
-### Senario: `pick` from Key-Value Blocks
+### Scenario: Accessing "Key-Value" Blocks
 
-Suppose your block has "key-value" pairs. These are defined with a `set-word!` (a word ending in a colon).
+A more complex behavior emerges when `pick` is used on blocks containing "key-value" pairs, denoted by `set-word!`s (e.g., `key:`).
+In these cases, REPL evidence demonstrates that `pick` returns the **`word!`** representation of a stored `logic!` or `none!` value, rather than the datatype itself.
 
-```
->> user-profile: [
+```rebol
+>> profile-block: [
     name: "Alice"
     active: true
     session-id: none
 ]
-```
-Our REPL tests have shown a consistent, surprising behavior here. Even when you `pick` by numerical position, Rebol returns the **`word!`** representation of the value, not the value itself.
 
-```
->> pick user-profile 2  ; Get the value for `name:`
-== "Alice"              ; Strings are returned as-is. This works as expected.
+>> pick profile-block 2      ; Get the value for `name:`
+== "Alice"                   ; string! values are returned as expected.
 
->> pick user-profile 4  ; Get the value for `active:`
-== true                ; This is the WORD! 'true, not the LOGIC! true.
+>> pick profile-block 4      ; Get the value for `active:`
+== true                      ; Returns the WORD! 'true, not the LOGIC! true.
 
->> pick user-profile 6  ; Get the value for `session-id:`
-== none                 ; This is the WORD! 'none, not the DATATYPE! none.
+>> pick profile-block 6      ; Get the value for `session-id:`
+== none                      ; Returns the WORD! 'none, not the DATATYPE! none.
 ```
-> **Why?**
+
+> **Analysis of Behavior:**
 >
-> This behavior suggests `pick` is designed as a very low-level function. When it operates on a block that looks like code (with `set-word!` keys), it assumes you might want the literal source token, not the evaluated value. This makes `pick` very fast, but it puts the responsibility on you, the programmer, to "normalize" the result if you need a true `logic!` or `none!` value. For this reason, `pick` is often not the best tool for accessing key-value data.
+> This functionality suggests that `pick` operates at a low level, returning the literal token from the source block without evaluation. This prioritizes speed and provides a direct view of the block's structure. However, it places the onus on the developer to normalize the result if a true `logic!` or `none!` datatype is required.  For this reason, a higher-level getter function is often preferable for accessing "key-value" data in blocks.
 
-## A Final Warning: `pick` and `none` Input
+### A Final Warning: `pick` with `none` Input
 
-The one time `pick` is **unforgiving** is when you try to `pick` from a variable that *is* `none` itself. This will cause your script to halt with an error.
+The one scenario where `pick` is **unforgiving** is when the primary argument is `none` itself. This action is invalid and will halt the script with a syntax error.
 
-```
->> bad-data: none
->> pick bad-data 1
+```rebol
+>> invalid-data: none
+>> pick invalid-data 1
 ** Script error: pick does not allow #(none!) for its aggregate argument
 ```
-This is a reason to build a safe wrapper function (like `grab`) that wraps `pick` in a protective `if none? data [...]` check.
+This necessitates a guard condition (e.g., `if not none? data [...]`) when dealing with variables that might be `none`.
 
-## `pick`: Exampes Summary
+### `pick`: A Behavioral Summary
 
-| You Do This... | `pick` Returns... | What to Watch For |
+| Operation | `pick` Returns... | Analysis |
 | :--- | :--- | :--- |
-| `pick ["a" "b"] 1` | `"a"` (a `string!`) | Works as expected. |
-| `pick ["a" "b"] 99` | `'none` (a `word!`) | The result is a `word!`, not a `none!` value. Check with `if result = 'none`. |
-| `pick [val: true] 2` | `'true` (a `word!`) | The result is a `word!`, not a `logic!`. |
-| `pick [val: none] 2` | `'none` (a `word!`) | The result is a `word!`, not a `none!` value. |
-| `pick none 1` | **A script error!** | Always check if your data is `none` before you try to `pick` from it. |
+| `pick ["a" "b"] 1` | `"a"` (`string!`) | Standard, predictable behavior. |
+| `pick ["a" "b"] 99` | `none` (`none!`) | Returns the `none!` datatype for out-of-bounds access. Verify with `none?`. |
+| `pick [val: true] 2` | `'true` (`word!`) | Returns a `word!`, not a `logic!`. Requires normalization. |
+| `pick [val: none] 2` | `'none` (`word!`) | Returns a `word!`, not a `none!` value. Requires normalization. |
+| `pick none 1` | **Script Error** | Input must be validated before calling `pick`. |
 
-`pick` is a fundamental, powerful, and fast tool. By understanding its specific quirks—especially the "Two Nones" problem an
-its behavior with key-value block; you can use it safely and effectively in all of your Rebol 3 Oldesprograms.
+`pick` is a fundamental, high-performance function. A clear understanding of its distinct behaviors with simple blocks versus key-value blocks is crucial for its effective and safe implementation in any Rebol 3 Oldes program.
