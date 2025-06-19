@@ -76,13 +76,6 @@ the process halts immediately and returns `none` or the default value.
 that depend on an outer scope.  For example, it cannot resolve `alias: user` if `user` is not defined locally within the `grab` function.
 This is a designed limitation to ensure predictability and security.
 
-### Planned Improvements
-
-The following features are considered for future releases:
-- **/secure**: A refinement to sanitize path input and prevent traversal attacks.
-- **Recursion Depth Protection**: A mechanism to prevent infinite loops when traversing data with circular references.
-- **/string-path**: A refinement to accept paths as a delimited `string!` (e.g., `"config/database/host"`).
-
 ---
 This data structure, a block of blocks (where each inner block acts as a record), is a very common pattern in Rebol.
 
@@ -174,6 +167,63 @@ find-system-item: function [
 
 *   For **simple positional access** in nested blocks, `grab/path` with a path of integers is fast and effective.
 *   For more complex, **key-based lookups** in a block of records, the best practice is to use a simple `foreach` loop combined with `grab` to provide safe access once the correct record is found.
+
+---
+### Features Considered for Future Releases
+
+Most Immediately Valuable
+The `/convert`, `/multi-path` and `/trace` refinements below probably provide the highest utility-to-complexity ratio for real-world usage.
+
+#### Core Robustness & Usability
+- Recursion Depth Protection: Prevent infinite loops when traversing data with circular references.
+- `/secure`: To sanitize path input and prevent traversal attacks.
+- `/string-path`: To accept paths as a delimited `string!` (e.g., `"config/database/host"`).
+- `/exists?`: Return true/false if path exists without getting a value.
+
+#### Enhanced Path Operations
+- `/case-insensitive`: Make word-based lookups case-insensitive.
+- `/pattern`: Support wildcard patterns in keys (e.g., user*, *_config).
+- `/all`: Return all matching values when path contains patterns.
+- `/multi-path`: Accept multiple path alternatives, return first successful match.
+- Better array operations: Support for negative indices, slice notation.
+
+#### Data Transformation & Type Handling
+- `/validate`: Ensure returned values meet criteria (type, range, pattern).
+- `/convert`: Automatically convert return values to specified types (e.g., strings to integers, blocks to maps).
+- `/transform`: Apply a transformation function to the result before returning.
+
+#### Batch & Performance Features
+- `/batch` refinement: Process multiple fields at once, return block of results.
+- `/lazy` refinement: Return a function that evaluates the path when called.
+- `/cache` refinement: Cache path lookups for repeated access to same structure.
+
+#### Data Structure Extensions
+- `/flatten`: Handle nested structures more intuitively.
+- `/merge`: Combine results from multiple paths.
+
+#### Enhanced Error Handling & Debugging
+- `/strict`: Fail fast on any path segment that doesn't exist.
+- `/trace` refinement: Return detailed path traversal information.
+
+#### Recommended implementation order
+##### Highest Value, Easiest to Implement (Quick Wins)
+
+Recursion Depth Protection (Critical Stability)
+- `/secure` (Critical Security)
+- `/string-path` (High-Value Convenience)
+- `/strict` (Useful Alternative Behavior)
+
+##### Next Tier (Powerful Features)
+- `/exists?`
+- `/case-insensitive`
+
+##### Advanced / Specialized (Implement as needed)
+- `/transform`, `/convert`, `/validate` (Easy but niche).
+- `/batch`, `/multi-path` (More complex for specific use cases).
+
+##### Re-evaluate Later (Major undertakings representing a significant increase in complexity)
+- `/pattern`, `/all`, `/lazy`, `/cache`
+- _Better Array Operations_
 
 ---
 
