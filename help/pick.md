@@ -40,7 +40,7 @@ However, `pick` is more forgiving.  It returns the `word!` `'none` if you ask fo
 == #(none)
 ```
 
-> **Explaination of the "Two Nones" Nuance**
+> **Why the "Two Nones" Nuance?**
 >
 > This is one of the most important and subtle behaviors in Rebol 3 (proven by REPL testing).  The `#(none)` you see above is **not** the same as a true `none!` value.
 >
@@ -50,7 +50,7 @@ However, `pick` is more forgiving.  It returns the `word!` `'none` if you ask fo
 > This distinction is critical.  You must check if the result is equal to the `word! 'none` if you need to verify a `pick` operation failed.
 > ```
 > >> result: pick grocery-list 5
-> >> if result = none [print "Item not found!"]
+> >> if (result = none) [print "Item not found!"]
 > Item not found!
 > ```
 
@@ -58,7 +58,7 @@ However, `pick` is more forgiving.  It returns the `word!` `'none` if you ask fo
 
 Suppose your block has "key-value" pairs. These are defined with a `set-word!` (a word ending in a colon).
 
-```rebol
+```
 >> user-profile: [
     name: "Alice"
     active: true
@@ -67,7 +67,7 @@ Suppose your block has "key-value" pairs. These are defined with a `set-word!` (
 ```
 Our REPL tests have shown a consistent, surprising behavior here. Even when you `pick` by numerical position, Rebol returns the **`word!`** representation of the value, not the value itself.
 
-```rebol
+```
 >> pick user-profile 2  ; Get the value for `name:`
 == "Alice"              ; Strings are returned as-is. This works as expected.
 
@@ -77,22 +77,22 @@ Our REPL tests have shown a consistent, surprising behavior here. Even when you 
 >> pick user-profile 6  ; Get the value for `session-id:`
 == none                 ; This is the WORD! 'none, not the DATATYPE! none.
 ```
-> **The Missing Manual Explains: Why does this happen?**
+> **Why?**
 >
-> This behavior suggests that Rebol's `pick` is designed as a very low-level tool. When it operates on a block that looks like code (with `set-word!` keys), it assumes you might want the literal source token, not the evaluated value. This makes `pick` very fast, but it puts the responsibility on you, the programmer, to "normalize" the result if you need a true `logic!` or `none!` value. For this reason, `pick` is often not the best tool for accessing key-value data; our `grab` function is designed to solve this exact problem.
+> This behavior suggests `pick` is designed as a very low-level function. When it operates on a block that looks like code (with `set-word!` keys), it assumes you might want the literal source token, not the evaluated value. This makes `pick` very fast, but it puts the responsibility on you, the programmer, to "normalize" the result if you need a true `logic!` or `none!` value. For this reason, `pick` is often not the best tool for accessing key-value data.
 
 ## A Final Warning: `pick` and `none` Input
 
-The one time `pick` is **not forgiving** is when you try to `pick` from a variable that *is* `none` itself. This will cause your script to halt with an error.
+The one time `pick` is **unforgiving** is when you try to `pick` from a variable that *is* `none` itself. This will cause your script to halt with an error.
 
-```rebol
+```
 >> bad-data: none
 >> pick bad-data 1
 ** Script error: pick does not allow #(none!) for its aggregate argument
 ```
-This is the most common reason to build a "safe-getter" function (like `grab`) that wraps `pick` in a protective `if none? data [...]` check.
+This is a reason to build a safe wrapper function (like `grab`) that wraps `pick` in a protective `if none? data [...]` check.
 
-## `pick`: The Summary
+## `pick`: Exampes Summary
 
 | You Do This... | `pick` Returns... | What to Watch For |
 | :--- | :--- | :--- |
@@ -102,4 +102,5 @@ This is the most common reason to build a "safe-getter" function (like `grab`) t
 | `pick [val: none] 2` | `'none` (a `word!`) | The result is a `word!`, not a `none!` value. |
 | `pick none 1` | **A script error!** | Always check if your data is `none` before you try to `pick` from it. |
 
-`pick` is a fundamental, powerful, and fast tool. By understanding its specific quirks—especially the "Two Nones" problem and its behavior with key-value blocks—you can use it safely and effectively in all of your Rebol programs.
+`pick` is a fundamental, powerful, and fast tool. By understanding its specific quirks—especially the "Two Nones" problem an
+its behavior with key-value block; you can use it safely and effectively in all of your Rebol 3 Oldesprograms.
