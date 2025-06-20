@@ -1,6 +1,6 @@
 REBOL [
     Title: "The `grab` Function: A Generic Field and Key-Value Getter"
-    Version: 0.2.1
+    Version: 0.2.2
     Author: "Multiple AI Assistants & Human Orchestrator"
     Date: 19-Jun-2025
     Status: "Release Candidate"
@@ -12,7 +12,7 @@ REBOL [
         offering safe, robust access to nested data structures.
     }
     Note: "Adheres to a custom Rebol 3 Oldes Development ruleset as defined by the r3oTop repo."
-    Keywords: [field key get grab retrieve access read robust qa test function helper block map safety path]
+    Keywords: [field key get grab retrieve access read robust QA test function helper block map safety path]
 ]
 
 ;;-----------------------------------------------------------------------------
@@ -62,56 +62,74 @@ print-test-summary: does [
 ]
 
 ;;-----------------------------------------------------------------------------
+;; IMPORTANT: Multiple expilcit return statements to avoid "fall-through" bugs
+;; as documented in the tutorial: "explicit-returns verses fall through bug.md".
+;; Refactoring this function to reduce the number of explict returns will
+;; mostly result in a difficult to troubleshot and resolve defect.
+;;-----------------------------------------------------------------------------
 grab: function [
-    data [any-type!] "The data structure to access (block!, map!, or none!)."
-    key [any-word! string! integer! decimal! block!] "The index, key, or path to retrieve."
+    data [any-type!] "The data structure to access (`block!`, `map!` or `none!`)."
+    key [any-word! string! integer! decimal! block!] "The index, key or path to retrieve."
     /path "Treat the `key` as a path (a block of keys/indices)."
-    /default "Provide a default value if the lookup fails."
+    /default "Provide a default value if the retrieval fails."
     default-value [any-type!] "The value to return on failure."
 ][
-    {Safely retrieves a value from a block or map, with optional path traversal.
+    {Safely retrieve a value from a `block!` or `map!`, with optional path traversal.
     RETURNS: [any-type!] "The retrieved value, default value or `none`"
-    ERRORS: Returns error! object for invalid data types or malformed paths.}
+    ERRORS: None. This function is designed to never error, returningnoneor a default value on failure.}
 
     if path [
         if any [not block? key empty? key] [
             return either default [default-value] [none]
         ]
+
         current: data
+
         foreach step key [
             if not any [block? :current map? :current] [
                 current: none
                 break
             ]
+
             current: grab current step
+
             if none? :current [break]
         ]
+
         return either all [none? :current default] [default-value] [current]
     ]
+
     if not any [block? data map? data none? data] [return either default [default-value] [none]]
     if none? data [return either default [default-value] [none]]
+
     if block? data [
         if integer? key [
-            ;; For integers, we must normalize the result of `pick`.
+            ;; For integers, we must normalize the result of `pick`:
             value: pick data key
+
             if none? value [return either default [default-value] [none]]
             case [
                 all [word? value value = 'none] [return none]
                 all [word? value value = 'true] [return true]
                 all [word? value value = 'false] [return false]
             ]
+
             return value
         ]
+
         if decimal? key [
-            ;; Decimal keys are not valid for block indexing - return default/none
+            ;; Decimal keys are not valid for block indexing - return default/none:
             return either default [default-value] [none]
         ]
+
         ;; Block keys in non-path mode are invalid - return default or none
         if block? key [
             return either default [default-value] [none]
         ]
-        ;; This is the sophisticated parsing and evaluation logic for word/string keys.
+
+        ;; This is the sophisticated parsing and evaluation logic for word/string keys:
         position: find data to-set-word key
+
         if position [
             value-expression: copy next position
             next-setword-pos: none
@@ -121,25 +139,30 @@ grab: function [
                     break
                 ]
             ]
+
             if next-setword-pos [
                 value-expression: copy/part value-expression next-setword-pos
             ]
+
             if not empty? value-expression [
-                ;; This is the "Try / Fallback" pattern.
+                ;; This is the "Try / Fallback" pattern:
                 ;; First, ATTEMPT to evaluate the expression.
                 result: try [do value-expression]
-                ;; Check if the attempt failed (e.g., context error on an alias).
+
+                ;; Check if the attempt failed (e.g., context error on an alias):
                 if error? result [
-                    ;; The 'do' failed. Fall back to the safe 'select' logic,
-                    ;; which just gets the next literal value.
+                    ;; The 'do' failed.  Fall back to the safe 'select' logic, to get the next literal value:
                     return select data to-set-word key
                 ]
-                ;; The 'do' succeeded. Return the evaluated result.
+
+                ;; The 'do' succeeded. Return the evaluated result:
                 return result
             ]
         ]
+
         return either default [default-value] [none]
     ]
+
     if map? data [
         if find data key [
             value: select data key
@@ -148,8 +171,10 @@ grab: function [
                 all [word? value value = 'true] [return true]
                 all [word? value value = 'false] [return false]
             ]
+
             return value
         ]
+
         return either default [default-value] [none]
     ]
 ]
@@ -285,30 +310,17 @@ assert-equal none grab/path deeply-nested [1 1 1 1 2] "Deep Path: Should return 
 
 print "^/--- NESTED MAP TESTS ---"
 map-in-block: [make map! [id 1 name "Alice"] make map! [id 2 name "Bob"]]
-;assert-equal 1 grab/path map-in-block [1 'id] "Nested Map: Should access map within block."
-;assert-equal "Bob" grab/path map-in-block [2 'name] "Nested Map: Should access second map in block."
+;assert-equal 1 grab/path map-in-block [1 'id] "Nested Map: Should access map within block."           ;; CURRENTLY UNSUPPORTED.
+;assert-equal "Bob" grab/path map-in-block [2 'name] "Nested Map: Should access second map in block."  ;; CURRENTLY UNSUPPORTED.
 
 block-in-map: make map! [users [["Alice" 30] ["Bob" 25]] settings [theme "light"]]
 assert-equal "Alice" grab/path block-in-map ['users 1 1] "Map Block: Should access block within map."
 assert-equal 25 grab/path block-in-map ['users 2 2] "Map Block: Should access nested values in map block."
 
-print "^/--- INVALID FIELD TYPE ---"
+print "^/--- INVALID FIELD TYPE TESTS ---"
 assert-equal none grab [1 2 3] "invalid-field-type" "Invalid Field: Should return `none` for string field on block."
 assert-equal none grab [1 2 3] 3.14 "Invalid Field: Should return `none` for decimal field."
 assert-equal "type-default" grab/default [1 2 3] [invalid] "type-default" "Invalid Field: Should return the default for block field on non-path call."
 
 print-test-summary
 
-;; =============================================================================
-;; PLANNED IMPROVEMENTS & FUTURE WORK
-;; =============================================================================
-comment {
-    *   Add a `/secure` refinement to the `/path` logic to sanitize input and
-        prevent path traversal attacks (e.g., checking for "..").
-
-    *   Add recursion depth protection to the `/path` logic to prevent
-        infinite loops from circular references in data.
-
-    *   Consider adding support for a `/string-path` refinement that would
-        accept a path like "config/database/host" and split it automatically.
-}
