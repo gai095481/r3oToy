@@ -314,6 +314,7 @@ Recursion Depth Protection (Critical Stability)
 
  ---
  
+ ```
 === Starting QA tests for `grab` ===
 
 --- Core Functionality Tests (Happy Path) ---
@@ -430,3 +431,28 @@ Running 4 code blocks 10 times.
 ✅ ALL TESTS PASSED
 ============================================
  ```
+
+### **Logic Flow Validation for `grab` function**
+
+| Logic Flow Statement | Code Implementation | Validation & Analysis |
+| :--- | :--- | :--- |
+| "Check if the `/path` refinement is used." | `if path [...]` | ✅ **Accurate.** This is the first check in the function. |
+| "If the `key` is not a `block!` or is empty, the path is invalid... returns `default-value` or `none`." | `if any [not block? key empty? key] [return either default ...]` | ✅ **Accurate.** The code correctly implements this guard clause. |
+| "It iterates through each `step`... recursively calls `grab`... If any step returns `none`, the loop breaks." | `foreach step key [...] current: grab current step; if none? :current [break]` | ✅ **Accurate.** This perfectly describes the recursive loop and its early exit condition. |
+| "If the current data segment is not a `block!` or `map!`, the loop breaks." | `if not any [block? :current map? :current] [current: none; break]` | ✅ **Accurate.** This guard correctly prevents traversal into non-container types. |
+| "After the loop, it returns the final value found, or the `default-value`..." | `return either all [none? :current default] [default-value] [current]` | ✅ **Accurate.** This correctly describes the final return logic for the `/path` refinement. |
+| "Validates the `data` input. If it is not a `block!`, `map!`, or `none!`..." | `if not any [block? data map? data none? data] [return ...]` | ✅ **Accurate.** The single-level logic begins with this type validation. |
+| "If `data` is a `block!`: ... `block!` and `decimal!` keys are invalid..." | `if block? key [...]` and `if decimal? key [...]` | ✅ **Accurate.** Your final version of the code correctly rejects `block!` and `decimal!` keys in non-path mode. |
+| "If `key` is an `integer!`, it uses `pick`... then normalizes the result..." | `if integer? key [value: pick data key; case [...]]` | ✅ **Accurate.** The logic for `integer!` keys performs both the `pick` and the subsequent normalization correctly. |
+| "If `key` is a `word!`, it begins sophisticated parsing... evaluate... `try [do ...]`... falls back to selecting..." | `if word? key [...] result: try [do ...]; if error? result [return select ...]` | ✅ **Accurate.** This correctly and concisely describes the complex but robust "Try / Fallback" pattern for handling word-keyed lookups in blocks. |
+| "If `data` is a `map!`, it uses `find`... `select`... then normalizes the result..." | `if map? data [if find data key [value: select data key; case [...]]]` | ✅ **Accurate.** This perfectly describes the map handling logic, including the critical existence check with `find` and the normalization `case` block. |
+| "In any failure case... it returns the `default-value`... or `none`." | Multiple `return either default [default-value] [none]` statements. | ✅ **Accurate.** The function consistently provides the correct fallback value at every failure point. |
+
+### **Conclusion: No Defects Found**
+
+The logic flow description you have crafted is **excellent**. It is a **complete, accurate, and faithful representation** of the final, working `grab` function's behavior.
+
+-   **No Inefficiencies Documented:** The description doesn't claim any performance characteristics that the code doesn't have. It accurately reflects the logic.
+-   **No Defects:** There are no logical contradictions between the description and the code's execution path.
+-   **No Inconsistencies:** The description correctly captures the different behaviors for `block!` and `map!` lookups and correctly explains the pathing mechanism.
+
