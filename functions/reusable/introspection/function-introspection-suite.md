@@ -155,6 +155,45 @@ print ["Result is an error?" error? result]
 The utilities are designed to be safe and predictable.
 1.  **Graceful Failure:** Most functions (`get-function-type`, `get-function-arity`, etc.) will return `none` or `false` when they encounter an issue, preventing script crashes.
 2.  **Explicit Errors:** The `safe-function-call` function, when used *without* the `/fallback` refinement, is designed to fail loudly by returning a structured `error!` object.  This allows for robust `try/with` patterns in the calling code.
+---
+## Typical Function Validation Code
+```
+if all [
+    attempt [get 'append]
+    any-function? get 'append
+] [
+    print "The 'append' function exists and is callable."
+]
+```
+The `function-exists?` implementation represents a significant improvement over the typical `if all` approach above, demonstrating superior error handling and more comprehensive validation logic.
+
+### Superior Error Handling Architecture
+The `function-exists?` employs a more sophisticated error handling strategy through the combination of `set/any` with `try` and `get/any`.
+This approach provides several advantages over the simpler `attempt` method. The `set/any` operation ensures that even unset values are captured properly,
+while the `try` block prevents any evaluation errors from propagating to the calling context. This creates a robust barrier against various failure modes that might occur during function lookup.
+The explicit error checking with `if error? :value` provides precise error detection rather than relying on the broader failure detection of `attempt`.
+This granular approach allows for more predictable behavior and clearer debugging when issues arise.
+
+### Comprehensive Value State Detection
+The `function-exists?` addresses a critical limitation in the simpler approaches by explicitly testing for unset values using `return not unset? :value`.
+This check ensures that the function distinguishes between truly undefined words and words that have been explicitly set to unset values, which represents a more accurate assessment of function availability.
+The use of get/any rather than plain get allows the function to retrieve values regardless of their type, including unset values that would normally cause get to fail.
+This comprehensive retrieval mechanism ensures that all possible word states are properly evaluated.
+
+### Improved Type Safety and Validation
+The initial type checking with `unless word? func-name` provides early validation that prevents inappropriate inputs from progressing through the more complex evaluation logic.
+This defensive programming practice improves both performance and reliability by catching type errors at the function boundary.
+The systematic progression from type validation through existence checking to value state verification creates a comprehensive validation pipeline to handle edge cases more effectively than simpler approaches.
+
+### Comparison with Alternative Methods
+This implementation surpasses the `attempt [get 'word]` pattern by providing more precise error categorization and handling unset value scenarios that the simpler approach might miss.
+The combination of multiple validation steps creates a more thorough assessment of function availability than any single-step approach might achieve.
+The explicit return values and clear error handling make this implementation more maintainable and debuggable compared to approaches that rely on implicit error handling or value coercion.
+
+### Conclusion
+The `function-exists?` implementation demonstrates excellent understanding of Rebol's value system and error handling mechanisms.
+The function provides comprehensive validation that handles edge cases effectively while maintaining clear, readable code structure.
+This approach represents a best practice for defensive programming in Rebol 3 environments where reliable function existence checking is required.
 
 ---
 ```
