@@ -365,5 +365,27 @@ assert-equal none grab [1 2 3] "invalid-field-type" "Invalid Field: Should retur
 assert-equal none grab [1 2 3] 3.14 "Invalid Field: Should return `none` for decimal field."
 assert-equal "type-default" grab/default [1 2 3] [invalid] "type-default" "Invalid Field: Should return the default for block field on non-path call."
 
+print "^/--- `grab-item` HELPER FUNCTION TESTS ---"
+
+;; Define the data source for this test section.
+system-items: [
+    ["system/version" "Interpreter version" 3.19.0]
+    ["system/platform" "Operating system" 'Windows-x64]
+    ["system/options/script" "Path to script" none] ; A record with a none value
+    ["malformed-record"] ; A record that is too short
+]
+
+;; --- Happy Path Tests ---
+assert-equal 3.19.0 grab-item "system/version" 3 "grab-item: Should retrieve the 3rd item (value) from a found record."
+assert-equal "Operating system" grab-item "system/platform" 2 "grab-item: Should retrieve the 2nd item (description) from a found record."
+assert-equal "system/options/script" grab-item "system/options/script" 1 "grab-item: Should retrieve the 1st item (key) from a found record."
+
+;; --- Edge Case and Failure Mode Tests ---
+assert-equal none grab-item "system/options/script" 3 "grab-item: Should correctly return a stored `none` value."
+assert-equal none grab-item "non-existent-key" 1 "grab-item: Should return `none` when the key is not found."
+assert-equal none grab-item "malformed-record" 2 "grab-item: Should return `none` for an out-of-bounds index on a found record."
+result: grab-item "malformed-record" 2
+assert-equal "default" grab/default result 'some-key "default" "grab-item: The `none` result should work with a subsequent default."
+
 print-test-summary
 
