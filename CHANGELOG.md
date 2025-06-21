@@ -1,3 +1,9 @@
+[2025-06-20]
+
+- Developed grab function: Created a robust, safe "super-getter" for Rebol block! and map! types.
+- Implemented grab /path traversal: Added logic to grab to recursively navigate nested data structures.
+- Debugged grab extensively: Solved numerous complex bugs related to Rebol's specific behaviors (the "Two Nones" problem, word! vs. datatype! returns, constructor evaluation) by using a "Try / Fallback" architecture.
+
 [2025-06-15]
 
 ### Reorganization of "Eschew Obfuscation" Principle
