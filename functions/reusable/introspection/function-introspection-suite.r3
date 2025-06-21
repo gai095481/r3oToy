@@ -90,7 +90,7 @@ print-test-summary: does [
 ]
 
 ;;============================================================================
-;; CORE VALIDATION UTILITIES
+;; USAGE: function-exists? 'some-function-name
 ;;============================================================================
 function-exists?: function [
     {Safely validate if a function exists in the current context.}
