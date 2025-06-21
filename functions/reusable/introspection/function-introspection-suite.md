@@ -7,9 +7,9 @@ A set of robust, secure utilities for introspecting function existence and prope
 To use these utilities, `do` the script file into your project.  All introspection functions will then be available in the global context.
 
 ```rebol
-do %function-introspection-utilities-final.r3
+do %function-introspection-suite.r3
 
-;; Now you can use the utility functions.
+;; Ask if the `append` function exists:
 if function-exists? 'append [
     print "The 'append' function exists."
 ]
