@@ -67,6 +67,33 @@ print-test-summary: does [
 ;; Refactoring this function to reduce the number of explict returns will
 ;; mostly result in a difficult to troubleshot and resolve defect.
 ;;-----------------------------------------------------------------------------
+;; This function takes a data structure, a key and optional refinements.
+;; Its logic is divided into two main modes: path traversal and single-level lookup.
+;;
+;; Check if the `/path` refinement is specified.
+;; If `/path` is specified:
+;;  First, it validates the `key`.  If the `key` is not a `block!` or is empty, the path is invalid.
+;;  If the path is invalid, it returns the `default-value` if provided, otherwise `none`.
+;;  If the path is valid, it iterates through each `step` in the path `key`.
+;;   At each step, it recursively calls `grab` on the current data segment.
+;;   If any step returns `none`, the traversal loop breaks immediately.
+;;   If the current data segment is not a `block!` or `map!`, the path has reached a dead end and the loop breaks.
+;;  After the loop, it returns the final value found or the `default-value` if the traversal failed and `/default` was used.
+;;
+;; If `/path` is NOT specified, it proceeds to single-level lookup:
+;;  First, it validates the `data` input.  If it is not a `block!`, `map!` or `none!` then the lookup fails.
+;;  If `data` is a `block!`:
+;;   It checks the `key` type. `block!` and `decimal!` keys are invalid for block lookups and cause a failure.
+;;   If the `key` is an `integer!`, it uses `pick` to get the value.  It then normalizes the result to convert any `word!` representations of `true`, `false` or `none` into their proper datatypes.
+;;   If the `key` is a `word!`, it begins the sophisticated parsing logic.
+;;    It first tries to evaluate the value as an expression (e.g., for `make map! [...]`).
+;;    If evaluation fails (e.g., for a simple literal or a context-dependent alias), it safely falls back to selecting just the next literal value.
+;;  If `data` is a `map!`:
+;;   It uses `find` to check for the key's existence.
+;;   If found, it uses `select` to get the value.
+;;   It then normalizes the result, converting the special `word!`s (`'true`, `'false`, `'none`) that `select` returns for those values into their proper datatypes.
+;; In any failure case during single-level lookup, it returns the `default-value` if provided, otherwise `none`.
+;;-----------------------------------------------------------------------------
 grab: function [
     data [any-type!] "The data structure to access (`block!`, `map!` or `none!`)."
     key [any-word! string! integer! decimal! block!] "The index, key or path to retrieve."
