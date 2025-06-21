@@ -385,6 +385,15 @@ Recursion Depth Protection (Critical Stability)
 ✅ PASSED: Large Index: Should return none for very negative index.
 ✅ PASSED: Large Index: Should return default for large index.
 
+--- `grab-item` HELPER FUNCTION TESTS ---
+✅ PASSED: grab-item: Should retrieve the 3rd item (value) from a found record.
+✅ PASSED: grab-item: Should retrieve the 2nd item (description) from a found record.
+✅ PASSED: grab-item: Should retrieve the 1st item (key) from a found record.
+✅ PASSED: grab-item: Should correctly return a stored `none` value.
+✅ PASSED: grab-item: Should return `none` when the key is not found.
+✅ PASSED: grab-item: Should return `none` for an out-of-bounds index on a found record.
+✅ PASSED: grab-item: The `none` result should work with a subsequent default.
+
 --- PATH WITH WORDS TESTS ---
 
 Running 4 code blocks 10 times.
