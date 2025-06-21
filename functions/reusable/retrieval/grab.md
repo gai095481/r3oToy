@@ -135,42 +135,42 @@ Therefore, a simple `grab/path system-items ["system/version" 3]` will not work 
 This scenario highlights a perfect opportunity for a small helper function that iterates through the records.
 
 ```rebol
-find-system-item: function [
-    "Finds a record in system-items by its key and grabs a value from it."
-    key-string [string!] "The key to search for (e.g., 'system/version')."
-    index [integer!] "The index of the value to grab from the found record (1, 2, or 3)."
+grab-item: function [
+    "USE: Find a record in system-items by its key and grab its associated value."
+    key-string [string!] "The key to match (e.g., 'system/version')."
+    index [integer!] "The index of the value to grab from the matching record (1, 2, or 3)."
 ][
     foreach record system-items [
-        ;; Check if the first item in the record matches our key
+        ;; Ensure the first item in the record matches our key:
         if key-string = first record [
-            ;; Use grab to safely get the indexed item from the record
+            ;; Use `grab` to safely get the indexed item from the record:
             return grab record index
         ]
     ]
-    return none ;; Return none if no record was found
+    return none ;; Return `none` if no record was found.
 ]
 
->> find-system-item "system/version" 3
+>> grab-item "system/version" 3
 == 3.19.0
 
->> find-system-item "system/options/home" 3
+>> grab-item "system/options/home" 3
 == %/C/Users/YourUser/
 
->> find-system-item "system/platform" 2
+>> grab-item "system/platform" 2
 == "Operating system platform..."
 
->> find-system-item "non-existent-key" 1
+>> grab-item "non-existent-key" 1
 == none
 ```
 ---
 
 ### **Analysis of Lettercase Sensitivity**
 
-A critical aspect of the `grab` function's behavior is its handling of case sensitivity during key-based lookups.  The function's behavior is not uniform; rather, it is inherited directly from the default semantics of the underlying Rebol datatype being accessed at each step of a lookup.  A clear understanding of this distinction is essential for predictable results, particularly when using the `/path` refinement.
+A critical aspect of the `grab` function's behavior is its handling of letter case sensitivity during key-based lookups.  The function's behavior is not uniform; rather, it is inherited directly from the default semantics of the underlying Rebol datatype being accessed at each step of a lookup.  A clear understanding of this distinction is essential for predictable results, particularly when using the `/path` refinement.
 
 #### Lettercase Behavior with `map!` Datatypes
 
-When the `data` argument (or an intermediate value during a path traversal) is a `map!`, `grab` performs a **case-sensitive** lookup for that step.  This is a direct consequence of the `map!` datatype's design, which treats keys as case-sensitive to allow for maximum data precision.
+When the `data` argument (or an intermediate value during a path traversal) is a `map!`, `grab` performs a **case-sensitive** lookup for that step.  This is a direct consequence of the `map!` datatype's design, which treats keys as letter case-sensitive to allow for precise matching.
 
 ```rebol
 >> data-map: make map! [
