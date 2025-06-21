@@ -21,11 +21,11 @@ This document served as a complete user guide for a standalone Rebol utility scr
 This was a more complex document for a multi-function library requiring detailed explanations for each component.
 - **Objective:** To document a complete library of functions for creating and manipulating multi-dimensional arrays.
 - **Key Formatting Elements Used:**
-    - **Consistent Structure:** Each function (make-array, get-element, etc.) was given its own dedicated section with a consistent Syntax, Parameters, Returns, and Example structure. This predictability makes the entire library easier to learn.
+    - **Consistent Structure:** Each function (`make-array`, `get-element`, etc.), was given its own dedicated section with a consistent Syntax, Parameters, Returns, and Example structure. This predictability makes the entire library easier to learn.
     - **Tables for Parameters:** Again used tables to formally document the parameters for each function which is essential for library documentation.
     - **Code Blocks:** Provided clear copy-and-paste examples for every function.
     - **Emphasis (Bold/Italics):** Used bold text to highlight critical in-place modification behavior (**This function modifies the array in-place.**) and security notes.
-### User Manual for untitled-script.r3 (Block Manipulation Demo)
+### User Manual for blocks_demo.r3 (Block Manipulation Demo)
 This document was created for an educational script where the goal was to explain a wide range of related concepts.
 - **Objective:** To serve as a comprehensive tutorial and reference guide for Rebol's core block! manipulation features.
 - **Key Formatting Elements Used:**
