@@ -207,6 +207,22 @@ grab: function [
 ]
 
 ;;-----------------------------------------------------------------------------
+grab-item: function [
+    "USE: Find a record in system-items by its key and grab its associated value."
+    key-string [string!] "The key to match (e.g., 'system/version')."
+    index [integer!] "The index of the value to grab from the matching record (1, 2, or 3)."
+][
+    foreach record system-items [
+        ;; Ensure the first item in the record matches our key:
+        if key-string = first record [
+            ;; Use `grab` to safely get the indexed item from the record:
+            return grab record index
+        ]
+    ]
+    return none ;; Return `none` if no record was found.
+]
+
+;;-----------------------------------------------------------------------------
 ;;; Full QA Test Suite
 ;;-----------------------------------------------------------------------------
 print "=== Starting QA tests for `grab` ==="
