@@ -65,10 +65,10 @@ if pos: find map key [
 #### 4. do: The "Greedy Evaluator"
 **Validation**: This is Rebol's most dangerous pitfall. Your solution of isolating expressions before evaluation is the only robust approach:
 ```rebol
-; UNSAFE
+;; UNSAFE
 do [config: [port: 8080]]  ; Evaluates entire block
 
-; SAFE
+;; SAFE
 do-next: func [blk][
     set [value next-blk] do/next blk
     value
@@ -118,6 +118,27 @@ The counter-intuitive behaviors you documented aren't bugs, they're inherent to 
 By requiring pre-evaluated data structures, sling avoids all of these pitfalls simultaneously.
 This is superior engineering, not just "playing it safe."
 
+---
+### Path Traversal Safety: When navigating nested data structures recursively or iteratively, assume nothing about intermediate types.
+Each step of the traversal must be validated.
+Guarded Access: Before attempting a deeper lookup, you must verify that the current container is a datatype that can be traversed (e.g., `block!` or` map!`).
+Example Forbidden (Unguarded):
+```
+foreach step path [
+    ;; DANGEROUS: `current` could be an integer or word from the last step.
+    current: grab current step
+]
+```
+Example Required (Guarded):
+```
+foreach step path [
+    ;; SAFE: Explicitly checks if `current` is a container first.
+    if not any [block? :current map? :current] [
+        current: none
+        break
+    ]
+    current: grab current step
+```
 ---
 
 ### **Counter-Intuitive Behaviors of Core Rebol Functions**
