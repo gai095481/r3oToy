@@ -190,8 +190,6 @@ grab-item: function [
 ]
 
 ;;-----------------------------------------------------------------------------
-;;; `sling` Function (Final Version)
-;;-----------------------------------------------------------------------------
 sling: function [
     {Safely and robustly sets or creates a value within a block, map, or object.}
     data [block! map! object! none!] "The data structure to modify (modified in place)."
@@ -200,63 +198,132 @@ sling: function [
     /path "Treat key as a path for nested structure navigation."
     /create "Allow creation of new keys if they don't exist."
 ][
-    if path [
+    either path [
+        ; --- Revised Path Logic ---
         if not block? key [return data]
         if empty? key [return data]
-
+        
         container: data
         path-to-walk: copy/part key (length? key) - 1
-
-        ;; This loop walks to the target container.
+        
         foreach step path-to-walk [
-            next-container: grab container step
-            either any [block? next-container map? next-container] [
-                container: next-container
-            ][
-                either create [
-                    new-container: either integer? step [[]][make map! []]
-                    sling/create container step new-container
-                    container: new-container
+            case [
+                block? container [
+                    either integer? step [
+                        ; Positional access in blocks
+                        unless all [step >= 1 step <= length? container] [
+                            either create [
+                                insert/dup tail container none step - length? container
+                            ][
+                                return data
+                            ]
+                        ]
+                        container: container/:step
+                    ][
+                        ; Key-based access in blocks
+                        pos: find container to-set-word step
+                        either pos [
+                            container: second pos
+                        ][
+                            either create [
+                                repend container [to-set-word step make map! []]
+                                container: select container step
+                            ][
+                                return data
+                            ]
+                        ]
+                    ]
+                ]
+                map? container [
+                    unless select container step [
+                        either create [
+                            put container step make map! []
+                        ][
+                            return data
+                        ]
+                    ]
+                    container: select container step
+                ]
+                'else [return data]  ; Invalid container type
+            ]
+        ]
+        
+        ; Final setting operation - fully type-safe
+        case [
+            block? container [
+                either integer? last key [
+                    if all [last key >= 1 last key <= length? container] [
+                        poke container last key value
+                    ]
                 ][
-                    return data
+                    either find container to-set-word last key [
+                        put container to-set-word last key value
+                    ][
+                        if create [append container reduce [to-set-word last key value]]
+                    ]
+                ]
+            ]
+            map? container [
+                ; Clearer nested map handling that won't break existing cases
+                case [
+                    all [
+                        find container last key
+                        ; Ensure we update existing values
+                        put container last key value
+                        container  ; Return modified container
+                    ]
+                    create [
+                        ; Special handling for different creation cases
+                        case [
+                            all [
+                                block? key 
+                                block? value
+                                empty? value
+                            ] [put container last key make map! []]
+                            block? value [put container last key copy value]
+                            'else [put container last key value]
+                        ]
+                        container  ; Return modified container
+                    ]
+                    'else [data]  ; Return original if nothing changed
                 ]
             ]
         ]
-        ;; Perform the final set operation on the found container.
-        sling/:create container (last key) value create
-        return data
-    ]
-
-    ;; --- Single-Level Logic (Unchanged and Correct) ---
-    if not any [block? data map? data] [return data]
-    if block? data [
-        if integer? key [
-            if all [key >= 1 key <= length? data] [poke data key value]
+        return data   
+        
+    ][
+        ; --- Single-Level Logic (Optimized) ---
+        if not any [block? data map? data] [return data]
+        if block? data [
+            if integer? key [
+                if all [key >= 1 key <= (length? data)] [poke data key value]
+                return data
+            ]
+            if word? key [
+                either find data to-set-word key [
+                    put data to-set-word key value
+                ][
+                    if create [append data reduce [to-set-word key value]]
+                ]
+                return data
+            ]
             return data
         ]
-        if word? key [
-            either find data to-set-word key [
-                put data to-set-word key value
-            ][
-                if create [append data reduce [to-set-word key value]]
+        if map? data [
+            if any [find data key create] [
+                put data key value
             ]
             return data
         ]
         return data
     ]
-    if map? data [
-        if any [find data key create] [
-            put data key value
-        ]
-        return data
-    ]
-    return data
 ]
 
 ;;-----------------------------------------------------------------------------
 ;;; Test Execution
 ;;-----------------------------------------------------------------------------
-print "=== Starting QA tests for `sling` v0.1.0 ==="
+
+print "=== Starting QA tests for `sling` v0.2.1 ==="
 
 print "^/--- `grab` Integrity Test (for sling) ---"
 
@@ -355,3 +422,4 @@ sling/path/create deep-create-data ['a 'b 'c] "deep"
 assert-equal "deep" grab/path deep-create-data ['a 'b 'c] "Path/Create: Should create nested structures."
 
 print-test-summary
+
