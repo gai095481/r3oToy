@@ -23,24 +23,35 @@ You must internalize and strictly adhere to the following consolidated Rebol 3 O
 
 1.  **Rebol Version:** REBOL/Bulk 3.19.0 (latest GitHub release for Oldes branch).
 2.  **Function Definition and Scoping:**
-    *   For functions that accept one or more arguments, you must use the `function` keyword.  The `func` keyword is strictly prohibited.
-    *   For functions that accept zero arguments, you should use the `does` keyword as a more concise and idiomatic constructor.
+    * For functions that accept one or more arguments, you must use the `function` keyword.  The `func` keyword is strictly prohibited.
+    * For functions that accept zero arguments, you should use the `does` keyword as a more concise and idiomatic constructor.
 3.  **String Handling:**
-    *   Multi-line strings and all function docstrings must use curly braces `{}`.
-    *   Single-line strings should use double quotes `"..."`.
-    *   To embed a double quote within a string use to consecutive double quotes `""`. The `^"` and `\"` sequencse are not valid.
-    *   Use the character sequence `^/` in print statement text strings for newlines.  For example, `print "^/blank line before and blank line after.^/"
-    *   Use `print newline` instead of `print ""`.
+    * Multi-line strings and all function docstrings must use curly braces `{}`.
+    * Single-line strings should use double quotes `"..."`.
+    * To embed a double quote within a string use to consecutive double quotes `""`. The `^"` and `\"` sequencse are not valid.
+    * Use the character sequence `^/` in print statement text strings for newlines.  For example, `print "^/blank line before and blank line after.^/"
+    * Use `print newline` instead of `print ""`.
 4.  **Error Handling Standards:**
-    *   Avoid using `make error! [type: 'User id: 'message message: "Descriptive text"]` if possible. Custom IDs are prohibited.
-    *   To test if a function call returns an error, functions should use the `set/any 'result try [...]` pattern followed by an `error? result` check.
-    *   For advanced error trapping within functions (e.g. catching specific error types).  `try/with` should be used.  The `try/except` construct is deprecated and prohibited.
+    * Avoid using `make error! [type: 'User id: 'message message: "Descriptive text"]` if possible. Custom IDs are prohibited.
+    * To test if a function call returns an error, functions should use the `set/any 'result try [...]` pattern followed by an `error? result` check.
+    * For advanced error trapping within functions (e.g. catching specific error types).  `try/with` should be used.  The `try/except` construct is deprecated and prohibited.
 5.  **Control Flow:** The `else` keyword is strictly prohibited.  All conditional logic must use `either condition [true-branch] [false-branch]`, `case` or `switch`.
-6.  **Explicit Conditionals:** All conditional checks must use explicit comparison functions or type-checking functions. Code does not rely on the implicit "truthiness" or "falsiness" of values like 0, empty strings "", or empty blocks [].
-7.  **Variable and Value Handling:**
-    *   When iterating (e.g. `foreach`), access the item's value directly (`print item`).
-    *   Use the colon prefix (`:word`) only when explicitly needing to pass the symbol itself *or* when inspecting a variable that's already confirmed to be not `none` and could be a native/action.
-    *   To safely check if a variable holds a `none` value use `if none? variable-name` (no colon).
+    * An `if` statement should only be used for a single-branch condition (e.g., a guard clause).
+7.  **Explicit Conditionals:** All conditional checks must use explicit comparison functions or type-checking functions. Code does not rely on the implicit "truthiness" or "falsiness" of values like 0, empty strings "", or empty blocks [].
+8.  Path Traversal Safety: When navigating nested data structures recursively or iteratively, assume nothing about intermediate types. Each step of the traversal must be validated.
+    * Guarded Access: Before attempting a deeper lookup, you must verify that the current container is a type that can be traversed (e.g., block! or map!).
+10.  `do` Command Safety: The `do` command is a powerful, low-level evaluator and must be used with extreme caution.
+    * It evaluates expressions within the function's local context, not the caller's context. It cannot be used to resolve external variable aliases.
+    * It will attempt to evaluate every item in a block. The block being evaluated must be precisely delimited to a single, valid expression.
+    * Any use of `do` on parsed or external data must be wrapped in a try block, with a safe fallback mechanism if an error occurs.
+11.  Operator Precedence and Parentheses: Rebol's operator precedence can be non-obvious, especially with function calls.  To ensure correct order of evaluation, all non-trivial conditional expressions must use explicit parentheses `()`
+    *  Forbidden: `if length? my-block < 2 [...]`
+    *  Required: `if (length? my-block) < 2 [...]`
+12.  **Variable and Value Handling:**
+    *  When iterating (e.g. `foreach`), access the item's value directly (`print item`).
+    *  Use the colon prefix (`:word`) only when explicitly needing to pass the symbol itself *or* when inspecting a variable that's already confirmed to be not `none` and could be a native/action.
+    *  To safely check if a variable holds a `none` value use `if none? variable-name` (no colon).
+    *  The native functions `pick` and `select` do not always return the expected datatype when used on key-value blocks or maps. They often return the `word!`s `'true`, `'false`, or `'none`. Any value retrieved via `pick` or `select` that could be one of these types must be normalized into its proper datatype using a case block before it is returned or used in further logic.
 
 ### **B. Documentation Requirements**
 
