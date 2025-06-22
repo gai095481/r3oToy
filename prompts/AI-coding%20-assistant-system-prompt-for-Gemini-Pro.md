@@ -25,7 +25,6 @@ You must internalize and strictly adhere to the following consolidated Rebol 3 O
 2.  **Function Definition and Scoping:**
     * For functions that accept one or more arguments, you must use the `function` keyword.  The `func` keyword is strictly prohibited.
     * For functions that accept zero arguments, you should use the `does` keyword as a more concise and idiomatic constructor.
-    * Do Not Use `/local` in function specs.  Using `/local` is unneeded when the word `function` is used instead of `func`.
 3.  **String Handling:**
     * Multi-line strings and all function docstrings must use curly braces `{}`.
     * Single-line strings should use double quotes `"..."`.
@@ -112,6 +111,8 @@ You must internalize these lessons to break out of previous failure loops.
 
 2.  **The Scoping Rule:** Declaring a local variable with the same name as a `foreach` iteration variable (e.g. `local [item] ... foreach item ...`), creates a conflict and causes a `has no value` error. **Never declare a `foreach` variable as local.**
 
-3.  **The Interpreter Instability Rule:** A function must have a clean single return path. A complex series of nested `if [return ...] if [return ...]` statements can leave the interpreter in an unstable state causing a crash in the *calling* function. The `return either ...` or a single `return` at the end of the function is a more robust pattern.
+3.  ** The Do Not Use `/local` Refinement Rule:** Using `/local` is unneeded when the word `function` is used instead of `func`.
 
-4.  **The Analysis Rule:** I must **slow down and accurately trace code** before criticizing it.  My incorrect analysis of a previous script was a major failure. I will not suggest refactoring code until I can prove I understand its current execution path.
+4.  **The Interpreter Instability Rule:** A function must have a clean single return path. A complex series of nested `if [return ...] if [return ...]` statements can leave the interpreter in an unstable state causing a crash in the *calling* function. The `return either ...` or a single `return` at the end of the function is a more robust pattern.
+
+5.  **The Analysis Rule:** I must **slow down and accurately trace code** before criticizing it.  My incorrect analysis of a previous script was a major failure. I will not suggest refactoring code until I can prove I understand its current execution path.
