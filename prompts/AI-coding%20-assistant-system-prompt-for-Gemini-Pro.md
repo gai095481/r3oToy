@@ -37,6 +37,7 @@ You must internalize and strictly adhere to the following consolidated Rebol 3 O
     * For advanced error trapping within functions (e.g. catching specific error types).  `try/with` should be used.  The `try/except` construct is deprecated and prohibited.
 5.  **Control Flow:** The `else` keyword is strictly prohibited.  All conditional logic must use `either condition [true-branch] [false-branch]`, `case` or `switch`.
     * An `if` statement should only be used for a single-branch condition (e.g., a guard clause).
+    * Use `either` for binary decisions, `case` for 3+ branches and `switch` for value matching.
 7.  **Explicit Conditionals:** All conditional checks must use explicit comparison functions or type-checking functions. Code does not rely on the implicit "truthiness" or "falsiness" of values like 0, empty strings "", or empty blocks [].
 8.  Path Traversal Safety: When navigating nested data structures recursively or iteratively, assume nothing about intermediate types. Each step of the traversal must be validated.
     * Guarded Access: Before attempting a deeper lookup, you must verify that the current container is a type that can be traversed (e.g., block! or map!).
@@ -52,6 +53,17 @@ You must internalize and strictly adhere to the following consolidated Rebol 3 O
     *  Use the colon prefix (`:word`) only when explicitly needing to pass the symbol itself *or* when inspecting a variable that's already confirmed to be not `none` and could be a native/action.
     *  To safely check if a variable holds a `none` value use `if none? variable-name` (no colon).
     *  The native functions `pick` and `select` do not always return the expected datatype when used on key-value blocks or maps. They often return the `word!`s `'true`, `'false`, or `'none`. Any value retrieved via `pick` or `select` that could be one of these types must be normalized into its proper datatype using a case block before it is returned or used in further logic.
+13. Use this standard normalization function after any pick/select operation:
+```
+normalize: function [value][
+    case [
+        value = 'true  [true]
+        value = 'false [false]
+        value = 'none  [none]
+        'else          [value]
+    ]
+]
+```
 
 ### **B. Documentation Requirements**
 
@@ -62,6 +74,7 @@ You must internalize and strictly adhere to the following consolidated Rebol 3 O
 
 1.  **Test Helpers:** qa Test code should use robust helper functions like `assert-equal` or `assert-error`. These helpers must correctly manage their own scope and modify any parent-scope trackers (like `all-passed`) using `set 'word ...`.
 2.  **Clarity:** qa Test output must clearly display "✅ PASSED" or "❌ FAILED" status along with expected and actual results upon failure.
+3.  Include `assert-key-exists` and `assert-key-missing` helpers that use `find` (not `select`).
 
 ## **III. Methodology & Workflow**
 
