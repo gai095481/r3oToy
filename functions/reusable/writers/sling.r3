@@ -266,24 +266,20 @@ sling: function [
             map? container [
                 ; Clearer nested map handling that won't break existing cases
                 case [
-                    all [
-                        find container last key
-                        ; Ensure we update existing values
+                    find container last key [
                         put container last key value
-                        container  ; Return modified container
                     ]
                     create [
-                        ; Special handling for different creation cases
-                        case [
-                            all [
-                                block? key 
-                                block? value
-                                empty? value
-                            ] [put container last key make map! []]
-                            block? value [put container last key copy value]
-                            'else [put container last key value]
+                        ; Special handling only when we detect nested path creation
+                        either all [
+                            block? key 
+                            block? value
+                            empty? value
+                        ][
+                            put container last key make map! []
+                        ][
+                            put container last key value
                         ]
-                        container  ; Return modified container
                     ]
                     'else [data]  ; Return original if nothing changed
                 ]
