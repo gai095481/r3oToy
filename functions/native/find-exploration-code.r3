@@ -213,4 +213,122 @@ val-config-map: select test-map 'config ;; `select` gives 'none (word!)
 normalized-config: normalize_value_demo val-config-map
 print newline
 
-print "--- End of `find` Demonstrations ---"
+print "--- End of `find` Demonstrations (part 1) ---"
+
+
+print "^/=== `find` Demonstrations: The Definitive Guide (part 2) ==="
+
+; --- Test Data ---
+test-block: [ name: "Alice" active: true level: 10 config: none ]
+test-map: make map! test-block
+print ["^/Test Block:" mold test-block]
+print ["Test Map:" mold test-map]
+
+;-----------------------------------------------------------------------------
+;;; 1. Happy Path: Finding Existing Keys
+;-----------------------------------------------------------------------------
+print "^/--- 1. Happy Path: Finding Existing Keys ---"
+
+;; --- A. Finding a key in a BLOCK ---
+print "^/--- A. Finding a key in a BLOCK ---"
+print {^/When `find` searches a block for a 'word (like 'level), it looks for that word as a key (a set-word!).}
+print {If found, `find` returns a new series (a block!) starting from that key-value pair.}
+
+result-block-level: find test-block 'level
+print "Finding 'level in test-block:"
+probe result-block-level
+
+print {^/This returned series is a "handle". You can use `second` on this handle to get the value associated with 'level.}
+print "Value of 'level (using `second` on the result):"
+probe second result-block-level
+print newline
+
+;; --- B. Finding a key in a MAP ---
+print "--- B. Finding a key in a MAP ---"
+print {^/When `find` searches a map for a 'word (like 'active), it also looks for that word as a key.}
+print {If found, `find` returns JUST THE KEY ITSELF (as a set-word!). It does NOT return a series handle like it does for blocks.}
+
+result-map-active: find test-map 'active
+print "Finding 'active in test-map:"
+probe result-map-active
+
+print {^/This result (`active:`) only tells you the key exists. You CANNOT use `second` on it directly to get the value.}
+print ";; probe second result-map-active ;; <-- This would cause an ERROR!"
+print {To get the value from a map after confirming the key exists, you typically use `select`.}
+print "Value of 'active (using `select` on the original map):"
+probe select test-map 'active
+print newline
+
+;-----------------------------------------------------------------------------
+;;; 2. Happy Path: Key Not Found
+;-----------------------------------------------------------------------------
+print "--- 2. Happy Path: Key Not Found ---"
+print {^/If `find` does not locate the item (e.g., a key that doesn't exist), it returns `none` (shown as `#(none)`).}
+
+result-block-missing: find test-block 'missing-key
+print "Finding 'missing-key in test-block:"
+probe result-block-missing
+
+result-map-missing: find test-map 'missing-key
+print "Finding 'missing-key in test-map:"
+probe result-map-missing
+print newline
+
+;-----------------------------------------------------------------------------
+;;; 3. Quirk 1: "Key-Only Search" in Associative Structures
+;-----------------------------------------------------------------------------
+print "--- 3. Quirk 1: Key-Only Search in Associative Structures ---"
+print {^/A major behavior to understand: `find` primarily looks for KEYS when searching blocks-with-set-words or maps.}
+print {It does NOT search for the VALUES associated with those keys if you pass the value directly to `find`.}
+
+print "^/--- C. Attempting to find the LOGIC value `true` in test-block ---"
+result-block-true: find test-block true
+print "Finding the value `true` in test-block:"
+probe result-block-true
+print {Result is `#(none)` because `true` is a VALUE of the key 'active, not a key itself.}
+print newline
+
+print "--- D. Attempting to find the `none!` DATATYPE in test-map ---"
+result-map-none-val: find test-map none
+print "Finding the `none!` DATATYPE in test-map:"
+probe result-map-none-val
+print {Result is `#(none)`. Again, `find` doesn't look for this `none!` datatype in the value positions.}
+print {This "Key-Only Search" behavior is a primary reason for creating wrapper functions.}
+print newline
+
+;-----------------------------------------------------------------------------
+;;; 4. Quirk 2: "Inconsistent Handle" - Return type of `find`
+;-----------------------------------------------------------------------------
+print "--- 4. Quirk 2: Inconsistent Handle (Return type for block vs. map) ---"
+print {^/As shown in section 1, the result of `find` when a key is found is different:}
+print "- For BLOCKS (with set-words): `find` returns a SERIES starting at the key."
+print "  Example for 'level in block: " probe find test-block 'level
+print "- For MAPS: `find` returns just the KEY itself (as a set-word!)."
+print "  Example for 'level in map:   " probe find test-map 'level
+print {^/This inconsistency is crucial because any generic code trying to use `find` needs to branch its logic based on the data type.}
+print newline
+
+;-----------------------------------------------------------------------------
+;;; 5. A Note on `pick` and `select` (and value normalization)
+;-----------------------------------------------------------------------------
+print "--- 5. A Note on `pick` and `select` (and value normalization) ---"
+print {^/While `find` locates keys, `select` retrieves values. As per our ruleset, `select` can return `word!` versions of true, false, or none.}
+
+normalize_value_demo: function [value_to_normalize] [
+    print rejoin ["Original value: " mold value_to_normalize ", type: " mold type? value_to_normalize]
+    normalized: case [
+        value_to_normalize = 'true  [true]
+        value_to_normalize = 'false [false]
+        value_to_normalize = 'none  [none]
+        'else          [value_to_normalize]
+    ]
+    print rejoin ["Normalized value: " mold normalized ", type: " mold type? normalized]
+    return normalized
+]
+
+print "^/Demonstrating normalization for 'config (none) from test-map:"
+val-config-map: select test-map 'config
+normalized-config: normalize_value_demo val-config-map
+print newline
+
+print "--- End of `find` Demonstrations (part 2) ---"
