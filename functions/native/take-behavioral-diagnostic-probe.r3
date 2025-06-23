@@ -20,13 +20,12 @@ assert: func [
     is-actual-relevant-series: any [block? :actual-val string? :actual-val binary? :actual-val]
     is-expected-relevant-series: any [block? :expected-val string? :expected-val binary? :expected-val]
 
-    if all [is-actual-relevant-series is-expected-relevant-series] [
-        condition: all [equal? :actual-val :expected-val same-type? :actual-val :expected-val]
-    ] else [
-        ; For non-series or mixed types, direct equality is usually fine.
-        ; Note: `equal?` also works for scalar types and would provide consistent comparison.
-        ; Using `=` for scalars and `equal?` for series is a common Rebol pattern.
-        condition: :actual-val = :expected-val
+    condition: either all [is-actual-relevant-series is-expected-relevant-series] [
+        ; For relevant series types, use equal? and same-type?
+        all [equal? :actual-val :expected-val same-type? :actual-val :expected-val]
+    ] [
+        ; For non-series or mixed types, direct equality.
+        :actual-val = :expected-val
     ]
 
     either condition [
