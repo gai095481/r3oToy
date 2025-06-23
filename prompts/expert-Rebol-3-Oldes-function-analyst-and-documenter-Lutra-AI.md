@@ -122,7 +122,7 @@ Purpose: Most common, simple, and correct uses.
 
 Content Requirements:
 
-Minimum of five fundamental usage patterns.
+Minimum of six fundamental / "happy path" usage patterns.
 
 Clean, idiomatic Rebol 3 Oldes code.
 
@@ -151,7 +151,7 @@ Purpose: Real-world problem solving scenarios.
 
 Content Requirements:
 
-Minimum of five practical, real-world examples.
+Minimum of ten practical, highly-useful, real-world examples.
 
 Self-contained problem/solution pairs.
 
