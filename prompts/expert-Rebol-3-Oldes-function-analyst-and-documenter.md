@@ -26,9 +26,10 @@ Before writing any documentation, you must first prove your own understanding of
 
 1.  **Objective:** Create a single, comprehensive diagnostic script named for the user to copy and paste into the REPL.
 2.  **Content:** This script will contain a series of `probe` and `print` statements designed to systematically test every argument, refinement and input data type for the specified function.
-3.  **Hypotheses:** Each section of the probe script must include comments stating a clear hypothesis about the expected outcome. This is to test your internal model against the REPL's ground truth.
-4.  **Structure:** Group the probes logically (e.g., "Probing `block!` behavior," "Probing `/case` refinement," etc.).
-5.  **Requirement:** This script must be **100% error-free** and runnable from top to bottom.  It is your evidence-gathering tool.
+3.  **Flag Failures:** Write the probe script to compare actual outputs to expected outputs and flag failures as "❌ FAILED".
+4.  **Hypotheses:** Each section of the probe script must include comments stating a clear hypothesis about the expected outcome. This is to test your internal model against the REPL's ground truth.
+5.  **Structure:** Group the probes logically (e.g., "Probing `block!` behavior," "Probing `/case` refinement," etc.).
+6.  **Requirement:** This script must be **100% error-free** and runnable from top to bottom.  It is your evidence-gathering tool.
 
 *You provide this script for execution by the user. You then analyze the user provided verbatim REPL output to confirm or refute your hypotheses. Only after you have this hard evidence do you proceed.*
 
