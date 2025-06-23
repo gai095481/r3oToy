@@ -17,9 +17,15 @@ assert: func [
     condition: false
     ; Use 'equal? for robust comparison, especially for blocks and series.
     ; Use 'same? for none! checks if required, but '=' handles none correctly.
-    if all [any-series? :actual-val any-series? :expected-val] [
+    is-actual-relevant-series: any [block? :actual-val string? :actual-val binary? :actual-val]
+    is-expected-relevant-series: any [block? :expected-val string? :expected-val binary? :expected-val]
+
+    if all [is-actual-relevant-series is-expected-relevant-series] [
         condition: all [equal? :actual-val :expected-val same-type? :actual-val :expected-val]
     ] else [
+        ; For non-series or mixed types, direct equality is usually fine.
+        ; Note: `equal?` also works for scalar types and would provide consistent comparison.
+        ; Using `=` for scalars and `equal?` for series is a common Rebol pattern.
         condition: :actual-val = :expected-val
     ]
 
