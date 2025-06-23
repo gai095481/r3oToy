@@ -160,7 +160,7 @@ test-map: make map! [
 ]
 
 ;; === QA Test Cases ===
-print "^/=== SAFE-FIND VALIDATION TESTS ===^/"
+print "^/=== `sfind` VALIDATION TESTS ===^/"
 
 ; Helper function for test grouping
 print-group: func [title] [print rejoin ["^/--- " title " ---"]]
