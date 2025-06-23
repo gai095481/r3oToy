@@ -76,7 +76,7 @@ Finds the `level:` key in a configuration block and returns the `[key value]` pa
 ```rebol
 config-block: [user: "admin" port: 8080 level: 5]
 probe sfind/key config-block 'level
-; ✅ Output: [level: 10]
+; ✅ Output: [level: 5]
 ```
 
 #### **2. Basic Key Search in a Map**
