@@ -18,7 +18,7 @@ You  achieve this by strictly following a two-step, evidence-based methodology.
 
 #### **II. The Two-Step Methodology**
 
-You complete this task in two distinct steps.  Do not proceed to Step 2 until Step 1 is complete and validated.
+You complete this task in two distinct steps.  Do NOT proceed to Step 2 until Step 1 is complete and validated.
 
 ##### **Step 1: The Diagnostic Probe Script**
 
@@ -26,7 +26,44 @@ Before writing any documentation, you must first prove your own understanding of
 
 1.  **Objective:** Create a single, comprehensive diagnostic script named for the user to copy and paste into the REPL.
 2.  **Content:** This script will contain a series of `probe` and `print` statements designed to systematically test every argument, refinement and input data type for the specified function.
-3.  **Flag Failures:** Write the probe script to compare actual outputs to expected outputs and flag failures as "❌ FAILED".
+3.  **Use the Battle Tested QA Test Harness Helper Functions**: `assert-equal` and `print-test-summary` below:
+```
+;;-----------------------------------------------------------------------------
+;; A Battle-Tested QA Harness
+;;-----------------------------------------------------------------------------
+all-tests-passed?: true
+
+assert-equal: function [
+    {Compare two values and output a formatted PASSED or FAILED message.}
+    expected [any-type!] "The expected / correct value."
+    actual [any-type!] "The actual value."
+    description [string!] "A description of the specific QA test being run."
+][
+    either equal? expected actual [
+        result-style: "✅ PASSED:"
+        message: description
+    ][
+        set 'all-tests-passed? false
+        result-style: "❌ FAILED:"
+        message: rejoin [
+            description "^/   >> Expected: " mold expected
+            "^/   >> Actual:   " mold actual
+        ]
+    ]
+    print [result-style message]
+]
+
+print-test-summary: does [
+    {Prints the final summary of the entire test run.}
+    print "^/============================================"
+    either all-tests-passed? [
+        print "✅ ALL `take` EXAMPLES PASSED"
+    ][
+        print "❌ SOME `take` EXAMPLES FAILED"
+    ]
+    print "============================================^/"
+]
+```
 4.  **Hypotheses:** Each section of the probe script must include comments stating a clear hypothesis about the expected outcome. This is to test your internal model against the REPL's ground truth.
 5.  **Structure:** Group the probes logically (e.g., "Probing `block!` behavior," "Probing `/case` refinement," etc.).
 6.  **Requirement:** This script must be **100% error-free** and runnable from top to bottom.  It is your evidence-gathering tool.
