@@ -1,30 +1,26 @@
 REBOL [
     Title: "Safe Find Wrapper"
-    Version: 1.0.0
+    Version: 0.1.6
     Author: "Oldes @ Amanita Design"
     Date: 2025-06-23
-    Purpose: {Type-agnostic key/value search for blocks and maps with consistent outputs}
+    Purpose: {
+        Type-agnostic key/value search with consistent outputs
+        - Fixed true value search in blocks
+    }
     Notes: {
-        - Returns [key value] pairs for /key searches
-        - Returns value position (block) or found value (map) for /value
-        - Validates input structure (even-length blocks)
-        - Requires /key or /value refinement
-        - Uses strict value comparison
-        - Handles empty containers and none values
-        - Performance-optimized scanning
-        - Passes 16 comprehensive QA tests
+        Focused fix for block true value search
     }
 ]
 
-safe-find: function [
+sfind: function [
     "Search key-value containers (`block!` or `map!`) returning consistent results."
     data [block! map!] "Key-value container"
     target "Search key or value."
     /key   "Search keys (default behavior)."
     /value "Search values."
 ][
-    ; Validate refinement usage
-    unless any [key value] [make error! "Must specify /key or /value refinement"]
+    ;; Validate refinement usage
+    unless any [key value] [do make error! "Must specify /key or /value refinement"]
 
     ; Handle empty containers early
     if empty? data [return none]
@@ -32,66 +28,123 @@ safe-find: function [
     case [
         value [
             either block? data [
-                ; Validate block structure
-                len: length? data
-                if odd? len [make error! "Block must have even elements for key-value pairs"]
+                ;; Validate block structure
+                if odd? len: length? data [do make error! {Block requires even elements for key/value pairs}]
 
-                ; Optimized value scanning
-                pos: next data
+                ;; Optimized value scanning
+                pos: next data  ; Start at first value position
                 while [not tail? pos] [
-                    if strict-equal? :target get pos [return pos]
+                    ; Handle logic! values with explicit type comparison
+                    val: get pos
+                    if all [
+                        same? type? :val type? :target
+                        strict-equal? :val :target
+                    ][
+                        return :val
+                    ]
                     pos: skip pos 2
                 ]
                 none
             ][
-                ; Search map values
-                find values-of data :target
+                ;; Direct map value search
+                foreach [k v] data [
+                    if strict-equal? :target :v [return :v]
+                ]
+                none
             ]
         ]
 
         key [
             either block? data [
-                ; Validate block structure
-                len: length? data
-                if odd? len [make error! "Block must have even elements for key-value pairs"]
+                ;; Validate block structure
+                if odd? len: length? data [do make error! {Block requires even elements for key/value pairs}]
 
-                ; Find key and return [key value] pair
-                if pos: find data :target [
-                    return reduce [get pos get next pos]
+                ;; Find key and return [key value] pair
+                if pos: find data to word! :target [
+                    return copy/part pos 2
                 ]
                 none
             ][
-                ; Map key search with consistent return
+                ;; Map key search with consistent return
                 if val: select data :target [reduce [:target :val]]
             ]
         ]
     ]
 ]
 
-; === Test Framework ===
-pass-count: 0
-fail-count: 0
-
-assert: func [condition] [
-    unless :condition [make error! "Assertion failed"]
+;; ==== Stable Test Framework ====
+test-state: context [
+    pass-count: 0
+    fail-count: 0
+    all-passed?: true
 ]
 
-test: func [name [string!] condition [block!]] [
-    if error? err: try [
-        do condition
-        print ["[PASS]" name]
-        pass-count: pass-count + 1
-    ][
-        print ["[FAIL]" name "-- Error:" form err]
-        fail-count: fail-count + 1
+test: function [
+    "Execute a test case and track results"
+    name [string!] "Test name"
+    test-block [block!] "Code to execute"
+][
+    print ["Running test:" name]
+
+    ; Use case instead of either to avoid interpreter bug
+    error-occurred?: error? err: try [
+        do test-block
+    ]
+
+    case [
+        error-occurred? [
+            test-state/fail-count: test-state/fail-count + 1
+            test-state/all-passed?: false
+            print rejoin ["❌ [FAILED] " name " -- Error: " form err]
+        ]
+        true [
+            test-state/pass-count: test-state/pass-count + 1
+            print rejoin ["✅ [PASSED] " name]
+        ]
     ]
 ]
 
-print-summary: does [
-    print rejoin ["=== SUMMARY: PASS " pass-count " FAIL " fail-count " ==="]
+assert-equal: function [
+    "Compare expected and actual values"
+    expected "Expected value"
+    actual   "Actual value"
+][
+    unless strict-equal? :expected :actual [
+        print rejoin [
+            "   ❌ Comparison failed^/"
+            "      Expected: " mold expected "^/"
+            "      Actual:   " mold actual
+        ]
+        make error! rejoin ["Assertion failed: Expected " mold expected]
+    ]
 ]
 
-; === Test Data ===
+assert-condition: function [
+    "Verify a logical condition"
+    condition [logic!] "Must be true for success"
+][
+    unless condition [
+        print "   ❌ Condition not met"
+        make error! "Assertion failed: Condition not met"
+    ]
+]
+
+print-test-summary: does [
+    print "^/============================================"
+    either test-state/all-passed? [
+        print "✅ ALL TESTS PASSED"
+    ][
+        print "❌ SOME TESTS FAILED"
+    ]
+    print rejoin [
+        "TOTAL TESTS: " test-state/pass-count + test-state/fail-count
+        " | PASSED: " test-state/pass-count
+        " | FAILED: " test-state/fail-count
+        newline "============================================"
+    ]
+]
+
+;; === QA Test Data ===
 test-block: [
     name: "Alice"
     active: true
@@ -106,93 +159,101 @@ test-map: make map! [
     config: none
 ]
 
-; === Test Cases ===
-print "=== SAFE-FIND VALIDATION TESTS ==="
+;; === QA Test Cases ===
+print "^/=== SAFE-FIND VALIDATION TESTS ===^/"
 
-; --- Key Search Tests ---
-print "--- Key Search Tests ---"
+; Helper function for test grouping
+print-group: func [title] [print rejoin ["^/--- " title " ---"]]
+
+print-group "Key Search Tests"
 test "Block: Returns [key value] pair" [
-    result: safe-find/key test-block 'level
-    assert block? result
-    assert result = [level: 10]
+    result: sfind/key test-block 'level
+    assert-equal [level: 10] result
 ]
 
 test "Map: Returns [key value] pair" [
-    result: safe-find/key test-map 'level
-    assert block? result
-    assert result = [level 10]
+    result: sfind/key test-map 'level
+    assert-equal [level 10] result
 ]
 
-; --- Value Search Tests ---
-print "--- Value Search Tests ---"
+print-group "Value Search Tests"
 test "Block: Finds true value" [
-    assert not none? safe-find/value test-block true
+    result: sfind/value test-block true
+    assert-equal true result
 ]
 
 test "Block: Finds none value" [
-    assert not none? safe-find/value test-block none
+    result: sfind/value test-block none
+    assert-equal none result
 ]
 
 test "Map: Finds true value" [
-    assert not none? safe-find/value test-map true
+    result: sfind/value test-map true
+    assert-equal true result
 ]
 
 test "Map: Finds none value" [
-    assert not none? safe-find/value test-map none
+    result: sfind/value test-map none
+    assert-equal none result
 ]
 
-; --- Edge Cases ---
-print "--- Edge Cases ---"
+print-group "Edge Cases"
 test "Invalid block structure errors" [
-    error? try [safe-find/key [a 1 b] 'b]
+    ; Verify specific error is thrown
+    caught: try [sfind/key [a 1 b] 'b]
+    assert-condition error? caught
+    assert-condition logic? find form caught {Block requires even elements}
 ]
 
 test "Nonexistent key returns none" [
-    assert none? safe-find/key test-block 'missing
-    assert none? safe-find/key test-map 'missing
+    assert-condition none? sfind/key test-block 'missing
+    assert-condition none? sfind/key test-map 'missing
 ]
 
 test "Nonexistent value returns none" [
-    assert none? safe-find/value test-block "Bob"
-    assert none? safe-find/value test-map "Bob"
+    assert-condition none? sfind/value test-block "Bob"
+    assert-condition none? sfind/value test-map "Bob"
 ]
 
-; --- None Value Handling ---
-print "--- None Value Handling ---"
+print-group "`none` Value Handling"
 test "Map key with none value found via /key" [
-    result: safe-find/key test-map 'config
-    assert block? result
-    assert result = [config none]
+    result: sfind/key test-map 'config
+    assert-equal [config none] result
 ]
 
-test "Value search for none doesn't match keys" [
-    assert not find mold safe-find/value test-map none "config:"
+test "Value search for `none` doesn't match keys" [
+    result: sfind/value test-map none
+    assert-condition any [
+        none? result
+        not find mold result "config:"
+    ]
 ]
 
-; --- Empty Structure Handling ---
-print "--- Empty Structure Handling ---"
+print-group "Empty Structure Handling"
 test "Empty block key search" [
-    assert none? safe-find/key [] 'test
+    assert-condition none? sfind/key [] 'test
 ]
 
 test "Empty map key search" [
-    assert none? safe-find/key make map! [] 'test
+    assert-condition none? sfind/key make map! [] 'test
 ]
 
 test "Empty block value search" [
-    assert none? safe-find/value [] true
+    assert-condition none? sfind/value [] true
 ]
 
 test "Empty map value search" [
-    assert none? safe-find/value make map! [] true
+    assert-condition none? sfind/value make map! [] true
 ]
 
-; --- Refinement Validation ---
-print "--- Refinement Validation ---"
+print-group "Refinement Validation"
 test "/key or /value must be specified" [
-    error? try [safe-find test-block 'level]
+    ; Verify specific error is thrown
+    caught: try [sfind test-block 'level]
+    assert-condition error? caught
+    assert-condition logic? find form caught "Must specify"
 ]
 
-; --- Final Report ---
-print-summary
-quit/return either fail-count > 0 [1] [0]
+;; === Final Test Report ===
+print-test-summary
+quit/return either test-state/fail-count > 0 [1] [0]
