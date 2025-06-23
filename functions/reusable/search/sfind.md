@@ -211,3 +211,73 @@ After extensive testing and debugging, we have identified several deep-seated ch
 2.  **The "Silent Error" Problem:** The failure of our validation logic (`unless any [key value] [make error! ...]`) is deeply perplexing. The logic is sound and works in isolation. The fact that it fails inside the test harness suggests a complex interaction between `try`, function contexts, and how errors are "caught". Our `try` blocks are seeing `none` instead of an `error!` object, indicating the error created by `make error!` is being consumed or discarded before `try` can see it. This points to a non-obvious rule about Rebol's evaluation stack that we do not yet understand.
 
 **Conclusion:** The `sfind` project successfully created a robust key-finding function. However, the more complex goals of value-finding and error-throwing have been blocked by subtle, core behaviors of the Rebol interpreter that defy standard logical approaches. This guide documents the function's current, practical capabilities and provides a clear record of the challenges for future development.
+
+---
+=== SAFE-FIND VALIDATION TESTS ===
+
+```
+--- Key Search Tests ---
+Running test: Block: Returns [key value] pair
+✅ [PASSED] Block: Returns [key value] pair
+Running test: Map: Returns [key value] pair
+✅ [PASSED] Map: Returns [key value] pair
+
+--- Value Search Tests ---
+Running test: Block: Finds true value
+   ❌ Comparison failed
+      Expected: #(true)
+      Actual:   #(none)
+❌ [FAILED] Block: Finds true value -- Error:
+** User error: "Assertion failed: Expected #(true)"
+
+Running test: Block: Finds none value
+✅ [PASSED] Block: Finds none value
+Running test: Map: Finds true value
+   ❌ Comparison failed
+      Expected: #(true)
+      Actual:   #(none)
+❌ [FAILED] Map: Finds true value -- Error:
+** User error: "Assertion failed: Expected #(true)"
+
+Running test: Map: Finds none value
+✅ [PASSED] Map: Finds none value
+
+--- Edge Cases ---
+Running test: Invalid block structure errors
+   ❌ Condition not met
+❌ [FAILED] Invalid block structure errors -- Error:
+** User error: "Assertion failed: Condition not met"
+
+Running test: Nonexistent key returns none
+✅ [PASSED] Nonexistent key returns none
+Running test: Nonexistent value returns none
+✅ [PASSED] Nonexistent value returns none
+
+--- `none` Value Handling ---
+Running test: Map key with none value found via /key
+✅ [PASSED] Map key with none value found via /key
+Running test: Value search for `none` doesn't match keys
+✅ [PASSED] Value search for `none` doesn't match keys
+
+--- Empty Structure Handling ---
+Running test: Empty block key search
+✅ [PASSED] Empty block key search
+Running test: Empty map key search
+✅ [PASSED] Empty map key search
+Running test: Empty block value search
+✅ [PASSED] Empty block value search
+Running test: Empty map value search
+✅ [PASSED] Empty map value search
+
+--- Refinement Validation ---
+Running test: /key or /value must be specified
+   ❌ Condition not met
+❌ [FAILED] /key or /value must be specified -- Error:
+** User error: "Assertion failed: Condition not met"
+
+
+============================================
+❌ SOME TESTS FAILED
+TOTAL TESTS: 16 | PASSED: 12 | FAILED: 4
+============================================
+```
