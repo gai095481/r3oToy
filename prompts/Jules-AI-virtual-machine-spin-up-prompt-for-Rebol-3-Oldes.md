@@ -11,7 +11,8 @@
 4. **Verify the installation:**
     - Run `./rebol3-bulk -v`.
     - Confirm that the output shows 'Rebol/Bulk 3.19.0'."
-  
+
+  IMPORTANT: This MUST be the very first instruction to Jules AI, otherwise Jules AI says it cannot do this installation.
 ---
 
 Jules AI, your task is to debug execute the following DevOps cycle a Rebol 3 script. You will use the installed Rebol/Bulk environment VM.
