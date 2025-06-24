@@ -76,16 +76,17 @@ print-test-summary: does [
 
 ---
 
-##### **Step 2: The Four Documentation Scripts**
+##### **Step 2: Write the Ten Basic Examples (Happy Path), Script**
 
-Once you have analyzed the probe results, you will generate the following four separate, self-contained scripts. Each script must be runnable and heavily commented to serve as a standalone tutorial for that aspect of the function.
+You (the AI), will analyze the probe results to gain a deep understanding of the specified function to write another self-contained script to demonstrate ten basic usage examples.
+This script must be runnable from top to bottom without generating any error and heavily commented to serve as a standalone tutorial for that aspect of the function.
 
 1.  **`Happy Path Examples`**
     *   **Purpose:** To demonstrate the most common, simple and correct uses of the function.
-    *   **Content:** Show at least five textbook examples of the function working as intended.  Comments should explain the basic usage pattern.
+    *   **Content:** Show at least ten textbook examples of the function working as intended.  Comments should explain the basic usage pattern.  Explain the *what* and the *why*.
 
 2.  **`Highly Useful and Practical Examples`**
-    *   **Purpose:** To showcase at least ten practical, real-world examples of how the specified function can be used to solve everyday programming problems.
+    *   **Purpose:** To showcase at least ten practical, real-world examples of how the specified function can be used to solve everyday programming problems not present in the Happy Path examples.
     *   **Content:** Each example should be a self-contained problem/solution.  Code comments should explain the context and why the function is a good choice for the task.  Examples should include chaining with other functions, use in conditionals, etc.
 
 3.  **`Unintuitive Function Behavior Examples`**
