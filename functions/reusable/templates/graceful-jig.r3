@@ -29,152 +29,229 @@ print-test-summary: does [
     {Prints the final summary of the entire test run.}
     print "^/============================================"
     either all-tests-passed? [
-        print "✅ ALL TEMPLATE RESOLVER EXAMPLES PASSED"
+        print "✅ ALL TEMPLATE RESOLVER TESTS PASSED"
     ][
-        print "❌ SOME TEMPLATE RESOLVER EXAMPLES FAILED"
+        print "❌ SOME TEMPLATE RESOLVER TESTS FAILED"
     ]
     print "============================================^/"
 ]
 
-;;=============================================================================
-;; GET FUNCTION: PRACTICAL EXAMPLE
-;;=============================================================================
-;; Purpose: Demonstrate dynamic variable resolution using GET with proper binding
-;; Key Learning: How to handle binding failures for non-existent variables
-;;=============================================================================
-print "=== GET FUNCTION: PRACTICAL EXAMPLE 4 (CORRECTED VERSION) ==="
-print "=== Template Variable Resolution with Robust Error Handling ==="
+print "=== Robust Template Resolution with Popular Datatype Support ==="
+print "Problem: Handle all Rebol datatypes in template fields with proper formatting."
+print "Solution: Enhanced formatter with specialized handling for each datatype."
+
+;; Template context fields with the supported datatypes:
+template-title: "REBOL Programming Guide"          ;; String
+template-author: "Expert Developer"                ;; String
+template-version: 0.2.1                            ;; Tuple
+template-date: 24-Jun-2025                         ;; Date
+template-status: true                              ;; Logic
+template-tags: ["template" "system" "demo"]        ;; Block
+template-revision: 42                              ;; Integer
+template-percent: 75%                              ;; Percent
+template-price: $19.99                             ;; Money
+template-size: 1024x768                            ;; Pair
+template-duration: 1:23:45.67                      ;; Time
+template-file: %settings.cfg                       ;; File
+template-contact: user@example.com                 ;; Email
+template-website: http://example.com               ;; URL
+template-empty: none                               ;; None
 
 ;;-----------------------------------------------------------------------------
-;; PRACTICAL EXAMPLE: Graceful Template Variable Resolver
+;; Enhanced Template Resolution System
 ;;-----------------------------------------------------------------------------
-print "^/--- PRACTICAL EXAMPLE: Graceful Template Variable Resolution ---"
-print "Problem: Gracefully resolve template variables dynamically with robust error handling."
-print "Solution: Protect both binding and GET operations from syntax error failures."
 
-;; Template context variables existing in the global context:
-template-title: "REBOL Programming Guide"
-template-author: "Expert Developer"
-template-version: "2.1"
-template-date: "2025-06-24"
-
-;; Template resolver function with corrected error handling:
-resolve-template-var: function [
-    {USE: Resolve template variables dynamically using GET with protected binding.
-
-    Demonstrate how to safely resolve variable names constructed at runtime.
-    The key insight is that both word binding and GET
-    operations can fail, so both need protection in Rebol 3 Oldes.
-
-    RETURNS: String value of resolved variable or error message for undefined variables.
-    ERRORS: None - all errors are caught and converted to descriptive messages.}
-    var-name [string!] "Variable name to resolve (without 'template-' prefix)."
-    return: [string!] "Resolved value or error message."
+;; Global formatter function with comprehensive type handling
+template-formatter: function [
+    "Format values for template output with specialized handling per datatype."
+    value [any-type!]
+    return: [string!]
 ][
-    ;; Step 1: Construct the full variable name:
-    full-var-name: rejoin ["template-" var-name]
+    case [
+        ;;; Existing datatype handling:
+        tuple? value [mold value] ;; Use `mold` for tuples.
 
-    ;; Step 2: Create a word from the string:
-    template-word: to-word full-var-name
+        date? value [mold value]  ;; Use `mold` for dates.
 
-    ;; Step 3: Attempt binding with error protection:
-    ;; In Rebol 3 Oldes, BIND itself can fail for non-existent variables.
+        block? value [mold value]
+
+        percent? value [form round/to value 0.01]
+
+        money? value [rejoin ["$" form round/to value 0.01]]
+
+        pair? value [
+            rejoin [
+                either value/x = to integer! value/x [
+                    form to integer! value/x
+                ][
+                    form value/x
+                ]
+                "x"
+                either value/y = to integer! value/y [
+                    form to integer! value/y
+                ][
+                    form value/y
+                ]
+            ]
+        ]
+
+        time? value [
+            rejoin [
+                next form 100 + value/hour ":"
+                next form 100 + value/minute ":"
+                next form 100 + to-integer value/second
+                either value/second > to-integer value/second [
+                    rejoin ["." next form 1000 + to-integer (value/second - to-integer value/second) * 1000]
+                ][
+                    ""
+                ]
+            ]
+        ]
+
+        file? value [mold value]
+
+        email? value [form value]  ;; Use form for email.
+
+        url? value [mold value]
+
+        ;;; Default handling:
+        true [form value]
+    ]
+]
+
+;;------------------------------------------------------
+resolve-template-var: function [
+    {USE: Graceful template resolver for popular Rebol datatypes with robust error handling.}
+    fld-name [string!] "The field / variable name to resolve (without the 'template-' prefix.)"
+    return: [string!] "The resolved value or error message."
+][
+    full-fld-name: rejoin ["template-" fld-name]
+    template-word: to-word full-fld-name
+
     set/any 'bind-result try [bind template-word system/contexts/user]
 
     either error? bind-result [
-        ;; Binding failed - the variable definitely doesn't exist.
-        rejoin ["{{" var-name " - UNDEFINED}}"]
+        rejoin ["{{" fld-name " - ~UNDEFINED~}}"]
     ][
-        ;; Binding succeeded - now try to get the value:
         set/any 'resolved-value try [get bind-result]
 
         either error? resolved-value [
-            ;; GET failed - variable exists in context but has no value:
-            rejoin ["{{" var-name " - UNDEFINED}}"]
+            rejoin ["{{" fld-name " - ~UNDEFINED~}}"]
         ][
-            ;; GET succeeded - handle the value appropriately:
             either none? resolved-value [
-                rejoin ["{{" var-name " - NONE}}"]
+                rejoin ["{{" fld-name " - ~NONE~}}"]
             ][
-                ;; Convert whatever we got to a string for template use:
-                to-string resolved-value
+                template-formatter resolved-value
             ]
         ]
     ]
 ]
 
 ;;-----------------------------------------------------------------------------
-;; Testing the Corrected Template Resolution System
+;; Testing Comprehensive Template Resolution
 ;;-----------------------------------------------------------------------------
-print "^/Testing graceful template variable resolution..."
+print "^/Testing Robust Template Resolution datatype support..."
 
-;; Test Case 1: Existing string variable.
-assert-equal "REBOL Programming Guide" resolve-template-var "title" "Resolve existing string template variables correctly"
+;; Test Case 1: String handling.
+assert-equal "REBOL Programming Guide" resolve-template-var "title" "Resolve string variables"
 
-;; Test Case 2: Another existing string variable
-assert-equal "Expert Developer" resolve-template-var "author" "Handle different string template variables"
+;; Test Case 2: Tuple formatting.
+assert-equal "0.2.1" resolve-template-var "version" "Format tuple values"
 
-;; Test Case 3: Non-string variable (number as string)
-assert-equal "2.1" resolve-template-var "version" "Convert non-string values to strings properly"
+;; Test Case 3: Date formatting.
+assert-equal "24-Jun-2025" resolve-template-var "date" "Format date values"
 
-;; Test Case 4: Date string variable
-assert-equal "2025-06-24" resolve-template-var "date" "Process date string template variables"
+;; Test Case 4: Logic handling.
+assert-equal "true" resolve-template-var "status" "Convert logic values"
 
-;; Test Case 5: Undefined variable (this should now work!)
-assert-equal "{{unknown - UNDEFINED}}" resolve-template-var "unknown" "Handles missing variables with appropriate error message"
+;; Test Case 5: Block serialization.
+assert-equal {["template" "system" "demo"]} resolve-template-var "tags" "Serialize block values"
 
-;; Test Case 6: None value handling
-template-empty: none
-assert-equal "{{empty - NONE}}" resolve-template-var "empty" "Distinguish between undefined variables and none values"
+;; Test Case 6: Integer conversion.
+assert-equal "42" resolve-template-var "revision" "Convert integer values"
 
-print "^/--- Key Insight: Binding Can Fail in Rebol 3 Oldes ---"
-print "This graceful version demonstrates:"
-print "1. The 'bind' function itself can fail for non-existent variables."
-print "2. We must protect BOTH binding and GET operations."
-print "3. Proper error handling requires nested try blocks."
-print "4. Different error types need different handling strategies."
+;; Test Case 7: Percent formatting.
+assert-equal "75%" resolve-template-var "percent" "Format percent values"
+
+;; Test Case 8: Money formatting.
+assert-equal "$19.99" resolve-template-var "price" "Format money values"
+
+;; Test Case 9: Pair formatting.
+assert-equal "1024x768" resolve-template-var "size" "Format pair values as integers"
+
+;; Test Case 10: Time formatting.
+assert-equal "01:23:45.670" resolve-template-var "duration" "Format time values"
+
+;; Test Case 11: File handling.
+assert-equal "%settings.cfg" resolve-template-var "file" "Format file values"
+
+;; Test Case 12: Email handling.
+assert-equal "user@example.com" resolve-template-var "contact" "Format email values"
+
+;; Test Case 14: URL handling.
+assert-equal "http://example.com" resolve-template-var "website" "Format URL values"
+
+;; Test Case 15: Undefined variable.
+assert-equal "{{unknown - ~UNDEFINED~}}" resolve-template-var "unknown" "Handle missing variables"
+
+;; Test Case 16: None value
+assert-equal "{{empty - ~NONE~}}" resolve-template-var "empty" "Distinguish undefined vs none values"
 
 ;;-----------------------------------------------------------------------------
 ;; Advanced Example: Complete Template Processing
 ;;-----------------------------------------------------------------------------
 print "^/--- Advanced Example: Complete Template Processing ---"
-;; A simple template string with multiple variables:
-sample-template: {Document Title: {{title}}
-Written by: {{author}}
-Version: {{version}}
-Date: {{date}}
-Status: {{status}}}
 
-print ["Original template:^/" sample-template]
+;; Comprehensive template with all datatypes
+comprehensive-template: {Document Metadata:
+Title:      {{title}}
+Author:     {{author}}
+Version:    {{version}} (revision: {{revision}})
+Released:   {{date}}
+Status:     {{status}} ({{percent}} complete)
+Price:      {{price}}
+Resolution: {{size}}
+Duration:   {{duration}}
+File:       {{file}}
+Contact:    {{contact}}
+Location:   {{location}}
+Website:    {{website}}
+Tags:       {{tags}}
+Empty:      {{empty}}
+Missing:    {{unknown}}}
 
-;; Simple template processor using the corrected resolver:
+print ["Original template:^/" comprehensive-template]
+
+;; Generic template processor:
 process-template: function [
-    {USE: Process a template string by resolving all {{variable}} patterns.
-
-    Use the `resolve-template-var` function to properly handle
-    binding failures in Rebol 3 Oldes to ensure robust template processing
-    even with undefined variables.
-
-    RETURNS: Processed template string with variables gracefully resolved.
-    ERRORS: None - undefined variables are replaced with error messages.}
-    template [string!] "Template string with {{variable}} placeholders."
-    return: [string!] "Processed template with resolved variables."
+    {Process template with comprehensive datatype support.}
+    template [string!] "Template with {{variable}} placeholders."
+    return: [string!] "Processed template with resolved fields / variables."
 ][
-    ;; Make a copy to avoid modifying the original:
     result: copy template
+    tags: copy []
 
-    ;; Replace each template variable using the corrected resolver:
-    replace/all result "{{title}}" resolve-template-var "title"
-    replace/all result "{{author}}" resolve-template-var "author"
-    replace/all result "{{version}}" resolve-template-var "version"
-    replace/all result "{{date}}" resolve-template-var "date"
-    replace/all result "{{status}}" resolve-template-var "status"
+    ; Find all template variables
+    parse template [
+        any [
+            to "{{"
+            "{{" copy tag to "}}" "}}"
+            (append tags tag)
+            to "{{" | end
+        ]
+    ]
+    tags: unique tags
+
+    ; Resolve and replace each variable:
+    foreach tag tags [
+        replace/all result rejoin ["{{" tag "}}"] resolve-template-var tag
+    ]
 
     return result
 ]
 
-;; Process the template and output the result:
-processed-result: process-template sample-template
+;; Process and output the results:
+processed-result: process-template comprehensive-template
 print ["^/Processed template:^/" processed-result]
 
 ;;=============================================================================
