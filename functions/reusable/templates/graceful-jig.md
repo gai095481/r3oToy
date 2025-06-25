@@ -76,3 +76,182 @@ Status: {{status - UNDEFINED}}
 ✅ ALL TEMPLATE RESOLVER EXAMPLES PASSED
 ============================================
 ```
+
+---
+
+## Additional Applications Strategy
+
+#### Rebol 3 Oldes Dynamic Word Resolution - Session Brain Dump
+
+##### Core Discovery: The Two-Layer Protection Pattern
+
+We discovered a critical implementation detail in Rebol 3 Oldes that fundamentally changes how robust dynamic word resolution must be implemented. Unlike other Rebol variants, the `bind` function itself can fail when attempting to bind non-existent words to a context, not just the subsequent `get` operation.
+
+###### The Problem We Solved
+
+**Initial Failing Pattern:**
+```rebol
+;; This crashes in Rebol 3 Oldes for undefined variables
+bound-word: bind template-word system/contexts/user
+set/any 'resolved-value try [get bound-word]
+```
+
+**Corrected Robust Pattern:**
+```rebol
+;; Two-layer protection: protect BOTH binding and getting
+set/any 'bind-result try [bind template-word system/contexts/user]
+either error? bind-result [
+    ;; Handle binding failure (variable doesn't exist in context)
+][
+    set/any 'resolved-value try [get bind-result]
+    ;; Handle GET failure (variable exists but has no value)
+]
+```
+
+##### Key Technical Insights
+
+###### Word Binding Behavior in Rebol 3 Oldes
+- Words created from strings using `to-word` start completely unbound
+- The `bind` function establishes a connection between a word and a specific context
+- In Rebol 3 Oldes specifically, `bind` throws an error if the target word doesn't exist in the specified context
+- Both `bind word system/contexts/user` and `in system/contexts/user word` work for existing variables
+- `system/contexts/user` represents the global context in Rebol 3 Oldes
+
+###### Error Handling Architecture
+- Use `set/any 'result try [operation]` followed by `error? result` checks
+- Nested try blocks are necessary when operations can fail at multiple stages
+- Each failure point requires its own protection and specific error handling
+- Different error types should produce different user-facing messages
+
+###### Testing Methodology That Revealed the Issue
+The diagnostic approach that uncovered the binding failure involved systematic testing of each step in isolation:
+1. Test word creation from strings
+2. Test direct GET on unbound words (fails as expected)
+3. Test binding operations on existing vs non-existent variables
+4. Test different binding approaches (`bind` vs `in`)
+5. Test the complete resolution chain with both success and failure cases
+
+##### The Working Template Resolver
+
+###### Core Function Structure
+```rebol
+resolve-template-var: function [
+    var-name [string!] "Variable name to resolve (without 'template-' prefix)"
+    return: [string!] "Resolved value or error message"
+][
+    ;; Step 1: Construct full variable name
+    full-var-name: rejoin ["template-" var-name]
+    
+    ;; Step 2: Create word from string
+    template-word: to-word full-var-name
+    
+    ;; Step 3: Protected binding operation
+    set/any 'bind-result try [bind template-word system/contexts/user]
+    
+    ;; Step 4: Handle binding result and proceed to GET if successful
+    either error? bind-result [
+        rejoin ["{{" var-name " - UNDEFINED}}"]
+    ][
+        set/any 'resolved-value try [get bind-result]
+        either error? resolved-value [
+            rejoin ["{{" var-name " - UNDEFINED}}"]
+        ][
+            either none? resolved-value [
+                rejoin ["{{" var-name " - NONE}}"]
+            ][
+                to-string resolved-value
+            ]
+        ]
+    ]
+]
+```
+
+###### Test Results That Validated the Solution
+All six critical test cases passed:
+1. Existing string variables resolve correctly
+2. Different variable types convert to strings properly
+3. Numeric values convert appropriately
+4. Date strings process correctly
+5. **Undefined variables handle gracefully** (the breakthrough case)
+6. None values are distinguished from undefined variables
+
+##### Broader Applications Beyond Templates
+
+The two-layer protection pattern applies to any dynamic word resolution scenario:
+
+###### Configuration Systems
+```rebol
+;; Reading nested config values like config/database/timeout
+;; Each level needs protection against non-existence
+```
+
+###### Dynamic Function Dispatch
+```rebol
+;; Calling functions by name constructed at runtime
+;; Must protect both function lookup and invocation
+```
+
+###### Plugin/Module Loading
+```rebol
+;; Loading code modules where function names aren't known until runtime
+;; Binding and execution both need error handling
+```
+
+###### Data Structure Navigation
+```rebol
+;; Traversing parsed JSON, XML, or other dynamic structures
+;; Each navigation step can fail independently
+```
+
+###### Command-Line Processing
+```rebol
+;; Processing user-provided option names
+;; Option existence and value retrieval are separate failure points
+```
+
+##### Fundamental Design Principles Established
+
+###### The "Baby Steps" Validation Approach
+Work on one logical component at a time, validating each piece before proceeding. This prevented complex debugging by isolating the binding failure to a specific operation.
+
+###### Graceful Degradation Philosophy
+Systems should continue operating even when individual components fail, providing meaningful feedback about what went wrong while maintaining overall functionality.
+
+###### Explicit Error State Management
+Rather than allowing errors to propagate and crash the system, capture them at each potential failure point and convert them into appropriate user-facing messages or alternative behaviors.
+
+###### Context Awareness in Dynamic Languages
+In languages like Rebol where word binding and context management are explicit, robust code must account for the possibility that words and contexts might not align as expected.
+
+#### Technical Environment Details
+
+###### Rebol Version Specifics
+- REBOL/Bulk 3.19.0 (Oldes branch)
+- `system/contexts/user` for global context access
+- Specific binding behavior different from other Rebol variants
+
+###### Coding Standards Applied
+- `function` keyword for functions with arguments (never `func`)
+- `{}` for multi-line strings and docstrings
+- `either` for binary decisions (never `else`)
+- Explicit error handling with `set/any 'result try [...]` pattern
+- Comprehensive docstrings with RETURNS and ERRORS sections
+
+##### Session Success Metrics
+
+The session achieved complete success:
+- All six test cases passed including the critical undefined variable case
+- Template processing worked end-to-end with mixed defined/undefined variables
+- The solution demonstrated graceful handling of both success and failure scenarios
+- The diagnostic process revealed implementation-specific behavior crucial for robust coding
+
+##### Next Steps and Extensions
+
+The robust foundation established here enables several advanced applications:
+1. More sophisticated template systems with conditional logic
+2. Configuration management systems with nested validation
+3. Plugin architectures with dynamic function dispatch
+4. Data processing pipelines with resilient error handling
+5. Interactive debugging tools that safely explore runtime state
+
+The two-layer protection pattern represents a fundamental technique for any scenario involving dynamic word resolution in Rebol 3 Oldes, providing a template for building resilient systems that gracefully handle the unexpected while continuing to deliver value to users.
