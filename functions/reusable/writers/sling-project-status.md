@@ -1,3 +1,41 @@
+```
+=== Starting QA tests for `sling` v0.2.1 ===
+
+--- `grab` Integrity Test (for sling) ---
+✅ PASSED: grab Integrity: Should retrieve the container block correctly.
+✅ PASSED: grab Integrity: Should return a LOGIC! true, not the word! 'true, when picking by index.
+
+--- Phase 1: Simple Set Tests (Revised) ---
+✅ PASSED: Block/Int: Should set value at a valid index.
+✅ PASSED: Block/Int: Should do nothing for an out-of-bounds index.
+✅ PASSED: Block/Word: Should set value for an existing key.
+✅ PASSED: Block/Word: Should do nothing for a missing key.
+✅ PASSED: Map/Word: Key 'age should still exist.
+✅ PASSED: Map/Word: Should set value for an existing key.
+✅ PASSED: Map/Word (no-create): Should NOT create a new key 'city'.
+
+--- Phase 2: /create Refinement Tests ---
+✅ PASSED: Block/create: Should create a new key-value pair.
+✅ PASSED: Map/create: Should create a new key-value pair.
+✅ PASSED: Map/no-create: Should not create a key without the refinement.
+
+--- Phase 3: /path Refinement Tests ---
+✅ PASSED: Path/Block: Should set value in a nested block.
+❌ FAILED: Path/Map: Should set value in a nested map.
+   >> Expected: "db.example.com"
+   >> Actual:   "localhost"
+✅ PASSED: Path/Create: Should create a key in a nested block.
+❌ FAILED: Path/Create: Should create a key in a nested map.
+   >> Expected: 2
+   >> Actual:   #(none)
+✅ PASSED: Path/Create: Should create nested structures.
+
+============================================
+❌ SOME TESTS FAILED
+============================================
+```
+---
+
 ### PROJECT SNAPSHOT: 2025-06-21
 
 **COMPLETED THIS SESSION:**
