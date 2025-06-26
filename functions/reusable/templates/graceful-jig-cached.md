@@ -213,3 +213,82 @@ dynamic-template "{{time}} {{time}}"  ;; Could return "10:00:00 10:00:01"
 
 This design provides optimal performance for the most common template processing scenarios while maintaining straightforward update semantics between processing calls.
 The caching is lightweight and automatically stays synchronized with value changes when templates are reprocessed.
+
+---
+
+## Future Directions
+
+While the current resolver is excellent at its specific job—gracefully formatting and substituting data into a flat template;
+it is missing **three vital categories of functionality** that are common and often essential for everyday, real-world tasks.
+
+Here is a breakdown of what's missing, ordered from most critical to most advanced.
+
+### **1. Control Structures (Loops and Conditionals)**
+
+This is the single most important missing feature. Currently, the template is static; it cannot change its structure based on the data.
+
+*   **What's Missing:** The ability to repeat a block of text for each item in a list (`loops`) or to show/hide a block of text based on a condition (`if`).
+
+*   **Real-World Scenario:** Imagine generating an HTML invoice. You need to create a new table row `<tr>...</tr>` for **each** item in a customer's shopping cart.
+*   Or, you might want to display a "PAST DUE" warning banner **only if** the `invoice/is-overdue` field is `true`.
+
+*   **How it Could Look (Conceptual Syntax):**
+    ```html
+    <!-- Looping -->
+    <table>
+        {{#each line-items}}
+            <tr>
+                <td>{{name}}</td>
+                <td>{{price}}</td>
+            </tr>
+        {{/each}}
+    </table>
+
+    <!-- Conditional -->
+    {{#if is-overdue}}
+        <div class="warning">Your invoice is past due!</div>
+    {{/if}}
+    ```
+    The current system cannot handle this logic and can only print the `line-items` block as a literal string: `[...]`.
+
+### **2. Deep/Nested Data Access in Placeholders**
+
+The current system relies on a flat key name, like `{{version}}`, which it resolves from a single data context.
+
+*   **What's Missing:** The ability to traverse nested objects and blocks directly from within the template placeholder syntax.
+
+*   **Real-World Scenario:** Your data is often structured hierarchically. For example, you might have a `user` object that contains an `address` object, which in turn has a `city` field. A real-world template system needs to access this with a simple path.
+
+*   **How it Could Look (Conceptual Syntax):**
+    ```html
+    <!-- Current system requires pre-flattened data -->
+    Name: {{user-name}}
+    City: {{user-address-city}}
+
+    <!-- A more advanced system would allow this -->
+    Name: {{user/name}}
+    City: {{user/address/city}}
+    ```
+    The current resolver would see `{{user/name}}` as a single, literal key and fail to find it, as it doesn't know how to parse the `/`.
+
+### **3. Template Composition (Includes/Partials)**
+
+Real-world applications rarely use a single, monolithic template. They are built from smaller, reusable pieces.
+
+*   **What's Missing:** A mechanism to include one template file inside another, often called "partials" or "includes".
+
+*   **Real-World Scenario:** Imagine building a website. Every page has the same header and footer. Instead of copying and pasting the header and footer HTML into every single template file (`home.html`, `about.html`, `contact.html`), you would define them once in `header.html` and `footer.html`.
+
+*   **How it Could Look (Conceptual Syntax):**
+    ```html
+    <!-- In your main page template (e.g., about.html) -->
+    {{> header}}  <!-- Renders the header.html partial -->
+
+    <main>
+      <h1>About Us</h1>
+      <p>This is the main content for the about page.</p>
+    </main>
+
+    {{> footer}}  <!-- Renders the footer.html partial -->
+    ```
+    This makes the project incredibly easier to maintain. If you need to change a link in the footer, you only have to edit one file, not every single page on your site. The current system has no concept of this and can only process a single string at a time.
