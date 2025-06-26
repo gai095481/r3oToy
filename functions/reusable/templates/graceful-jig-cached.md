@@ -216,6 +216,10 @@ The caching is lightweight and automatically stays synchronized with value modif
 
 ---
 
+![image](https://github.com/user-attachments/assets/2df259b8-98b6-4502-9a5a-73bb1d091b56)
+---
+
+
 ## Future Directions
 
 While the current resolver is excellent at its specific job—gracefully formatting and substituting data into a flat template;
