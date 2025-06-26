@@ -218,7 +218,69 @@ The caching is lightweight and automatically stays synchronized with value modif
 
 ![image](https://github.com/user-attachments/assets/2df259b8-98b6-4502-9a5a-73bb1d091b56)
 ---
+```
+=== Graceful Template Field Resolver with Popular Datatype Support ===
+Problem: Handle most Rebol datatypes in template fields with proper formatting.
+Solution: Enhanced formatter with specialized handling and intelligent caching.
 
+=== Testing popular datatype support ===
+✅ PASSED: Resolve string variables
+✅ PASSED: Format tuple values
+✅ PASSED: Format date values
+✅ PASSED: Convert logic values
+✅ PASSED: Serialize block values
+✅ PASSED: Convert integer values
+✅ PASSED: Format percent values
+✅ PASSED: Format money values
+✅ PASSED: Format pair values as integers
+✅ PASSED: Format time values
+✅ PASSED: Format file values
+✅ PASSED: Format email values
+✅ PASSED: Format URL values
+✅ PASSED: Handle missing variables
+✅ PASSED: Distinguish undefined vs none values
+✅ PASSED: Cache isolation in first run
+✅ PASSED: Cache updates in second run
+
+=== Advanced Example: Complete Template Processing ===
+Original template:
+Document Metadata:
+Title:      {{title}}
+Author:     {{author}}
+Version:    {{version}} (revision: {{revision}})
+Released:   {{date}}
+Status:     {{status}} ({{percent}} complete)
+Price:      {{price}}
+Resolution: {{size}}
+Duration:   {{duration}}
+Config:     {{file}}
+Contact:    {{contact}}
+Website:    {{website}}
+Tags:       {{tags}}
+Empty:      {{empty}}
+Missing:    {{unknown}}
+
+Processed template:
+Document Metadata:
+Title:      REBOL Programming Guide
+Author:     Expert Developer
+Version:    1.0.0 (revision: 42)
+Released:   24-Jun-2025
+Status:     true (75% complete)
+Price:      $19.99
+Resolution: 1024x768
+Duration:   01:23:45.670
+Config:     %settings.cfg
+Contact:    user@example.com
+Website:    http://example.com
+Tags:       ["template" "system" "demo"]
+Empty:      {{empty - ~NONE~}}
+Missing:    {{unknown - ~UNDEFINED~}}
+
+============================================
+✅ ALL TEMPLATE RESOLVER TESTS PASSED
+============================================
+```
 
 ## Future Directions
 
