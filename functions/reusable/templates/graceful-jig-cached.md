@@ -1,5 +1,5 @@
 ### **Why is this Template System Smart? A Guide for New Programmers**
-In a nutshell: The cache-based template resolver is most useful when a templated document has field(s) occurring multiple times. It's not a good choice for templated documents where each field is unique.
+In a nutshell: The cache-based template resolver is most useful when a templated document has field(s) occurring multiple times. It's not a good choice for templated documents where each field occurs just once in the document such as in an error logger.
 
 Imagine you're writing a form letter to ten people.  The letter says:
 
