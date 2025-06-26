@@ -1,5 +1,6 @@
 ### **Why is this Template System Smart? A Guide for New Programmers**
-In a nutshell: The cache-based template resolver is most useful when a templated document has field(s) occurring multiple times. It's not a good choice for templated documents where each field occurs just once in the document such as in an error logger.
+In a nutshell: The cache-based template resolver is most useful when a templated document has field(s) occurring multiple times.
+It's not a good choice for templated documents where each field occurs just once in the document such as in an error logger.
 
 Imagine you're writing a form letter to ten people.  The letter says:
 
@@ -17,7 +18,7 @@ This works, but it's inefficient. You're doing the same work twice by looking up
 The new, cache-based system is much smarter. It works like this:
 
 1.  **Step 1: Make a "Shopping List"**
-    *   Before filling anything in, it reads through the entire template and makes a unique list of all the placeholders it needs to find. For our example, the list is just `["name", "color"]`. It ignores the duplicate `{{color}}`.
+    *   Before filling in anything, it reads through the entire template and makes a unique list of all the placeholders it needs to find. For our example, the list is just `["name", "color"]`. It ignores the duplicate `{{color}}`.
 
 2.  **Step 2: Go "Shopping" Once**
     *   It takes this unique list and looks up the value for each placeholder **only one time**. It puts these findings into a temporary "shopping cart" (this is our **cache**).
@@ -34,7 +35,7 @@ This "shopping list" and "shopping cart" approach is what programmers call **cac
 #### **1. It's Much Faster (Better Performance)**
 
 *   **Benefit:** For templates with many repeated variables (like a report that shows a company's name in the header, footer, and multiple sections), the speed difference is huge. Instead of looking up the company name 10 times, it looks it up once.
-*   **Analogy:** It's the difference between running to the store for every single ingredient while cooking, versus making one trip with a complete list. The second way is always faster.
+*   **Analogy:** It's the difference between running to the store for every single ingredient while cooking, versus making one trip with a complete list.  The second way is always faster.
 
 #### **2. It's Safer and More Predictable**
 
@@ -45,36 +46,35 @@ This "shopping list" and "shopping cart" approach is what programmers call **cac
 
 #### **3. It Stays Fresh and "Live"**
 
-This is the clever part. The "shopping cart" (cache) is **temporary**. It's created for a single run and then thrown away.
+This is the clever part. The "shopping cart" (cache), is **temporary**.  It's created for a single run and then discarded.
 
-*   **Benefit:** You get the best of both worlds: speed *during* processing, and freshness *between* processing.
+*   **Benefit:** You get the best of both worlds: speed *during* processing and freshness *between* processing.
 *   **Scenario:**
     1.  You run the template and it says `Version: 1.0`.
     2.  You update the `template-version` variable in your code to `2.0`.
     3.  You run the template again.
-*   **Result:** The system creates a brand new, empty shopping cart. It goes "shopping" again and sees the new `2.0` value. The final document correctly says `Version: 2.0`. It never uses old, "stale" data from a previous run.
+*   **Result:** The system creates a brand new, empty shopping cart.  It goes shopping again and sees the new `2.0` value.  The final document correctly says `Version: 2.0`.  It never uses stale data from a previous run.
 
 #### **In Simple Terms:**
 
-This template system is smart because it's **efficient**. It avoids doing the same work over and over again. It's also **safe**, preventing weird bugs by ensuring consistency. And finally, it's **simple to use**, because it automatically gets the latest data every time you ask it to generate a document.
+This template system is smart because it's **efficient**.  It avoids repeating the same work over and over again.  It's also **safe**, preventing weird bugs by ensuring consistency. Finally, it's **simple to use**, because it automatically gets the latest data every time you ask it to generate a document.
 
 ---
 
 ### Caching Design & Live Updates Analysis
 
-The caching implementation is carefully designed to balance performance with live updates. Here's how it handles dynamic value changes:
+The caching implementation is carefully designed to balance performance with live updates.  Here's how it handles dynamic value modifications:
 
 #### Key Implementation Points:
 ```rebol
 process-template: function [
-    {Process template with comprehensive datatype support and resolution caching}
+    {Process template with comprehensive datatype support and resolution caching.}
     template [string!] 
-    /local result tags unique-tags cache tag
 ][
     result: copy template
     tags: copy []
     
-    ;; Parse to collect ALL tags (non-unique)
+    ;; Parse to collect ALL tags (non-unique):
     parse template [
         any [
             to "{{" 
@@ -84,17 +84,17 @@ process-template: function [
         ]
     ]
     
-    ;; Get unique tags only for caching
+    ;; Get unique tags only for caching:
     unique-tags: unique tags
     
-    ;; Build cache for UNIQUE tags only
+    ;; Build a cache for UNIQUE tags only:
     cache: make map! []
     foreach tag unique-tags [
-        cache/:tag: resolve-template-var tag  ; Single resolution per unique tag
+        cache/:tag: resolve-template-var tag  ;; Single resolution per unique tag.
     ]
     
-    ;; Replace ALL occurrences using cache
-    foreach tag tags [  ; Note: using original tags list with duplicates
+    ;; Replace ALL occurrences using cache:
+    foreach tag tags [  ;; Note: using original tags list with duplicates:
         replace/all result rejoin ["{{" tag "}}"] cache/:tag
     ]
     
@@ -106,8 +106,8 @@ process-template: function [
 
 1. **Cache Lifetime**:
    - Cache is created *per-call* to `process-template`.
-   - Destroyed when function completes.
-   - Each call builds a new cache.
+     The cache is destroyed when the function completes.
+   - Each function call builds a new cache.
 
 2. **Live Updates Between Calls**:
    ```rebol
@@ -125,8 +125,8 @@ process-template: function [
    ```
 
 3. **Updates Within Single Call**:
-   - Values are resolved once per unique tag at start
-   - Changes during processing won't affect current call
+   - Values are resolved once per unique tag at the start.
+   - Modifications during processing won't affect the current function call.
    ```rebol
    template-counter: 1
    template-formatter: func [value][
@@ -142,17 +142,17 @@ process-template: function [
 
 1. **Performance Priority**:
    - 90% of use cases involve static templates/data.
-   - Caching gives 5-20x speedup for repeated variables.
+   - Caching gives 5-20x speedup for repeated template fields / variables.
    - Minimal overhead for cache creation (μs for typical templates).
 
 2. **Update-Friendly**:
-   - No persistent cache between calls.
-   - Always fetches current values on new calls.
+   - No persistent cache between fun function calls.
+   - Always fetches current values on new function calls.
    - Natural workflow for template regeneration.
 
 3. **Safety**:
    - Prevents side-effect bugs during formatting.
-   - Ensures consistent output within single template.
+   - Ensures consistent output within a single template.
    - Avoids race conditions in reactive systems.
 
 ### Advanced Use Case Handling:
@@ -160,7 +160,7 @@ process-template: function [
 For scenarios requiring intra-template updates:
 
 ```rebol
-;; Custom resolver with dynamic values
+;; Custom resolver with dynamic values:
 dynamic-template: function [
     template [string!]
 ][
@@ -175,7 +175,7 @@ dynamic-template: function [
     return result
 ]
 
-;; Usage - resolves values at replacement time
+;; Usage - resolves values at replacement time:
 dynamic-template "{{time}} {{time}}"  ;; Could return "10:00:00 10:00:01"
 ```
 
@@ -208,11 +208,11 @@ dynamic-template "{{time}} {{time}}"  ;; Could return "10:00:00 10:00:01"
 
 3. **Avoid**:
    - Side effects in `template-formatter`.
-   - Modifying template variables during processing.
+   - Modifying template fields /  variables during processing.
    - Assuming intra-call value updates.
 
-This design provides optimal performance for the most common template processing scenarios while maintaining straightforward update semantics between processing calls.
-The caching is lightweight and automatically stays synchronized with value changes when templates are reprocessed.
+This design provides optimal performance for the most common template field processing scenarios while maintaining straightforward update semantics between processing calls.
+The caching is lightweight and automatically stays synchronized with value modifications when templates are reprocessed.
 
 ---
 
