@@ -1,12 +1,12 @@
 REBOL [
-    Title: "Robust Message Logging Utility"
-    Version: 0.1.0
+    Title: "Robust Message Logging Function"
+    Version: 0.1.1
     Author: "AI Software Development Assistant"
     Date: 26-Jun-2025
     Status: 'alpha-release-candidate
     Purpose: {
         A standardized function for logging messages to a file.
-        - Supports any Rebol datatype by molding it.
+        - Supports most Rebol 3 datatype by molding them.
         - Includes timestamping for all entries.
         - Provides robust error handling for file I/O.
         - Allows specifying an alternative log file.
@@ -146,9 +146,9 @@ if exists? alt-msg-log-filename [delete alt-msg-log-filename]
 if exists? std-msg-log-filename [delete std-msg-log-filename]
 
 ;; Test 1: Basic string logging.
-result-1: log-msg "This is a basic test message."
+result-1: log-msg "This is a basic string test message."
 assert-equal true result-1 "Basic string message logging should succeed."
-assert-file-exists std-msg-log-filename "Default log file should now be created."
+assert-file-exists std-msg-log-filename "The default log file should now be created."
 
 ;; Test 2: Block data logging.
 result-2: log-msg [1 2 3 "test"]
@@ -168,9 +168,25 @@ assert-file-exists alt-msg-log-filename "Alternate log file should be created."
 result-5: log-msg/file "Should fail" %../invalid-path.log
 assert-equal false result-5 "Invalid path should be rejected for security reasons."
 
-;; Test 6: Binary data logging
-binary-data: #{48656C6C6F} ;; "Hello" in binary
-result-6: log-msg binary-data
-assert-equal true result-6 "Binary data logging should succeed."
+;; Test 6: Map! data logging.
+test-map: make map! [name: "Zaphod" species: "Betelgeusian" heads: 2 towels: true]
+assert-equal true log-msg test-map "Map! data logging should succeed."
+
+;; Extended datatype logging test cases:
+print "^/--- Testing additional Rebol 3 datatypes ---"
+assert-equal true log-msg #{48656C6C6F} "`binary!` data logging should succeed."
+assert-equal true log-msg 0.2.1 "`tuple!` data logging should succeed."
+assert-equal true log-msg 24-Jun-2025 "`date!` data logging should succeed."
+assert-equal true log-msg 1:23:45.67 "`time!` data logging should succeed."
+assert-equal true log-msg true "`logic!` data logging should succeed."
+assert-equal true log-msg 2.345 "`decimal!` data logging should succeed."
+assert-equal true log-msg 42 "`integer!` data logging should succeed."
+assert-equal true log-msg 75% "`percent!` data logging should succeed."
+assert-equal true log-msg $19.99 "`money!` data logging should succeed."
+assert-equal true log-msg 1024x768 "`pair!` data logging should succeed."
+assert-equal true log-msg %settings.cfg "`file!` data logging should succeed."
+assert-equal true log-msg user@example.com "`email!` data logging should succeed."
+assert-equal true log-msg https://example.com "`url!` data logging should succeed."
+assert-equal true log-msg none "`none!` data logging should succeed."
 
 print-test-summary
