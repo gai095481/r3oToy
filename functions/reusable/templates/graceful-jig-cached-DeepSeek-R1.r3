@@ -4,7 +4,7 @@ REBOL [
     Author: "DeepSeek R1 and human orchestrator"
     Purpose: {
         A robust cached template (macro), field resolver system
-        supporting most popualar Rebol 3 Oldes datatypes.
+        supporting most popular Rebol 3 Oldes datatypes.
     }
 ]
 
