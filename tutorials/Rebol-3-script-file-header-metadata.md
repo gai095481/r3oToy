@@ -2,19 +2,18 @@ The `system/script/header` object has several standard fields that are `none!` w
 
 ```
 REBOL [
-	Title: "Rebol 3 Oldes Script Title"
-	Name: 'machine-readable-symbolic-script-name-intended-for-library-or-module
-	Type: 'type-app-or-library-or-module-or-driver
+	title: "Rebol 3 Oldes Script Title"
+	name: 'machine-readable-symbolic-script-name-intended-for-library-or-module
+	type: 'type-app-or-library-or-module-or-driver
 	;Needs: [2.7.8 %some-library.r3 0.2.2 %some-toolkit.r3]
-	Options: [secure quiet]
-	Date: 2025-06-30
-	File: %the-script-filename.r3
-	Author: "The script's author."
-	Version: 0.2.0
-	Purpose: "The purpose of this script."
-	Tags: [core library lib Std]
-	License: {GNU GPL3}
-	Rights: {Copyright 2025.  All rights reserved.}
+	options: [secure quiet]
+	date: 2025-06-30
+	file: %the-script-filename.r3
+	author: "The script's author."
+	version: 0.2.0
+	purpose: "The purpose of this script."
+	tags: "#core #library #Lib #Std #Ezy"
+	license: {GNU GPL3}
 ]
 
 print dump-obj system/script/header
