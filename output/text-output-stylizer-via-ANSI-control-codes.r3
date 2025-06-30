@@ -3,10 +3,12 @@ Rebol []
 ;;==== Revised ANSI Style System ====
 ;; Base text styles (non-bold, optimized for readability)
 gbl-map-text-opts: make map! [
+    plain:         ""                      ;; plain text without hue or style.
     alert:         "^[[97;101m"            ;; White text on bright red background.
     beige:         "^[[38;2;255;228;196m"  ;; Light beige / tan.
     blue:          "^[[94m"                ;; Dark blue.
     brown:         "^[[38;2;165;107;70m"   ;; Darker brown for better readability.
+    conceal:       "^[[8m"                 ;; Concealed / hidden / invisible text.
     cyan:          "^[[96m"                ;; Bright cyan / green.
     dim:           "^[[90m"                ;; Bright black (dark gray / charcoal).
     dingy:         "^[[38;2;200;200;200m"  ;; Dingy white.
@@ -19,7 +21,7 @@ gbl-map-text-opts: make map! [
     papaya:        "^[[38;2;255;80;37m"    ;; Bright papaya (reddish orange).
     pink:          "^[[38;2;255;164;200m"  ;; Soft pink.
     purple:        "^[[95m"                ;; Dark purple / violet.
-    tanner:       "^[[38;2;142;128;110m"   ;; tanner color.
+    tanner:        "^[[38;2;142;128;110m"  ;; tanner color.
     red:           "^[[91m"                ;; Bright red.
     sky:           "^[[38;2;164;200;255m"  ;; Light sky blue.
     warn:          "^[[93m^[[7m"           ;; Black text on yellow background.
@@ -31,11 +33,9 @@ gbl-map-text-opts: make map! [
 as-plain:        "^[[0m"      ;; Reset back to no color or style; just plain text again.
 
 ;; Text style modifiers:
-as-alert:        "^[[97;101m" ;; White text on bright red background.
 as-blink:        "^[[5m"      ;; Blinking text.
 as-bold:         "^[[1m"      ;; Bold / bright text.
 as-inverted:     "^[[7m"      ;; Inverted / background color.
-as-concealed:    "^[[8m"      ;; Concealed / hidden text.
 as-struck:       "^[[9m"      ;; Strikethrough text.
 as-underlined:   "^[[4m"      ;; Underlined text.
 
@@ -52,26 +52,64 @@ stylize: function [
 ][
     base: select gbl-map-text-opts text-hue
 
-    either none? base [
-        print rejoin ["❌ stylize: UNRECOGNIZED BASE STYLE> " text-hue]
+    if none? base [
+        print rejoin ["❌ stylize: UNRECOGNIZED COLOR / STYLE> " text-hue]
         print rejoin ["Valid styles are: " keys-of gbl-map-text-opts]
+        return the-text-to-stylize
     ]
-    [
-        ;; Apply possible modifiers in a consistent order:
-        modifiers: copy base
 
-        case/all [
-            bold      [append modifiers as-bold]
-            underlined [append modifiers as-underlined]
-            invert    [append modifiers as-inverted]
-            blink     [append modifiers as-blink]
-            struck    [append modifiers as-struck]
-        ]
+    ;; Apply possible modifiers in a consistent order:
+    modifiers: copy base
 
-        ;; Return styled text with reset-to-plain text ANSI code:
-        return rejoin [base modifiers the-text-to-stylize as-plain]
+    case/all [
+        bold        [append modifiers as-bold]
+        underlined  [append modifiers as-underlined]
+        invert      [if not text-hue == 'warn [append modifiers as-inverted]]   ;; 'warn has the invert ANSI code, it doesn't need it again.
+        blink       [append modifiers as-blink]
+        struck      [append modifiers as-struck]
     ]
+
+    ;; Return styled text with reset-to-plain text ANSI code:
+    return rejoin [modifiers the-text-to-stylize as-plain]
 ]
+
+;;-----------------------------------------------------------
+hue-datatype: function [
+    {Assign colors to datatypes to print them.}
+    the-datatype-to-colorize [any-type!]
+][
+    result: none
+
+    ;; the `/word` refinement with `type?` lets us use the syntax: `decimal!` instead of `#(decimal!)`
+    result: switch/default type?/word the-datatype-to-colorize [
+        decimal! [stylize 'ivory the-datatype-to-colorize]
+        integer! [stylize 'ivory the-datatype-to-colorize]
+        string! [stylize 'beige the-datatype-to-colorize]
+        block! [stylize 'blue the-datatype-to-colorize]
+        map! [stylize 'mint the-datatype-to-colorize]
+        word! [stylize 'wheat the-datatype-to-colorize]
+        date! [stylize 'brown the-datatype-to-colorize]
+        time! [stylize 'sky the-datatype-to-colorize]
+        file! [stylize  'cyan the-datatype-to-colorize]
+        error! [stylize  'alert the-datatype-to-colorize]
+        email! [stylize 'pink the-datatype-to-colorize]
+        hash! [stylize 'dim the-datatype-to-colorize]
+        char! [stylize 'gold the-datatype-to-colorize]
+        logic! [stylize 'purple the-datatype-to-colorize]
+        pair! [stylize 'khaki the-datatype-to-colorize]
+        tuple! [stylize 'tanner the-datatype-to-colorize]
+        url! [stylize 'pink the-datatype-to-colorize]
+        money! [stylize 'green the-datatype-to-colorize]
+        binary! [stylize 'orange the-datatype-to-colorize]
+        none! [stylize 'dim the-datatype-to-colorize]
+    ][
+        ;; Default case only for unhandled types
+        stylize 'plain the-datatype-to-colorize
+    ]
+
+    return result
+]
+
 
 ;; ===== Usage Examples =====
 print rejoin [stylize/blink 'alert "blink alert"]
@@ -254,4 +292,29 @@ print rejoin [stylize/bold 'dim keys-of gbl-map-text-opts]
 
 ;; Conceal a portion of text:
 name: "Johnny"
-print rejoin ["Welcome:" as-concealed name as-plain "to the club!"]
+print rejoin ["Welcome: Mr." stylize/invert 'conceal name "to the club!"]
+
+print lf
+some-string: "John Smith"
+print hue-datatype some-string
+
+some-decimal: 9.99
+print hue-datatype some-decimal
+
+some-int: 1
+print hue-datatype some-int
+
+some-block: [1 "a" 8.9]
+print hue-datatype some-block
+
+some-date: 2025-06-29
+print hue-datatype some-date
+
+some-email: john@somewhere.com
+print hue-datatype some-email
+
+some-URL: https://website.com
+print hue-datatype some-URL
+
+some-time: now/time
+print hue-datatype some-time
