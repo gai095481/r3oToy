@@ -1,6 +1,12 @@
 
 
-In Rebol 3, both `case` and `switch` are conditional constructs, but they serve different purposes. Here's when to use each:
+In Rebol 3, both `case` and `switch` are conditional constructs, but they serve different purposes.
+
+### Performance Considerations in a Nutshell
+- Use `switch` for performance-critical exact matches (e.g., dispatching commands) as it is optimized for equality checks.
+- Use `case` for complex logic (e.g., ranges, dynamic expressions) where conditions are interdependent or order-sensitive.
+
+#### Here's when to use each:
 
 ### Use `switch` when:
 1. **Matching a single value against multiple explicit possibilities**  
@@ -65,8 +71,30 @@ In Rebol 3, both `case` and `switch` are conditional constructs, but they serve 
    ]
    ```
 
-5. **Using `/all` to evaluate all true conditions**  
-   Unlike `switch`, `case` stops at the first true condition by default. Use `/all` to run all matching blocks.
+5. **Using `/all` to evaluate all true conditions**
+   Unlike `switch`, `case` stops at the first true condition by default.
+   
+   Use `/all` to run all matching blocks.
+   
+   ```rebol
+   case/all [
+               bold      [append modifiers as-bold]
+               underline [append modifiers as-underline]
+               invert    [append modifiers as-inverted]
+               blink     [append modifiers as-blink]
+               strike    [append modifiers as-strike-thru]
+           ]
+    ```
+   
+   Replaces the code:
+   
+   ```rebol
+   if bold      [append modifiers as-bold]
+   if underline [append modifiers as-underline]
+   if invert    [append modifiers as-inverted]
+   if blink     [append modifiers as-blink]
+   if strike    [append modifiers as-strike-thru]
+   ```
 
 ---
 
@@ -101,6 +129,49 @@ In Rebol 3, both `case` and `switch` are conditional constructs, but they serve 
       true        [print "Valid"]
   ]
   ```
+  
+Conditions can include function calls or side effects:
+```rebol
+case [
+    (value: fetch-data) = none [print "Fetch failed"]
+    value > 100 [print "Large value"]
+]
+```
+
+Use `switch` for command dispatch:
+Enhance with `/default` for error handling:
+```rebol
+switch/default cmd [
+    "save"  [SaveData()]
+    "load"  [LoadData()]
+][print "Unknown command"]
+```
+
+An nested logic example:
+```rebol
+case [
+    all [value > 0 value < 10] [print "1-9"]
+    value >= 10 [print "10+"]
+]
+```
+
+`switch` cases can be literals of any Rebol type (e.g., date!, word!, integer!).
+```rebol
+switch today/month [
+    12 [print "December"]
+    1  [print "January"]
+]
+```
+
+Using `case` as an Expression :
+Highlight its ability to return values, which is useful in assignments:
+```rebol
+grade: case [
+    score > 90 ["A"]
+    score > 80 ["B"]
+    true ["Fail"]
+]
+```
 
 By understanding these distinctions, you can choose the right construct for your logic.
 
