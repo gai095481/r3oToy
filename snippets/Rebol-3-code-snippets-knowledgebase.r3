@@ -1,6 +1,6 @@
 REBOL [
     Title: "Enhanced Rebol Snippet Database System"
-    Version: 1.2.0
+    Version: 1.2.1
     Author: "Gemini Pro AI Assistant"
     Date: 30-Jun-2025
     File: %Rebol-3-code-snippets-knowledgebase.r3
@@ -170,241 +170,240 @@ make object! [
 ]
 
 
-
-
 ;;-----------------------------------------------------------------------------
 ;; Enhanced Search Functions
 ;;-----------------------------------------------------------------------------
-find-snippets-any: function [
-    {Finds snippets matching ANY of the provided tags (OR logic).}
-    db [block!] "The loaded snippet database."
+match-snippets-any: function [
+    {Match code snippets matching ANY of the provided tags (OR logic).}
+    db [block!] "The loaded snippet knowledgebase."
     query [word! block!] "A single tag or block of tags to match."
 ][
-    results: copy []
-    unless block? query [query: to-block query]
+	matches: copy []
+	unless block? query [query: to-block query]
 
-    foreach snippet db [
-        if not empty? intersect query snippet/tags [
-            append results snippet
-        ]
-    ]
-    return results
+	foreach snippet db [
+		if not empty? intersect query snippet/tags [
+			append matches snippet
+		]
+	]
+
+	return matches
 ]
 
-find-snippets-all: function [
-    {Finds snippets matching ALL of the provided tags (AND logic).}
-    db [block!] "The loaded snippet database."
+;;----------------------------------------------------------
+match-snippets-all: function [
+    {Match code snippets matching ALL of the provided tags (AND logic).}
+    db [block!] "The loaded snippet knowledgebase."
     query [word! block!] "A single tag or block of tags to match."
 ][
-    results: copy []
-    unless block? query [query: to-block query]
+	matches: copy []
+	unless block? query [query: to-block query]
 
-    foreach snippet db [
-        if (length? query) = (length? intersect query snippet/tags) [
-            append results snippet
-        ]
-    ]
-    return results
+	foreach snippet db [
+		if (length? query) = (length? intersect query snippet/tags) [
+			append matches snippet
+		]
+	]
+
+	return matches
 ]
 
-find-snippets-category: function [
-    {Finds snippets by category.}
-    db [block!] "The loaded snippet database."
+;;----------------------------------------------------------
+match-snippets-category: function [
+    {Match code snippets by category.}
+    db [block!] "The loaded code snippets knowledgebase."
     category [string!] "The category to search for."
 ][
-    results: copy []
+	matches: copy []
 
-    foreach snippet db [
-        if all [
-            in snippet 'category
-            equal? snippet/category category
-        ][
-            append results snippet
-        ]
-    ]
-    return results
+	foreach snippet db [
+		if all [
+			in snippet 'category
+			equal? snippet/category category
+		][
+			append matches snippet
+		]
+	]
+
+	return matches
 ]
 
-find-snippets-text: function [
-    {Find snippets having text in the code or description.}
-    db [block!] "The loaded snippet database."
+;;----------------------------------------------------------
+match-snippets-text: function [
+    {Match code snippets having text in the code or description (Case-insensitive).}
+    db [block!] "The loaded code snippets knowledgebase."
     search-text [string!] "Text to search for."
 ][
-    results: copy []
-    search-lower: lowercase search-text
+	matches: copy []
 
-    foreach snippet db [
-        if any [
-            find (lowercase snippet/code) search-lower
-            find (lowercase snippet/desc) search-lower
-        ][
-            append results snippet
-        ]
-    ]
-    return results
+	foreach snippet db [
+		if any [
+			find snippet/code search-text
+			find snippet/desc search-text
+		][
+			append matches snippet
+		]
+	]
+
+	return matches
 ]
 
-display-results: function [
-    {Displays search results in a formatted way.}
-    results [block!] "Block of snippet objects to display."
-    max-results [integer!] "Maximum number of results to output."
+;;----------------------------------------------------------
+output-matches: function [
+    {Output search matches in a formatted way.}
+    matches [block!] "Block of code snippet objects to output."
+    max-results [integer!] "The maximum number of matches to output."
     /short-format
     /details
 ][
-	if empty? results [
-		print "No snippets found matching your criteria."
-		return
-	]
+	either empty? matches [
+		print "No code snippets matched your search criteria."
+	][
+		count: 0
 
-	count: 0
-	foreach snippet results [
-		count: count + 1
+		foreach snippet matches [
+			count: count + 1
 
-		if all [(count > max-results) short-format] [
-			print ["... and" ((length? results) - max-results) "more results."]
-			break
-		]
-
-		;print ["^/=== Result" count "==="]
-		print rejoin [";; " snippet/desc]
-		print [snippet/code]
-
-
-		if details [
-				print ["Desc:" snippet/desc]
-
-			if in snippet 'category [
-				print ["Category:" snippet/category]
+			if all [(count > max-results) short-format] [
+				print ["... and" ((length? matches) - max-results) "more results."]
+				break
 			]
 
-			print ["Tags:" mold snippet/tags]
-		]
-	]
+			print rejoin [";; " snippet/desc]
+			print [snippet/code]
 
-	print ["^/Total results:" (length? results)]
+			if details [
+					print ["Desc:" snippet/desc]
+
+				if in snippet 'category [
+					print ["Category:" snippet/category]
+				]
+
+				print ["Tags:" mold snippet/tags]
+			]
+		]
+
+		print ["^/Total matches found:" (length? matches)]
+	]
 ]
 
 ;;-----------------------------------------------------------------------------
 ;; Interactive Search Interface
 ;;-----------------------------------------------------------------------------
 search-interface: function [
-    {Interactive search interface for the snippet database.}
-    db [block!] "The loaded snippet database."
+    {Interactive search interface for the snippets knowledgebase.}
+    db [block!] "The loaded code snippets knowledgebase."
 ][
-    print "^/=== Rebol Snippet Search Interface ==="
-    print "Commands:"
-    ;; FIX 2: Corrected help text to show proper user input format.
-    print {  any [tag1 tag2]      - Find snippets with ANY of these tags}
-    print {  all [tag1 tag2]      - Find snippets with ALL of these tags}
-    print {  cat "category"       - Find snippets by category (use quotes)}
-    print {  text "search-phrase"  - Find snippets containing text (use quotes)}
-    print "  help                   - Show this help"
-    print "  quit                   - Exit search interface"
-    print "^/Enter search command:"
+	print "^/=== Rebol Snippet Search Interface ==="
+	print "Commands:"
+	print {  any [tag1 tag2]       - Find snippets with ANY of these tags.}
+	print {  all [tag1 tag2]       - Find snippets with ALL of these tags.}
+	print {  cat "category"        - Find snippets by category (use quotes).}
+	print {  text "search-phrase"  - Find snippets containing text (use quotes).}
+	print "  help                  - Output this help."
+	print "  quit or q             - Exit search the interface."
+	print "^/Enter search command:"
 
-    forever [
-        prin "search> "
-        set/any 'input try [load ask ""]
-;probe input
-;print rejoin ["[datatype>`"type? input"'"]
-			if error? input [
-				print "Invalid input. Type 'help' for commands."
-				continue
+	forever [
+		prin "[search> "
+		set/any 'input try [load ask ""]
+
+		if error? input [
+			print "Invalid input. Type 'help' for commands."
+			continue
+		]
+
+		if none? input [input: []]		;; Make `none` input an empty block.
+
+		;; Convert `find` result to Boolean by checking if it's `not none`:
+		if (word? input) and (not none? find [quit q bye exit] input) [quit/return 0]
+
+		if not block? input [input: reduce [input]]	;; convert the various datatypes made by `load` into a block.
+		if empty? input [continue]
+
+		command: input/1
+
+		case [
+			command = 'help [
+					print "^/Commands:"
+					print {  any [tag1 tag2]      - Find snippets with ANY of these tags.}
+					print {  all [tag1 tag2]      - Find snippets with ALL of these tags.}
+					print {  cat "category"       - Find snippets by category (use quotes).}
+					print {  text "search-phrase" - Find snippets containing text (use quotes).}
+					print "  help                 - Output this help."
+					print "  quit or q            - Exit search the interface.^/"
 			]
 
-			if none? input [input: []]		;; Make `none` input an empty block.
+			command = 'any [
+					if any [(length? input) < 2 not block? input/2] [
+						print "Usage: any [tag1 tag2 ...]"
+						continue
+					]
 
-			;; Convert `find` result to Boolean by checking if it's `not none`:
-			if (word? input) and (not none? find [quit q] input) [quit/return 0]
+					matches: match-snippets-any db input/2
+					output-matches matches 1000
+			]
 
-			if not block? input [input: reduce [input]]	;; convert the various datatypes made by `load` into just blocks.
-			if empty? input [continue]
+			command = 'all [
+					if any [(length? input) < 2 not block? input/2] [
+						print "Usage: all [tag1 tag2 ...]"
+						continue
+					]
 
-        command: input/1
-;probe command
+					matches: match-snippets-all db input/2
+					output-matches matches 1000
+			]
 
-        case [
-            command = 'help [
-                print "^/Commands:"
-                print {  any [tag1 tag2]      - Find snippets with ANY of these tags}
-                print {  all [tag1 tag2]      - Find snippets with ALL of these tags}
-                print {  cat "category"       - Find snippets by category (use quotes)}
-                print {  text "search-phrase"  - Find snippets containing text (use quotes)}
-                print "  help                   - Show this help"
-                print "  quit                   - Exit search interface^/"
-            ]
+			command = 'cat [
+					if any [(length? input) < 2 not string? input/2] [
+						print "Usage: cat ""category-name"""
+						continue
+					]
 
-            command = 'any [
-                if any [(length? input) < 2 not block? input/2] [
-                    print "Usage: any [tag1 tag2 ...]"
-                    continue
-                ]
+					matches: match-snippets-category db input/2
+					output-matches matches 1000
+			]
 
-                results: find-snippets-any db input/2
-                display-results results 1000
-            ]
+			command = 'text [
+					if any [(length? input) < 2 not string? input/2] [
+						print "Usage: text ""search-phrase"""
+						continue
+					]
 
-            command = 'all [
-                if any [(length? input) < 2 not block? input/2] [
-                    print "Usage: all [tag1 tag2 ...]"
-                    continue
-                ]
+					matches: match-snippets-text db input/2
+					output-matches matches 1000
+			]
 
-                results: find-snippets-all db input/2
-                display-results results 1000
-            ]
-
-            command = 'cat [
-                if any [(length? input) < 2 not string? input/2] [
-                    print "Usage: cat ""category-name"""
-                    continue
-                ]
-
-                results: find-snippets-category db input/2
-                display-results results 1000
-            ]
-
-            command = 'text [
-                if any [(length? input) < 2 not string? input/2] [
-                    print "Usage: text ""search-phrase"""
-                    continue
-                ]
-
-                results: find-snippets-text db input/2
-                display-results results 1000
-            ]
-
-            true [
-                print ["Unknown command:" command "Type 'help' for available commands."]
-            ]
-        ]
-    ]
+			true [print ["Unknown command:" command "Type 'help' for available commands."]
+			]
+		]
+	]
 ]
 
 ;;-----------------------------------------------------------------------------
 ;; Main Program
 ;;-----------------------------------------------------------------------------
-print "=== Rebol Code Snippet Database System ==="
-print ["Loaded" (length? sample-snippets) "sample snippets.^/"]
+print "=== Rebol 3 Oldes Code Snippets Knowledgebase System ==="
+print ["Loaded" (length? sample-snippets) "code snippets..."]
 
 comment {
-;; Demonstrate different search modes
+;; Non-interactively demonstrate different search modes:
 print "--- Example: Find ANY snippet with 'trim OR 'string tags ---"
-results: find-snippets-any sample-snippets ['trim 'string]
-display-results results 1000
+matches: match-snippets-any sample-snippets ['trim 'string]
+output-matches matches 1000
 
 print "^/--- Example: Find snippets with ALL 'string AND 'remove tags ---"
-results: find-snippets-all sample-snippets ['string 'remove]
-display-results results 1000
+matches: match-snippets-all sample-snippets ['string 'remove]
+output-matches matches 1000
 
 print "^/--- Example: Find snippets in 'string' category ---"
-results: find-snippets-category sample-snippets "string"
-display-results results 1000
+matches: match-snippets-category sample-snippets "string"
+output-matches matches 1000
 
 print "^/--- Example: Text search for 'whitespace' ---"
-results: find-snippets-text sample-snippets "whitespace"
-display-results results 1000
+matches: match-snippets-text sample-snippets "whitespace"
+output-matches matches 1000
 }
 
-;; Uncomment the following line to start interactive mode
+;; Use for interactive mode:
 search-interface sample-snippets
