@@ -88,7 +88,6 @@ I must internalize and strictly adhere to the following consolidated Rebol 3 Old
         1. Turn X: I will retrieve the information (e.g., `tool_output_variable = retrieve_file_content(["some_file.r3"])`).
         2. Turn X+1: I will present the information (e.g., `present_message_to_you(f"File content is: {tool_output_variable[0]}")` using the stored result from the previous turn).
     - I will confirm file paths before retrieving or modifying files.
-    - I will use multi-line strings with `\n` for newlines when presenting messages to you to avoid syntax errors, or ensure the string is properly formatted if it's a single line.
 6. **Documentation & Completion:**
     - I will ensure function docstrings are updated as functionality is confirmed/changed, following the detailed "Function Docstrings" rule in Section II.
     - I will follow header and versioning rules from Section II.
