@@ -1,6 +1,6 @@
 REBOL [
     Title: "Enhanced Rebol Snippet Database System"
-    Version: 1.2.1
+    Version: 1.2.3
     Author: "Gemini Pro AI Assistant"
     Date: 30-Jun-2025
     File: %Rebol-3-code-snippets-knowledgebase.r3
@@ -8,16 +8,16 @@ REBOL [
 ]
 
 ;;-----------------------------------------------------------------------------
-;; Sample Snippet Database (would normally be in %snippets-db.r)
+;; Sample Snippet Database (would normally be in %snippets-kdb.r)
 ;;-----------------------------------------------------------------------------
-;; FIX 1: Use `reduce` to evaluate the `make` expressions, creating a block
-;; of actual objects, not a block of raw source code.
+;; Use `reduce` to evaluate the `make` expressions, creating a block of actual objects,
+;; not a block of raw source code.
 sample-snippets: reduce [
 	make object! [
 		code: {quit/return int-exit-code}
 		tags: ['provide 'exit 'quit 'return 'leave 'close 'end 'halt 'code 'terminate 'kill 'stop 'abort 'error 'success 'failure 'shutdown]
 		desc: "Exit the script with a specific integer exit code."
-		category: "system"
+		category: "status"
 	]
 
 	make object! [
@@ -48,10 +48,10 @@ sample-snippets: reduce [
 		category: "platform"
 	]
 
-make object! [
+	make object! [
 		code: {secure [file [allow read]]}
-		tags: ['security 'access 'read 'allow 'let 'import 'configure]
-		desc: "Configure a security policy to allow file read operations."
+		tags: ['security 'access 'read 'allow 'let 'import 'configure 'include 'file 'script]
+		desc: "Configure a security policy to allow file read operations such as to import or include a script."
 		category: "security"
 	]
 
@@ -133,40 +133,159 @@ make object! [
 	]
 
 	make object! [
-			code: {not none? find "haystack" "needle"}
-			tags: ['string 'haystack 'find 'locate 'needle 'contains 'substring 'search 'exists 'Boolean 'logic! 'found? 'stristr 'letter 'case 'insensitive 'ignore]
-			desc: "Convert `find` result to a Boolean return value & return `true` if `haystack` contains `needle` (lettercase insensitive)."
-			category: "string"
-		]
+		code: {not none? find "haystack" "needle"}
+		tags: ['string 'haystack 'find 'locate 'needle 'contains 'substring 'search 'exists 'Boolean 'logic! 'found? 'stristr 'letter 'case 'insensitive 'ignore]
+		desc: "Convert `find` result to a Boolean return value & return `true` if `haystack` contains `needle` (lettercase insensitive)."
+		category: "string"
+	]
 
 	make object! [
-			code: {not none? find/case "haystack" "needle"}
-			tags: ['string 'haystack 'find 'locate 'needle 'contains 'substring 'search 'exists 'Boolean 'logic! 'found? 'strstr 'letter 'case 'sensitive]
-			desc: "Convert `find` result to a Boolean return value & return `true` if `haystack` contains `needle` (lettercase sensitive)."
-			category: "string"
-		]
+		code: {not none? find/case "haystack" "needle"}
+		tags: ['string 'haystack 'find 'locate 'needle 'contains 'substring 'search 'exists 'Boolean 'logic! 'found? 'strstr 'letter 'case 'sensitive]
+		desc: "Convert `find` result to a Boolean return value & return `true` if `haystack` contains `needle` (lettercase sensitive)."
+		category: "string"
+	]
 
-		make object! [
-			code: {result: (does [count: 0 foreach char "haystack" [if find charset "AEIOU" char [count: count + 1]] count])}
-			tags: ['string 'haystack 'charset 'needle 'count 'frequency 'occurrences 'subset 'find 'character 'case 'letter 'insensitive 'ignore]
-			desc: "Count character frequency of the specified charset in a haystack string (lettercase insensitive)."
-			category: "string"
-		]
+	make object! [
+		code: {result: (does [count: 0 foreach char "haystack" [if find charset "AEIOU" char [count: count + 1]] count])}
+		tags: ['string 'haystack 'charset 'needle 'count 'frequency 'occurrences 'subset 'find 'character 'case 'letter 'insensitive 'ignore]
+		desc: "Count character frequency of the specified charset in a haystack string (lettercase insensitive)."
+		category: "string"
+	]
 
-		make object! [
-			code: {result: (does [count: 0 foreach char "haystack" [if find/case charset "aeiou" char [count: count + 1]] count])}
-			tags: ['string 'haystack 'charset 'needle 'count 'frequency 'occurrences 'subset 'find 'character 'case 'letter 'sensitive]
-			desc: "Count character frequency of the specified charset in a haystack string (lettercase sensitive)."
-			category: "string"
-		]
+	make object! [
+		code: {result: (does [count: 0 foreach char "haystack" [if find/case charset "aeiou" char [count: count + 1]] count])}
+		tags: ['string 'haystack 'charset 'needle 'count 'frequency 'occurrences 'subset 'find 'character 'case 'letter 'sensitive]
+		desc: "Count character frequency of the specified charset in a haystack string (lettercase sensitive)."
+		category: "string"
+	]
 
-		make object! [
-			;; set-to-convert: alphabet-charset: charset [#"A" - #"Z" #"a" - #"z"]
-			code: {result: charset-to-string: (function [set-to-convert] [rejoin collect [repeat index 256 [char: to-char (index - 1) if find set-to-convert char [keep char]]]])}
-			tags: ['convert 'charset 'bitset 'to 'human 'readable 'string 'representation 'ASCII 'character 'all 'set]
-			desc: "Convert a `charset!` / `bitset!` to a human readable string representation with all of its member characters (ASCII 0-255)."
-			category: "string"
-		]
+	make object! [
+		;; set-to-convert: alphabet-charset: charset [#"A" - #"Z" #"a" - #"z"]
+		code: {result: charset-to-string: (function [set-to-convert] [rejoin collect [repeat index 256 [char: to-char (index - 1) if find set-to-convert char [keep char]]]])}
+		tags: ['convert 'charset 'bitset 'to 'human 'readable 'string 'representation 'ASCII 'character 'all 'set]
+		desc: "Convert a `charset!` / `bitset!` to a human readable string representation with all of its member characters (ASCII 0-255)."
+		category: "convert"
+	]
+
+	make object! [
+		code: {needle: 'bye (either not none? find [quit q bye exit] needle ["found"]["absent"])}
+		tags: ['haystack 'match 'any 'word 'letter 'case 'insensitive 'inclusive 'chose 'choice 'options 'search 'exist]
+		desc: "Return `true` if needle matches (lettercase insensitive), any word in word choices list (haystack) otherwise return `false`."
+		category: "search"
+	]
+
+	make object! [
+		code: {needle: 'bye (either not none? find/case [quit q bye exit] needle ["found"]["absent"])}
+		tags: ['haystack 'match 'any 'word 'letter 'case 'sensitive 'inclusive 'chose 'choice 'options 'search]
+		desc: "Return `true` if needle matches (lettercase sensitive), any word in word choices list (haystack) otherwise return `false`."
+		category: "search"
+	]
+
+	make object! [
+		code: {prin lf}
+		tags: ['output 'blank 'empty 'single 'file 'line 'newline 'prin 'print 'stdout 'lf]
+		desc: "Output / print a blank line to standard output."
+		category: "output"
+	]
+
+	make object! [
+		code: {unless block? value-or-block [value-or-block: to-block value-or-block]}
+		tags: ['normalize 'standardize 'block! 'convert 'wrap 'ensure 'guard 'argument 'parameter 'flexible 'input 'validation 'coerce 'unless]
+		desc: "Normalize a variable to ensure it is always a block, wrapping a single item (e.g., a word! or string!) in a block if it isn't one already."
+		category: "data-handling"
+	]
+
+	make object! [
+		code: {access-os 'uid}
+		tags: ['access-os 'uid 'OS 'UID 'user-ID 'user 'ID 'owner 'process 'identify 'access 'retrieve 'task 'manage 'number 'active 'current 'permission 'privilege 'security 'rights]
+		desc: "Retrieve the user ID (UID), of the current running process."
+		category: "process-information"
+	]
+
+	make object! [
+		code: {access-os 'euid}
+		tags: ['access-os 'euid 'OS 'EUID 'effective 'user-ID 'user 'ID 'owner 'process 'identify 'access 'retrieve 'task 'manage 'number 'active 'current 'permission 'privilege 'security 'rights]
+		desc: "Retrieve the effective user ID (euid) of the current running process."
+		category: "process-information"
+	]
+
+	make object! [
+		code: {access-os 'gid}
+		tags: ['access-os 'OS 'gid 'GID 'group-ID 'group 'ID 'owner 'process 'identify 'access 'retrieve 'task 'manage 'number 'active 'current 'permission 'security 'rights]
+		desc: "Retrieve the group ID (GID), of the current running process."
+		category: "process-information"
+	]
+
+	make object! [
+		code: {access-os 'egid}
+		tags: ['access-os 'OS 'egid 'EGID 'effective 'group-ID 'group 'ID 'owner 'process 'identify 'access 'retrieve 'task 'manage 'number 'active 'current 'permission 'privilege 'security 'rights]
+		desc: "Retrieve the effective group ID (EGID), of the current running process."
+		category: "process-information"
+	]
+
+	make object! [
+		code: {access-os 'pid}
+		tags: ['access-os 'OS 'pid 'PID 'process-ID 'process 'ID 'owner 'task 'identify 'access 'retrieve 'manage 'number 'active 'current]
+		desc: "Retrieve the process ID (PID), of the current running process."
+		category: "process-information"
+	]
+
+	make object! [
+		code: {access-os/set 'uid NEW-USER-ID}
+		tags: ['access-os 'set 'uid 'OS 'UID 'user-ID 'user 'ID 'owner 'process 'modify 'change 'configure 'assign 'manage 'permission 'privilege 'security 'rights 'root 'sudo 'administrator 'elevated]
+		desc: "Assign a new user ID (UID), to the current running process.  Requires elevated (root/administrator) permissions."
+		category: "process-management"
+	]
+
+	make object! [
+		code: {access-os/set 'gid NEW-GROUP-ID}
+		tags: ['access-os 'set 'gid 'OS 'GID 'group-ID 'group 'ID 'owner 'process 'modify 'change 'configure 'assign 'manage 'permission 'privilege 'security 'rights 'root 'sudo 'administrator 'elevated]
+		desc: "Assign a new group ID (GID), to the current running process.  Requires elevated (root/administrator) permissions."
+		category: "process-management"
+	]
+
+	make object! [
+		code: {access-os/set 'pid [PID-TO-TARGET 15]}
+		tags: ['access-os 'set 'pid 'OS 'PID 'kill 'terminate 'stop 'end 'signal 'send 'soft-kill 'SIGTERM #15 'blockable 'graceful 'process 'task 'manage 'permission 'privilege 'security 'rights 'root 'sudo 'administrator 'elevated 'owner]
+		desc: "Kill a process by sending a soft termination signal (SIGTERM / 15), to a specific Process ID (PID). Appropriate permissions based on user login required."
+		category: "process-management"
+	]
+
+	make object! [
+		code: {access-os/set 'pid [PID-TO-TARGET 9]}
+		tags: ['access-os 'set 'pid 'OS 'PID 'kill 'terminate 'stop 'end 'signal 'send 'hard-kill 'force 'SIGKILL #9 'unblockable 'undesirable 'immediate 'process 'task 'manage 'permission 'privilege 'security 'rights 'root 'sudo 'administrator 'elevated]
+		desc: "Forcibly kill a process immediately as a last resort by sending an unblockable termination signal (SIGKILL / 9), to a specific Process ID (PID).  Appropriate permissions based on user login required."
+		category: "process-management"
+	]
+
+	make object! [
+		code: {access-os/set 'euid NEW-EFFECTIVE-UID}
+		tags: ['access-os 'set 'euid 'OS 'EUID 'effective 'user-ID 'user 'ID 'owner 'process 'modify 'change 'assign 'manage 'permission 'privilege 'security 'rights 'root 'sudo 'administrator 'elevated]
+		desc: "Assign the effective user ID (EUID), of the current running process.  Used for modifying privilege levels.  Appropriate permissions based on user login required."
+		category: "process-management"
+	]
+
+	make object! [
+		code: {access-os/set 'egid NEW-EFFECTIVE-GID}
+		tags: ['access-os 'set 'egid 'OS 'EGID 'effective 'group-ID 'group 'ID 'owner 'process 'modify 'change 'assign 'manage 'permission 'privilege 'security 'rights 'root 'sudo 'administrator 'elevated]
+		desc: "Set the effective group ID (EGID), of the current running process.  Used for changing privilege levels.  Appropriate permissions based on user login required."
+		category: "process-management"
+	]
+
+	make object! [
+		code: {access-os/set 'pid [PID-TO-TARGET 1]}
+		tags: ['access-os 'set 'pid 'OS 'PID 'signal 'send 'SIGHUP #1 'hang-up 'reload 'reconfigure 'configure 'daemon 'service 'server 'manage 'reinitialize 'administrate 'graceful]
+		desc: "Send a hang-up signal (SIGHUP / 1), to a running process.  Typically used to instruct a daemon or service to gracefully reload its configuration files without downtime."
+		category: "process-management"
+	]
+
+	make object! [
+		code: {access-os/set 'pid [PID-TO-TARGET 2]}
+		tags: ['access-os 'set 'pid 'OS 'PID 'signal 'send 'SIGINT #2 'interrupt 'stop 'terminate 'cancel 'ctrl-c 'Ctrl-c 'terminal 'console 'interactive 'manage]
+		desc: "Send an interrupt signal (SIGINT / 2) to a process.  This is the programmatic equivalent of typing <Ctrl-c> in a terminal to request termination."
+		category: "process-management"
+	]
 ]
 
 
@@ -174,15 +293,18 @@ make object! [
 ;; Enhanced Search Functions
 ;;-----------------------------------------------------------------------------
 match-snippets-any: function [
-    {Match code snippets matching ANY of the provided tags (OR logic).}
-    db [block!] "The loaded snippet knowledgebase."
-    query [word! block!] "A single tag or block of tags to match."
+    {Match code snippets (lettercase sensitive), with ANY of the user's search tags (OR logic).}
+    kdb [block!] "The loaded snippet knowledgebase."
+    a-query [word! block!] "A single tag or block of tags to match."
 ][
+	;; Let the function caller provide either a single tag (as a `word!`), or multiple tags as a block.
+	;; Acts as a normalizer to ensure no matter which format the user provides, the rest of the
+	;; function's logic can operate on the assumption that `a-query` is always a block.
 	matches: copy []
-	unless block? query [query: to-block query]
+	unless block? a-query [a-query: to-block a-query]
 
-	foreach snippet db [
-		if not empty? intersect query snippet/tags [
+	foreach snippet kdb [
+		if not empty? intersect/case a-query snippet/tags [
 			append matches snippet
 		]
 	]
@@ -192,15 +314,18 @@ match-snippets-any: function [
 
 ;;----------------------------------------------------------
 match-snippets-all: function [
-    {Match code snippets matching ALL of the provided tags (AND logic).}
-    db [block!] "The loaded snippet knowledgebase."
-    query [word! block!] "A single tag or block of tags to match."
+    {Match code snippets (lettercase sensitive), with ALL of the user's search tags (AND logic).}
+    kdb [block!] "The loaded snippet knowledgebase."
+    a-query [word! block!] "A single tag or block of tags to match."
 ][
+	;; Let the function caller provide either a single tag (as a `word!`), or multiple tags as a block.
+	;; Acts as a normalizer to ensure no matter which format the user provides, the rest of the
+	;; function's logic can operate on the assumption that `a-query` is always a block.
 	matches: copy []
-	unless block? query [query: to-block query]
+	unless block? a-query [a-query: to-block a-query]
 
-	foreach snippet db [
-		if (length? query) = (length? intersect query snippet/tags) [
+	foreach snippet kdb [
+		if (length? a-query) = (length? intersect/case a-query snippet/tags) [
 			append matches snippet
 		]
 	]
@@ -211,12 +336,12 @@ match-snippets-all: function [
 ;;----------------------------------------------------------
 match-snippets-category: function [
     {Match code snippets by category.}
-    db [block!] "The loaded code snippets knowledgebase."
+    kdb [block!] "The loaded code snippets knowledgebase."
     category [string!] "The category to search for."
 ][
 	matches: copy []
 
-	foreach snippet db [
+	foreach snippet kdb [
 		if all [
 			in snippet 'category
 			equal? snippet/category category
@@ -230,13 +355,13 @@ match-snippets-category: function [
 
 ;;----------------------------------------------------------
 match-snippets-text: function [
-    {Match code snippets having text in the code or description (Case-insensitive).}
-    db [block!] "The loaded code snippets knowledgebase."
+    {Match code snippets having text in the code or description (case-insensitive).}
+    kdb [block!] "The loaded code snippets knowledgebase."
     search-text [string!] "Text to search for."
 ][
 	matches: copy []
 
-	foreach snippet db [
+	foreach snippet kdb [
 		if any [
 			find snippet/code search-text
 			find snippet/desc search-text
@@ -292,12 +417,12 @@ output-matches: function [
 ;;-----------------------------------------------------------------------------
 search-interface: function [
     {Interactive search interface for the snippets knowledgebase.}
-    db [block!] "The loaded code snippets knowledgebase."
+    kdb [block!] "The loaded code snippets knowledgebase."
 ][
 	print "^/=== Rebol Snippet Search Interface ==="
 	print "Commands:"
-	print {  any [tag1 tag2]       - Find snippets with ANY of these tags.}
-	print {  all [tag1 tag2]       - Find snippets with ALL of these tags.}
+	print {  any [tag1 tag2 #num]  - Find snippets with ANY of these tags.}
+	print {  all [tag1 tag2 #num]  - Find snippets with ALL of these tags.}
 	print {  cat "category"        - Find snippets by category (use quotes).}
 	print {  text "search-phrase"  - Find snippets containing text (use quotes).}
 	print "  help                  - Output this help."
@@ -313,7 +438,7 @@ search-interface: function [
 			continue
 		]
 
-		if none? input [input: []]		;; Make `none` input an empty block.
+		if none? input [input: []]		;; Make a `none` type input an empty block.
 
 		;; Convert `find` result to Boolean by checking if it's `not none`:
 		if (word? input) and (not none? find [quit q bye exit] input) [quit/return 0]
@@ -326,8 +451,8 @@ search-interface: function [
 		case [
 			command = 'help [
 					print "^/Commands:"
-					print {  any [tag1 tag2]      - Find snippets with ANY of these tags.}
-					print {  all [tag1 tag2]      - Find snippets with ALL of these tags.}
+					print {  any [tag1 tag2 #num] - Find snippets with ANY of these tags.}
+					print {  all [tag1 tag2 #num] - Find snippets with ALL of these tags.}
 					print {  cat "category"       - Find snippets by category (use quotes).}
 					print {  text "search-phrase" - Find snippets containing text (use quotes).}
 					print "  help                 - Output this help."
@@ -340,7 +465,7 @@ search-interface: function [
 						continue
 					]
 
-					matches: match-snippets-any db input/2
+					matches: match-snippets-any kdb input/2
 					output-matches matches 1000
 			]
 
@@ -350,7 +475,7 @@ search-interface: function [
 						continue
 					]
 
-					matches: match-snippets-all db input/2
+					matches: match-snippets-all kdb input/2
 					output-matches matches 1000
 			]
 
@@ -360,7 +485,7 @@ search-interface: function [
 						continue
 					]
 
-					matches: match-snippets-category db input/2
+					matches: match-snippets-category kdb input/2
 					output-matches matches 1000
 			]
 
@@ -370,7 +495,7 @@ search-interface: function [
 						continue
 					]
 
-					matches: match-snippets-text db input/2
+					matches: match-snippets-text kdb input/2
 					output-matches matches 1000
 			]
 
