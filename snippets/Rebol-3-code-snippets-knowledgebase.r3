@@ -1,6 +1,6 @@
 REBOL [
     Title: "Enhanced Rebol Snippet Database System"
-    Version: 1.2.3
+    Version: 1.2.4
     Author: "Gemini Pro AI Assistant"
     Date: 30-Jun-2025
     File: %Rebol-3-code-snippets-knowledgebase.r3
@@ -286,8 +286,105 @@ sample-snippets: reduce [
 		desc: "Send an interrupt signal (SIGINT / 2) to a process.  This is the programmatic equivalent of typing <Ctrl-c> in a terminal to request termination."
 		category: "process-management"
 	]
-]
 
+	make object! [
+		code: {ajoin ["ABC" "DEF"]}
+		tags: ['ajoin 'basic 'concatenate 'combine 'join 'simple 'string 'format 'merge 'strcat]
+		desc: "Concatenate two strings into a single string.  Any `none` values are excluded."
+		category: "data-formatting"
+	]
+
+	make object! [
+		code: {ajoin ["<H1>" "header text" "<\H1>"]}
+		tags: ['ajoin 'basic 'concatenate 'combine 'join 'simple 'string 'format 'merge 'strcat 'HTML 'tag 'header]
+		desc: "Concatenate tag strings into a single HTML header string.  Any `none` values are excluded."
+		category: "data-formatting"
+	]
+
+	make object! [
+		code: {ajoin [0 " Date: " 2025-01-20  " Cost: " $4.50 " Tolerance: " 0.534]}
+		tags: ['ajoin 'concatenate 'combine 'join 'mix 'datatype 'hybrid 'format 'merge 'string 'sprintf]
+		desc: "Concatenate mixed datatypes into a single string.  Any `none` values are excluded."
+		category: "data-formatting"
+	]
+
+	make object! [
+		code: {ajoin [1 + 2]}
+		tags: ['ajoin 'reduce 'add 'math 'number 'expression 'formula 'calculate 'plus 'operator 'string 'convert 'sprintf]
+		desc: "Add two numbers and output the result as a single string.  Any `none` values are excluded."
+		category: "data-formatting"
+	]
+
+	make object! [
+		code: {ajoin/all ["[result> '" none "'"]}
+		tags: ['ajoin 'concatenate 'combine 'join 'none! 'none 'debug 'format 'merge 'string 'sprintf]
+		desc: "Concatenate output a text label to observe the `none` value as a combined string.  Any `none` values are included."
+		category: "data-formatting"
+	]
+
+	make object! [
+		code: {ajoin/with/all [1 none 2] "<|>"}
+		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'none! 'none 'debug 'format 'merge 'string 'sprintf]
+		desc: "Concatenate output a block to observe the `none` value as a combined string.  Any `none` values are included."
+		category: "data-formatting"
+	]
+
+	make object! [
+		code: {ajoin/with [1 2 3] "<|>"}
+		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'field 'number 'format 'merge 'string 'sprintf]
+		desc: "Concatenate numbers and output the result as a field delimited string.  Any `none` values are excluded."
+		category: "data-formatting"
+	]
+
+	make object! [
+		code: {mold 2025-07-03}
+		tags: ['mold 'convert 'transform 'date 'datatype 'to 'string 'format 'sprintf]
+		desc: "Transform a date datatype to a string datatype."
+		category: "data-formatting"
+	]
+
+	make object! [
+		code: {mold 10:30}
+		tags: ['mold 'convert 'transform 'time 'datatype 'to 'string 'format 'sprintf]
+		desc: "Transform a time datatype to a string datatype."
+		category: "data-formatting"
+	]
+
+	make object! [
+		code: {ajoin/with ["x" "y"] reduce [tab]}
+		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'field 'tab 'character 'sequence 'format 'merge 'string 'sprintf  'reduce]
+		desc: "Concatenate a Rebol tab character sequence `^-`, delimited string with data fields.  Any `none` values are excluded."
+		category: "data-formatting"
+	]
+
+	make object! [
+		code: {ajoin/with ["x" "y"] reduce [lf]}
+		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'field 'lf 'newline 'character 'sequence 'format 'merge 'string 'sprintf  'reduce]
+		desc: "Concatenate a Rebol newline character sequence `^-`, delimited string with data fields.  Any `none` values are excluded."
+		category: "data-formatting"
+	]
+
+	make object! [
+		code: {either error? set/any 'tried try [ajoin [%/path/ %to/ %file]] [print :tried] [print "Success"]}
+		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'field 'slash 'path 'file 'file! 'folder 'directory 'merge 'string 'sprintf  'reduce]
+		desc: "Concatenate the individual components of a file path delimited by the forward slash character.  Any `none` values are excluded."
+		category: "data-formatting"
+	]
+
+	make object! [
+		code: {error? set/any 'tried try [ajoin "string is an invalid input datatype"]}
+		tags: ['ajoin 'try 'error? 'validate 'graceful ]
+		desc: "Concatenate the individual components of a file path delimited by the forward slash character.  Any `none` values are excluded."
+		category: "data-formatting"
+	]
+
+	make object! [
+		code: {shy-get: funct [a-word [word!]] [if error? try [return get a-word] [return ""]]}
+		tags: ['get 'try 'error? 'validate 'graceful 'safer 'shy 'unset 'word! 'string]
+		desc: "A safer `get` function to gracefully handle unset Rebol words by returning an empty string instead of crashing the script."
+		category: "data-formatting"
+	]
+]
 
 ;;-----------------------------------------------------------------------------
 ;; Enhanced Search Functions
