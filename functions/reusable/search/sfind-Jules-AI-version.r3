@@ -15,7 +15,6 @@ print ["block1 vs block3 (literal vs reduce from context):" equal? block1 block3
 print ["set-word-block1 vs set-word-block2 (literal vs reduce):" equal? set-word-block1 set-word-block2]
 print ["--- End Sanity Checks ---" newline]
 
-
 normalize: function [value_to_normalize][
     case [
         value_to_normalize = 'true  [true]

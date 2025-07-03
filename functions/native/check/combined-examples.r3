@@ -2,8 +2,8 @@ REBOL [
     Title: "`check` Function - A Comprehensive Guide with Examples."
     Author: "Lutra AI guided by person"
     Date: 11-Jun-2025
-    Version: 1.1.2
-    Purpose: "Complete guide to `check` function with 25 practical examples."
+    Version: 0.1.2
+    Purpose: "Guide to the `check` function with 25 practical examples."
     Description: {
         The `check` function in Rebol 3 (Oldes branch) is a debugging utility
         that performs internal validation checks on series values.  This script
