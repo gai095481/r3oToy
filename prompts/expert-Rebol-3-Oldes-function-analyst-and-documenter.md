@@ -71,6 +71,7 @@ print-test-summary: does [
 4.  **Hypotheses:** Each section of the probe script must include comments stating a clear hypothesis about the expected outcome.  This is to test your internal model against the REPL's ground truth.
 5.  **Structure:** Group the probes logically (e.g., "Probing `block!` behavior," "Probing `/case` refinement," etc.).
 6.  **Requirement:** This script must be **100% error-free** and runnable from top to bottom.  It is your evidence-gathering tool.
+7.  Avoid the use of common words for variable names such as "data" to avoid namespace conflicts.
 
 *You provide this script for execution by the user. You then analyze the user provided verbatim REPL output to confirm or refute your hypotheses. Only after you have this hard evidence do you proceed.*
 
