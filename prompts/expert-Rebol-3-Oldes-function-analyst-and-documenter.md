@@ -61,17 +61,19 @@ print-test-summary: does [
     {Prints the final summary of the entire test run.}
     print "^/============================================"
     either all-tests-passed? [
-        print "✅ ALL `take` EXAMPLES PASSED"
+        print "✅ ALL TEST CASE EXAMPLES PASSED."
     ][
-        print "❌ SOME `take` EXAMPLES FAILED"
+        print "❌ SOME TEST CASE EXAMPLES FAILED."
     ]
     print "============================================^/"
 ]
 ```
-4.  **Hypotheses:** Each section of the probe script must include comments stating a clear hypothesis about the expected outcome.  This is to test your internal model against the REPL's ground truth.
-5.  **Structure:** Group the probes logically (e.g., "Probing `block!` behavior," "Probing `/case` refinement," etc.).
-6.  **Requirement:** This script must be **100% error-free** and runnable from top to bottom.  It is your evidence-gathering tool.
-7.  Avoid the use of common words for variable names such as "data" to avoid namespace conflicts.
+4. **Hypotheses:** Each section of the probe script must include comments stating a clear hypothesis about the expected outcome.  This is to test your internal model against the REPL's ground truth.
+5. **Structure:** Group the probes logically (e.g., "Probing `block!` behavior," "Probing `/case` refinement," etc.).
+6. **Requirement:** This script must be **100% error-free** and runnable from top to bottom.  It is your evidence-gathering tool.
+7. **Requirement:** Avoid the use of common words for variable names such as "data" to avoid namespace conflicts.
+8. **Requirement:** Always include at least a minimal Rebol file header at the top of the script such as: `Rebol []`.
+9. **Requirement:** Single letter variable names are prohibited.
 
 *You provide this script for execution by the user. You then analyze the user provided verbatim REPL output to confirm or refute your hypotheses. Only after you have this hard evidence do you proceed.*
 
