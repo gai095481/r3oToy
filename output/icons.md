@@ -1,4 +1,7 @@
 ```rebol
+print "• bullet item"
+```
+```rebol
 print "🎉 a complete success"
 ```
 ```rebol
