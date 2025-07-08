@@ -1,334 +1,163 @@
-REBOL [
-    Title: "Understanding Rebol's `find` Function"
-    Author: "Jules AI (based on your probes and feedback)"
-    Date: 20-Jun-2025
-    Purpose: {
-        A demonstration script to explore the behavior of the `find`
-        function in Rebol 3 (Oldes branch, REBOL/Bulk 3.19.0),
-        highlighting its happy paths, quirks and common pitfalls
-        for novice programmers.
-    }
-    Note: "Adheres to the r3oTop project development ruleset where applicable."
+Rebol []
+
+;-----------------------------------------------------------------------------
+; A Battle-Tested QA Harness
+;-----------------------------------------------------------------------------
+all-tests-passed?: true
+
+assert-equal: function [
+	{Compare two values and output a formatted PASSED or FAILED message.}
+	expected [any-type!] "The expected / correct value."
+	actual [any-type!] "The actual value."
+	description [string!] "A description of the specific QA test being run."
+	][
+	either equal? expected actual [
+	result-style: "✅ PASSED:"
+	message: description
+	][
+	set 'all-tests-passed? false
+	result-style: "❌ FAILED:"
+	message: rejoin [
+	description "^/ >> Expected: " mold expected
+	"^/ >> Actual: " mold actual
+	]
+	]
+	print [result-style message]
 ]
 
-print "--- Exploring the Rebol `find` Function ---"
-prin lf
-
-;;-----------------------------------------------------------------------------
-;; Setup: Sample Data Structures
-;; We'll use a block with set-words (acting like an object/struct)
-;; and a map (Rebol's associative array / dictionary).
-;;-----------------------------------------------------------------------------
-test-block: [
-    name: "Alice"
-    active: true
-    level: 10
-    config: none ;; 'none' is a word here, representing the concept of no value
+print-test-summary: does [
+	{Prints the final summary of the entire test run.}
+	print "^/============================================"
+	either all-tests-passed? [
+	print "✅ ALL TEST CASE EXAMPLES PASSED."
+	][
+	print "❌ SOME TEST CASE EXAMPLES FAILED."
+	]
+	print "============================================^/"
 ]
 
-test-map: make map! [
-    name: "Alice"
-    active: true
-    level: 10
-    config: none ;; 'none' is a word here in the map definition
-]
+;-----------------------------------------------------------------------------
+; Probing the find native function
+;-----------------------------------------------------------------------------
+print "^/--- Probing Basic Behavior ---^/"
+; Hypothesis: find on a block will return the portion of the block
+; beginning with the found value. If not found, it will return none.
+; The same logic applies to strings.
+search-block: [a b c d e f]
+search-string: "abcdef"
+assert-equal [b c d e f] (find search-block 'b) "Finds a value in the middle of a block"
+assert-equal "cdef" (find search-string "c") "Finds a value in the middle of a string"
+assert-equal none (find search-block 'z) "Returns NONE for a value not in a block"
+assert-equal none (find search-string "z") "Returns NONE for a value not in a string"
+assert-equal search-block (find search-block 'a) "Finds a value at the head of a block"
+assert-equal search-string (find search-string "a") "Finds a value at the head of a string"
 
-print "Our sample block:"
-probe test-block
-prin lf
+print "^/--- Probing /tail Refinement ---^/"
+; Hypothesis: The /tail refinement will cause find to return the position
+; after the found value. If the value is not found, it remains none.
+; If the value is the last item, it returns the empty tail of the series.
+assert-equal [c d e f] (find/tail search-block 'b) "Finds a value and returns the tail of the block"
+assert-equal "def" (find/tail search-string "c") "Finds a value and returns the tail of the string"
+assert-equal [] (find/tail search-block 'f) "Returns an empty block when the last item is found with /tail"
+assert-equal "" (find/tail search-string "f") "Returns an empty string when the last character is found with /tail"
+assert-equal none (find/tail search-block 'z) "Returns NONE when value is not found with /tail"
 
-print "Our sample map:"
-probe test-map
-prin lf
+print "^/--- Probing /last Refinement ---^/"
+; Hypothesis: The /last refinement searches from the end of the series
+; backwards. It should find the last occurrence of a value.
+search-block-duplicates: [a b c a b c]
+search-string-duplicates: "abcabc"
+expected-block-position: at search-block-duplicates 4
+assert-equal expected-block-position (find/last search-block-duplicates 'a) "Finds the last occurrence of a value in a block"
+assert-equal "abc" (find/last search-string-duplicates "abc") "Finds the last occurrence of a substring in a string"
+assert-equal "c" (find/last search-string-duplicates "c") "Finds the last occurrence of a character at the very end of a string"
 
-;;-----------------------------------------------------------------------------
-;;; 1. Happy Path: Finding Existing Keys
-;;-----------------------------------------------------------------------------
-print "--- 1. Happy Path: Finding Existing Keys ---"
-prin lf
+print "^/--- Probing /reverse Refinement ---^/"
+; Hypothesis: /reverse searches backwards from the current position.
+; Searching backwards from the head of a series will always yield none.
+; It is only equivalent to /last if the search starts from the tail.
+forward-position: at search-block-duplicates 3 ; At the first 'c'
+expected-reverse-position: at search-block-duplicates 1 ; Finds the first 'a'
+assert-equal expected-reverse-position (find/reverse forward-position 'a) "Finds a prior value using /reverse from a specific series position"
+assert-equal (find/last search-block-duplicates 'a) (find/reverse tail search-block-duplicates 'a) "/reverse from tail is equivalent to /last"
+assert-equal none (find/reverse search-block-duplicates 'a) "/reverse from head finds nothing"
 
-;; --- A. Finding a key in a BLOCK ---
-print "--- A. Finding a key in a BLOCK ---"
-print {^/When `find` searches a block for a 'word (like 'level), it looks for that word as a key (a set-word!).}
-print {If found, `find` returns a new series (a block!) starting from that key-value pair.}
+print "^/--- Probing /part Refinement ---^/"
+; Hypothesis: /part with an integer limits the search depth.
+; /part with a series! limits the search to that boundary.
+series-for-part: [a b c d e f g]
+boundary-for-part: at series-for-part 5 ; Points to 'e'
+assert-equal none (find/part series-for-part 'f 4) "Fails to find a value beyond the /part integer limit"
+assert-equal [d e f g] (find/part series-for-part 'd 4) "Finds a value within the /part integer limit"
+assert-equal none (find/part series-for-part 'f boundary-for-part) "Fails to find a value beyond the /part series! boundary"
+assert-equal [c d e f g] (find/part series-for-part 'c boundary-for-part) "Finds a value within the /part series! boundary"
 
-result-block-level: find test-block 'level
-print "Finding 'level in test-block:"
-probe result-block-level
+print "^/--- Probing /skip Refinement ---^/"
+; Hypothesis: /skip treats the series as records of a given size,
+; and only matches the value at the start of each record.
+records-block: [a 1 b 2 c 3 a 4]
+assert-equal (at records-block 3) (find/skip records-block 'b 2) "Finds a value at the start of a record with /skip"
+assert-equal none (find/skip records-block 1 2) "Does not find a value that is not at the start of a record"
+assert-equal (at records-block 7) (find/skip/last records-block 'a 2) "Finds the last record-start value when combined with /last"
 
-print {^/This returned series is a "handle". You can use `second` on this handle to get the value associated with 'level.}
-print "Value of 'level (using `second` on the result):"
-probe second result-block-level
-prin lf
+print "^/--- Probing /case and /same Refinements ---^/"
+; Hypothesis: By default, string searches are case-insensitive. /case
+; makes them sensitive. /same forces same? comparison.
+string-for-case: "aBcDeF"
+block-for-same: reduce [copy "s" "s"]
+assert-equal "BcDeF" (find string-for-case "b") "Find is case-insensitive by default for strings"
+assert-equal none (find/case string-for-case "b") "/case makes the search case-sensitive (fail case)"
+assert-equal "BcDeF" (find/case string-for-case "B") "/case makes the search case-sensitive (pass case)"
+assert-equal block-for-same (find block-for-same "s") "Find without /same finds the first equal? string"
+assert-equal none (find/same block-for-same "s") "/same fails to find an equal? but not same? string"
+assert-equal (at block-for-same 1) (find/same block-for-same first block-for-same) "/same finds the identical (same?) value"
 
-;; --- B. Finding a key in a MAP ---
-print "--- B. Finding a key in a MAP ---"
-print {^/When `find` searches a map for a 'word (like 'active), it also looks for that word as a key.}
-print {If found, `find` returns JUST THE KEY ITSELF (as a set-word!). It does NOT return a series handle like it does for blocks.}
+print "^/--- Probing /only Refinement ---^/"
+; Hypothesis: find does not recursively search into sub-series.
+; /only is used to find a series as a value.
+nested-block: [a b [c d] e f]
+value-to-find: [c d]
+assert-equal none (find nested-block 'c) "Default find does NOT recursively search sub-blocks"
+assert-equal (at nested-block 3) (find/only nested-block value-to-find) "/only finds the block itself as a value"
 
-result-map-active: find test-map 'active
-print "Finding 'active in test-map:"
-probe result-map-active
+print "^/--- Probing /any and /with Refinements ---^/"
+; Hypothesis REVISED: The * wildcard seems to have subtle behavior when not at the end
+; of the pattern. This test uses a known-good pattern.
+wildcard-string: "rebol-rules-the-world"
+assert-equal "rebol-rules-the-world" (find/any wildcard-string "rebol*") "/any with trailing '' wildcard finds a match"
+assert-equal "rules-the-world" (find/any wildcard-string "r?les") "/any with '?' and '' wildcards finds a match"
+assert-equal none (find/any wildcard-string "reb?rld") "/any with '?' wildcard fails when more than one char exists"
+assert-equal "rebol-rules-the-world" (find/any/with wildcard-string "rebo@orld" "@o") "/with redefines '' to '@' and finds a match"
 
-print {^/This result (`active:`) only tells you the key exists. You CANNOT use `second` on it directly to get the value.}
-print ";; probe second result-map-active ;; <-- This would cause an ERROR!"
-print {To get the value from a map after confirming the key exists, you typically use `select`.}
-print "Value of 'active (using `select` on the original map):"
-probe select test-map 'active
-prin lf
+print "^/--- Probing /match Refinement ---^/"
+; Hypothesis REVISED: /match ONLY checks for a match at the HEAD of a series.
+; It's a predicate. If the head matches, it returns the ENTIRE original series,
+; not just the matched portion.
+match-block: [a b c d e]
+match-string: "abcde"
+assert-equal match-block (find/match match-block 'a) "/match returns the whole block if the head item matches a single value"
+assert-equal none (find/match match-block 'b) "/match returns none if the head item does not match"
+assert-equal match-block (find/match match-block [a b]) "/match returns the WHOLE series if the head matches a sub-series"
+assert-equal none (find/match match-block [b c]) "/match returns none if the head of the series does not match"
+assert-equal match-string (find/match match-string "ab") "/match on a string returns the WHOLE string if the head matches"
+assert-equal none (find/match match-string "b") "/match on a string returns none if the head does not match"
 
-;;-----------------------------------------------------------------------------
-;;; 2. Happy Path: Key Not Found
-;;-----------------------------------------------------------------------------
-print "--- 2. Happy Path: Key Not Found ---"
-prin lf
-print {If `find` does not locate the item (e.g., a key that doesn't exist), it returns `none` (shown as `#(none)`).}
-
-result-block-missing: find test-block 'missing-key
-print "Finding 'missing-key in test-block:"
-probe result-block-missing
-
-result-map-missing: find test-map 'missing-key
-print "Finding 'missing-key in test-map:"
-probe result-map-missing
-prin lf
-
-;;-----------------------------------------------------------------------------
-;;; 3. Quirk 1: "Key-Only Search" in Associative Structures (Blocks with set-words, Maps)
-;;-----------------------------------------------------------------------------
-print "--- 3. Quirk 1: Key-Only Search in Associative Structures ---"
-prin lf
-print {A major behavior to understand: `find` primarily looks for KEYS when searching blocks-with-set-words or maps.}
-print {It does NOT search for the VALUES associated with those keys if you pass the value directly to `find`.}
-
-print "--- C. Attempting to find the LOGIC value `true` in test-block ---"
-result-block-true: find test-block true
-print "Finding the value `true` in test-block:"
-probe result-block-true
-print {Result is `#(none)` because `true` is a VALUE of the key 'active, not a key itself, nor a standalone item in the block's top level.}
-prin lf
-
-print "--- D. Attempting to find the LOGIC value `true` in test-map ---"
-result-map-true: find test-map true
-print "Finding the value `true` in test-map:"
-probe result-map-true
-print {Result is `#(none)` for the same reason: `find` isn't looking at the map's values when searching for `true` directly.}
-prin lf
-
-print "--- E. Attempting to find the value `none` in test-block ---"
-;; Note: our test-block has 'config: none'. 'none' here is a word.
-;; If we search for the actual `none!` datatype:
-result-block-none-val: find test-block none
-print "Finding the `none!` DATATYPE in test-block (where config: 'none):"
-probe result-block-none-val
-print {Result is `#(none)`. Again, `find` doesn't look for this `none!` datatype in the value positions.}
-print {If you wanted to find the WORD 'none, you would search for `'none` (a lit-word).}
-probe find test-block 'config ;; This finds the key 'config
-probe second (find test-block 'config) ;; This is the word 'none
-prin lf
-
-print "--- F. Attempting to find the value `none` in test-map ---"
-result-map-none-val: find test-map none
-print "Finding the `none!` DATATYPE in test-map (where config: 'none):"
-probe result-map-none-val
-print {Result is `#(none)` for the same reasons as the block.}
-prin lf
-
-print {IMPORTANT: This "Key-Only Search" behavior is why you CANNOT use `find data value` to check if a certain value exists within these types of structures.}
-print {You would need to iterate through the structure and check values manually, or use a more specialized search function.}
-print {This is a primary reason for creating wrapper functions around `find`.}
-prin lf
-
-;;-----------------------------------------------------------------------------
-;;; 4. Quirk 2: "Inconsistent Handle" - Return type of `find` for block vs. map
-;;-----------------------------------------------------------------------------
-print "--- 4. Quirk 2: Inconsistent Handle (Return type for block vs. map) ---"
-prin lf
-print {As shown in section 1, the result of `find` when a key is found is different:}
-print "- For BLOCKS (with set-words): `find` returns a SERIES starting at the key."
-print "  Example for 'level in block: " probe find test-block 'level
-print "- For MAPS: `find` returns just the KEY itself (as a set-word!)."
-print "  Example for 'level in map:   " probe find test-map 'level
-prin lf
-
-print {This inconsistency is crucial because it dictates how you access the actual value:}
-print "- Block: `value: second (find test-block 'key)` -- This works."
-print "- Map:   `value: second (find test-map 'key)` -- THIS WOULD ERROR! (Key is not a series)."
-print "         You must use `value: select test-map 'key` for maps after `find` confirms existence."
-prin lf
-print {This difference means any generic code trying to use `find` and then get the value needs to check the type of the data structure first and branch its logic, for example:}
-print reform [
-    "either block? data ["
-    "    print {Value from block: } probe second (find data 'key)"
-    "] ["
-    "    print {Value from map: } probe select data 'key"
-    "]"
-]
-print {This is another strong reason for using or creating wrapper functions that provide a consistent way to get values after a find.}
-prin lf
-
-;;-----------------------------------------------------------------------------
-;;; 5. Limitation: No Deep Search
-;;-----------------------------------------------------------------------------
-print "--- 5. Limitation: No Deep Search ---"
-prin lf
-print {`find` operates on the top level of a series. It does not automatically search into nested structures.}
-nested-block: [ a b [c d [e]] f ]
-print "Our nested block:"
-probe nested-block
-print "Trying to find 'e (which is deeply nested):"
-probe find nested-block 'e
-print {Result is `#(none)` because 'e is not at the top level.}
-prin lf
-
-;;-----------------------------------------------------------------------------
-;;; 6. A Note on `pick` and `select` (related to `find`'s purpose)
-;;-----------------------------------------------------------------------------
-print "--- 6. A Note on `pick` and `select` (and value normalization) ---"
-prin lf
-print {While `find` helps locate keys or check existence, `pick` (for blocks by index) and `select` (for blocks/maps by key) retrieve values.}
-print {As per the Rebol Ruleset, `pick` and `select` can return `word!` versions of true, false, or none.}
-print {It's essential to NORMALIZE these results if the actual datatype matters.}
-
-normalize_value_demo: function [value_to_normalize] [ ;; Renamed param to avoid conflict with global 'value' if script were part of larger system
-    print rejoin ["Original value: " mold value_to_normalize ", type: " mold type? value_to_normalize]
-    local normalized ;; Explicitly declare local
-    normalized: case [
-        value_to_normalize = 'true  [true]
-        value_to_normalize = 'false [false]
-        value_to_normalize = 'none  [none]
-        'else          [value_to_normalize]
-    ]
-    print rejoin ["Normalized value: " mold normalized ", type: " mold type? normalized]
-    return normalized
-]
-
-print "^/Demonstrating normalization for 'active (true) from test-block:"
-val-active-block: second (find test-block 'active) ;; `find` gives [active: true ...], `second` gives 'true (word!)
-normalized-active: normalize_value_demo val-active-block
-prin lf
-
-print "Demonstrating normalization for 'config (none) from test-map:"
-val-config-map: select test-map 'config ;; `select` gives 'none (word!)
-normalized-config: normalize_value_demo val-config-map
-prin lf
-
-print "--- End of `find` Demonstrations (part 1) ---"
-
-
-print "^/=== `find` Demonstrations: The Definitive Guide (part 2) ==="
-
-; --- Test Data ---
-test-block: [ name: "Alice" active: true level: 10 config: none ]
-test-map: make map! test-block
-print ["^/Test Block:" mold test-block]
-print ["Test Map:" mold test-map]
+print "^/--- Probing Edge Cases & Other Types ---^/"
+; Hypothesis REVISED: find on a map returns the set-word! of the key.
+; find on a typeset returns a logic! value indicating presence.
+empty-block: []
+empty-string: ""
+data-map: make map! [a 1 b 2]
+data-typeset: make typeset! [string! integer! block!]
+assert-equal none (find empty-block 'a) "Find in an empty block returns none"
+assert-equal none (find empty-string "a") "Find in an empty string returns none"
+assert-equal none (find data-map 'c) "Find in a map for a non-existent key returns none"
+assert-equal to-set-word 'b (find data-map 'b) "Find in a map for an existing key returns a set-word!"
+assert-equal true (find data-typeset integer!) "Find in a typeset returns TRUE for an existing datatype"
+assert-equal false (find data-typeset file!) "Find in a typeset for a non-existent datatype returns FALSE"
+assert-equal none (find none 1) "Find on a 'none' series returns none"
 
 ;-----------------------------------------------------------------------------
-;;; 1. Happy Path: Finding Existing Keys
+; Final Summary
 ;-----------------------------------------------------------------------------
-print "^/--- 1. Happy Path: Finding Existing Keys ---"
-
-;; --- A. Finding a key in a BLOCK ---
-print "^/--- A. Finding a key in a BLOCK ---"
-print {^/When `find` searches a block for a 'word (like 'level), it looks for that word as a key (a set-word!).}
-print {If found, `find` returns a new series (a block!) starting from that key-value pair.}
-
-result-block-level: find test-block 'level
-print "Finding 'level in test-block:"
-probe result-block-level
-
-print {^/This returned series is a "handle". You can use `second` on this handle to get the value associated with 'level.}
-print "Value of 'level (using `second` on the result):"
-probe second result-block-level
-prin lf
-
-;; --- B. Finding a key in a MAP ---
-print "--- B. Finding a key in a MAP ---"
-print {^/When `find` searches a map for a 'word (like 'active), it also looks for that word as a key.}
-print {If found, `find` returns JUST THE KEY ITSELF (as a set-word!). It does NOT return a series handle like it does for blocks.}
-
-result-map-active: find test-map 'active
-print "Finding 'active in test-map:"
-probe result-map-active
-
-print {^/This result (`active:`) only tells you the key exists. You CANNOT use `second` on it directly to get the value.}
-print ";; probe second result-map-active ;; <-- This would cause an ERROR!"
-print {To get the value from a map after confirming the key exists, you typically use `select`.}
-print "Value of 'active (using `select` on the original map):"
-probe select test-map 'active
-prin lf
-
-;-----------------------------------------------------------------------------
-;;; 2. Happy Path: Key Not Found
-;-----------------------------------------------------------------------------
-print "--- 2. Happy Path: Key Not Found ---"
-print {^/If `find` does not locate the item (e.g., a key that doesn't exist), it returns `none` (shown as `#(none)`).}
-
-result-block-missing: find test-block 'missing-key
-print "Finding 'missing-key in test-block:"
-probe result-block-missing
-
-result-map-missing: find test-map 'missing-key
-print "Finding 'missing-key in test-map:"
-probe result-map-missing
-prin lf
-
-;-----------------------------------------------------------------------------
-;;; 3. Quirk 1: "Key-Only Search" in Associative Structures
-;-----------------------------------------------------------------------------
-print "--- 3. Quirk 1: Key-Only Search in Associative Structures ---"
-print {^/A major behavior to understand: `find` primarily looks for KEYS when searching blocks-with-set-words or maps.}
-print {It does NOT search for the VALUES associated with those keys if you pass the value directly to `find`.}
-
-print "^/--- C. Attempting to find the LOGIC value `true` in test-block ---"
-result-block-true: find test-block true
-print "Finding the value `true` in test-block:"
-probe result-block-true
-print {Result is `#(none)` because `true` is a VALUE of the key 'active, not a key itself.}
-prin lf
-
-print "--- D. Attempting to find the `none!` DATATYPE in test-map ---"
-result-map-none-val: find test-map none
-print "Finding the `none!` DATATYPE in test-map:"
-probe result-map-none-val
-print {Result is `#(none)`. Again, `find` doesn't look for this `none!` datatype in the value positions.}
-print {This "Key-Only Search" behavior is a primary reason for creating wrapper functions.}
-prin lf
-
-;-----------------------------------------------------------------------------
-;;; 4. Quirk 2: "Inconsistent Handle" - Return type of `find`
-;-----------------------------------------------------------------------------
-print "--- 4. Quirk 2: Inconsistent Handle (Return type for block vs. map) ---"
-print {^/As shown in section 1, the result of `find` when a key is found is different:}
-print "- For BLOCKS (with set-words): `find` returns a SERIES starting at the key."
-print "  Example for 'level in block: " probe find test-block 'level
-print "- For MAPS: `find` returns just the KEY itself (as a set-word!)."
-print "  Example for 'level in map:   " probe find test-map 'level
-print {^/This inconsistency is crucial because any generic code trying to use `find` needs to branch its logic based on the data type.}
-prin lf
-
-;-----------------------------------------------------------------------------
-;;; 5. A Note on `pick` and `select` (and value normalization)
-;-----------------------------------------------------------------------------
-print "--- 5. A Note on `pick` and `select` (and value normalization) ---"
-print {^/While `find` locates keys, `select` retrieves values. As per our ruleset, `select` can return `word!` versions of true, false, or none.}
-
-normalize_value_demo: function [value_to_normalize] [
-    print rejoin ["Original value: " mold value_to_normalize ", type: " mold type? value_to_normalize]
-    normalized: case [
-        value_to_normalize = 'true  [true]
-        value_to_normalize = 'false [false]
-        value_to_normalize = 'none  [none]
-        'else          [value_to_normalize]
-    ]
-    print rejoin ["Normalized value: " mold normalized ", type: " mold type? normalized]
-    return normalized
-]
-
-print "^/Demonstrating normalization for 'config (none) from test-map:"
-val-config-map: select test-map 'config
-normalized-config: normalize_value_demo val-config-map
-prin lf
-
-print "--- End of `find` Demonstrations (part 2) ---"
+print-test-summary
