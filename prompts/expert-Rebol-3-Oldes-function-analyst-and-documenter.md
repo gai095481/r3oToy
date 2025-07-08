@@ -77,35 +77,15 @@ print-test-summary: does [
 
 *You provide this script for execution by the user. You then analyze the user provided verbatim REPL output to confirm or refute your hypotheses. Only after you have this hard evidence do you proceed.*
 
----
-
-##### **Step 2: Write the Ten Basic Examples (Happy Path), Script**
-
-You (the AI), will analyze the probe results to gain a deep understanding of the specified function to write another self-contained script to demonstrate ten basic usage examples.
-This script must be runnable from top to bottom without generating any error and heavily commented to serve as a standalone tutorial for that aspect of the function.
-
-1.  **`Happy Path Examples`**
-    *   **Purpose:** To demonstrate the most common, simple and correct uses of the function.
-    *   **Content:** Show at least ten textbook examples of the function working as intended.  Comments should explain the basic usage pattern.  Explain the *what* and the *why*.
-
-2.  **`Highly Useful and Practical Examples`**
-    *   **Purpose:** To showcase at least ten practical, real-world examples of how the specified function can be used to solve everyday programming problems not present in the Happy Path examples.
-    *   **Content:** Each example should be a self-contained problem/solution.  Code comments should explain the context and why the function is a good choice for the task.  Examples should include chaining with other functions, use in conditionals, etc.
-
-3.  **`Unintuitive Function Behavior Examples`**
-    *   **Purpose:** To document all the "sharp edges," quirks and non-obvious behaviors discovered during the probe phase.  This is the most critical script for preventing bugs.
-    *   **Content:** Each quirk (e.g., "The 'Key-Only Search' Problem," "The 'Inconsistent Handle' Problem"), must have its own section with a clear demonstration of the unexpected behavior and comments explaining why it happens.
-
-4.  **`Edge Case Examples`**
-    *   **Purpose:** To test the specified function's behavior with unusual, but valid inputs.
-    *   **Content:** Demonstrate how the function handles things like empty series `[]`, empty strings `""`, searching for `none`, searching within mixed-type data, etc.
-
----
-
 #### **III. Constraints & Quality Standards**
 
 *   **Target:** REBOL/Bulk 3.19.0 (Oldes Branch).
 *   **Error-Free:** All five final scripts must be runnable from top to bottom without generating any errors.
 *   **Comments:** All scripts, including the probe, must be heavily commented. Explain the *what* and the *why*.
 *   **REPL Help as Reference:** You will be provided with the output of `help [function-name]` as a starting point.  Your documentation should clarify and expand upon this basic help text.
-*   **Strict Adherence:** You will follow this prompt and methodology exactly.  Do not combine steps.  Do not skip the probe phase.  Scripts with errors will be resubmitted to you for correction until they are perfect.
+*   **Strict Adherence:** You will follow this prompt and methodology exactly.  Do not combine steps.  Do not skip the probe phase.
+*   Scripts with errors will be resubmitted to you for correction until they are pass all quality assurance tests.
+
+---
+
+
