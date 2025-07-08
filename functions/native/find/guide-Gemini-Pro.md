@@ -57,32 +57,19 @@ insert position 'X
 
 The true power of `find` is unlocked through its refinements.
 
-| Refinement | Description | Example |
-| :--- | :--- | :--- |
-| **(default)** | Finds the first occurrence of a value. | `find [a b c a b c] 'b` 
- **→** `[b c a b c]` |
-| `/tail` | Returns the position **after** the found value. | `find/tail [a b c] 'b` 
- **→** `[c]` |
-| `/last` | Searches backwards from the end of the series. | `find/last [a b c a b c] 'b` 
- **→** `[b c]` |
-| `/reverse` | Searches backwards from the **current position**. | `p: at [a b c d] 3` 
- `find/reverse p 'a'` 
- **→** `[a b c d]` |
-| `/skip` | Treats the series as records of a fixed size, matching only on the first item of each record. | `find/skip [a 1 b 2] 'b 2` 
- **→** `[b 2]` |
-| `/case` | Makes string searches case-sensitive. | `find/case "aBc" "b"` 
- **→** `none` |
-| `/same` | Uses `same?` for comparison instead of `equal?`. | `s: "s"`
-`find/same reduce [s] "s"`
- **→** `none` |
-| `/only` | Finds a series as a single value, instead of matching its contents. | `find/only [a [b c] d] [b c]`
- **→** `[[b c] d]` |
-| `/any` | Enables wildcards (`*` for many, `?` for one) in string searches. | `find/any "abcdef" "a*d?f"`
- **→** `"abcdef"` |
-| `/part` | Limits the search to a specified length or boundary. | `find/part [a b c d] 'd 3`
- **→** `none` |
-| `/match`| **Anchored search**; only checks if the series *starts with* the value. | `find/match [a b c] 'a'`
- **→** `[a b c]` |
+| Refinement | Description | Example | Results |
+| :--- | :--- | :--- | :--- |
+| **(default)** | Finds the first occurrence of a value. | `find [a b c a b c] 'b` | **→** `[b c a b c]` |
+| `/tail` | Returns the position **after** the found value. | `find/tail [a b c] 'b` | **→** `[c]` |
+| `/last` | Searches backwards from the end of the series. | `find/last [a b c a b c] 'b` | **→** `[b c]` |
+| `/reverse` | Searches backwards from the **current position**. | `p: at [a b c d] 3` | `find/reverse p 'a'`  **→** `[a b c d]` |
+| `/skip` | Treats the series as records of a fixed size, matching only on the first item of each record. | `find/skip [a 1 b 2] 'b 2` | **→** `[b 2]` |
+| `/case` | Makes string searches case-sensitive. | `find/case "aBc" "b"` | **→** `none` |
+| `/same` | Uses `same?` for comparison instead of `equal?`. | `s: "s"` | `find/same reduce [s] "s"` **→** `none` |
+| `/only` | Finds a series as a single value, instead of matching its contents. | `find/only [a [b c] d] [b c]` | **→** `[[b c] d]` |
+| `/any` | Enables wildcards (`*` for many, `?` for one) in string searches. | `find/any "abcdef" "a*d?f"` | **→** `"abcdef"` |
+| `/part` | Limits the search to a specified length or boundary. | `find/part [a b c d] 'd 3` | **→** `none` |
+| `/match`| **Anchored search**; only checks if the series *starts with* the value. | `find/match [a b c] 'a'` | **→** `[a b c]` |
 
 ---
 
