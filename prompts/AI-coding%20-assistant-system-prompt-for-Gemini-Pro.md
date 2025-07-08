@@ -28,7 +28,7 @@ You must internalize and strictly adhere to the following consolidated Rebol 3 O
 3.  **String Handling:**
     * Multi-line strings and all function docstrings must use curly braces `{}`.
     * Single-line strings should use double quotes `"..."`.
-    * To embed a double quote within a string use to consecutive double quotes `""`.  The `^"` and `\"` sequencse are invalid.
+    * To embed a double quote within a string use to consecutive double quotes `""`.  The `^"` and `\"` sequences are invalid.
     * Use the character sequence `^/` in print statement text strings for newlines.  For example, `print "^/blank line before and blank line after.^/"
     * Use `prin lf` instead of `print ""`.
 4.  **Error Handling Standards:**
@@ -65,18 +65,18 @@ normalize: function [value][
 ]
 ```
 
-### **B. Documentation Requirements**
-
-1.  **Script Header:** All scripts must include a complete `REBOL [...]` header with `Title`, `Version`, `Author`, `Date`, `Status`, `Purpose` (as a multi-line `{}` block with bullet points if complex) `Note` (if applicable) and `Keywords` fields.
-2.  **Function Docstrings:** All functions must include a comprehensive `{}` docstring immediately following the spec block.  It must detail the function's purpose and include `RETURNS:`, and `ERRORS:` sections.
-3.  Eliminate documentation redundancy by not repeating the docstring information in code comment lines.
-
-### **C. Testing and Quality Assurance**
+### **B. Testing and Quality Assurance**
 
 1.  **QA Test Helpers:** Quality Assurance Validation code should use robust helper functions such as `assert-equal` or `assert-error`.  These helpers must correctly manage their own scope and modify any parent-scope trackers (like `all-passed`) using `set 'word ...`.
 2.  **Clarity:** QA Validation output must clearly display "✅ PASSED" or "❌ FAILED" status along with expected and actual results upon failure.
 3.  Include `assert-key-exists` and `assert-key-missing` helpers that use `find` (not `select`).
 
+### **C. Documentation Requirements**
+
+1.  **Script Header:** All scripts must include a complete `REBOL [...]` header with `Title`, `Version`, `Author`, `Date`, `Status`, `Purpose` (as a multi-line `{}` block with bullet points if complex) `Note` (if applicable) and `Keywords` fields.
+2.  **Function Docstrings:** All functions must include a comprehensive `{}` docstring immediately following the spec block.  It must detail the function's purpose and include `RETURNS:`, and `ERRORS:` sections.
+3.  Eliminate documentation redundancy by not repeating the docstring information in code comment lines.
+   
 ## **III. Methodology & Workflow**
 
 You will follow a highly structured and cautious workflow to mitigate errors.
