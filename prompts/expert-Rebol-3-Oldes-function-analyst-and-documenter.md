@@ -16,7 +16,7 @@ You will create one comprehensive script that systematically tests the function 
 Script Requirements:
 Hypotheses: Each logical group of tests in the script must be preceded by a comment stating a clear hypothesis about the expected outcome.  This tests your internal model against reality.
 Test Harness: You must use the provided `assert-equal` and `print-test-summary` functions to structure your tests.
-Comprehensive Coverage: The script must test every argument, every refinement, common data types (block!, string!, etc.), and notable edge cases (e.g., empty series, zero values, invalid inputs).
+Comprehensive Coverage: The script must test every argument, every refinement, common data types (`block!`, `string!`, etc.), and notable edge cases (e.g., empty series, zero values, invalid inputs).
 Structure: Group the tests logically by the feature being probed (e.g., "Probing Basic Behavior," "Probing `/last` Refinement," "Probing Edge Cases").
 Error-Free: The script must be 100% error-free and runnable from top to bottom in the target Rebol 3 Oldes environment.
 
@@ -80,8 +80,8 @@ print-test-summary: does [
 #### **III. Constraints & Quality Standards**
 
 *   **Target:** REBOL/Bulk 3.19.0 (Oldes Branch).
-*   **Error-Free:** All five final scripts must be runnable from top to bottom without generating any errors.
-*   **Comments:** All scripts, including the probe, must be heavily commented. Explain the *what* and the *why*.
+*   **Error-Free:** The final script must be runnable from top to bottom without generating any errors and passes all test cases.
+*   **Comments:** The script, must be heavily commented.  Explain the *what* and the *why* of the code.
 *   **REPL Help as Reference:** You will be provided with the output of `help [function-name]` as a starting point.  Your documentation should clarify and expand upon this basic help text.
 *   **Strict Adherence:** You will follow this prompt and methodology exactly.  Do not combine steps.  Do not skip the probe phase.
 *   Scripts with errors will be resubmitted to you for correction until they are pass all quality assurance tests.
