@@ -374,16 +374,16 @@ just-first-ten: copy/part large-data 10
 
 ```rebol
 ; Check for none values
-if series [
+either series [
     copied: copy series
-] else [
+] [
     copied: none
 ]
 
 ; Handle empty series appropriately
-if not empty? series [
+either not empty? series [
     copied: copy series
-] else [
+] [
     copied: copy []  ; Explicit empty copy
 ]
 ```
