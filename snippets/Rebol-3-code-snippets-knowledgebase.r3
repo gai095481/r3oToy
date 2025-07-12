@@ -1,14 +1,14 @@
 REBOL [
     Title: "Enhanced Rebol Snippet Database System"
-    Version: 1.2.4
+    Version: 1.2.6
     Author: "Gemini Pro AI Assistant"
-    Date: 30-Jun-2025
+    Date: 12-Jul-2025
     File: %Rebol-3-code-snippets-knowledgebase.r3
     Purpose: "Load and search Rebol code snippets with flexible search modes."
 ]
 
 ;;-----------------------------------------------------------------------------
-;; Sample Snippet Database (would normally be in %snippets-kdb.r)
+;; Sample Snippet Database (would normally be in %snippets-kdb.r3)
 ;;-----------------------------------------------------------------------------
 ;; Use `reduce` to evaluate the `make` expressions, creating a block of actual objects,
 ;; not a block of raw source code.
@@ -192,8 +192,8 @@ sample-snippets: reduce [
 	make object! [
 		code: {unless block? value-or-block [value-or-block: to-block value-or-block]}
 		tags: ['normalize 'standardize 'block! 'convert 'wrap 'ensure 'guard 'argument 'parameter 'flexible 'input 'validation 'coerce 'unless]
-		desc: "Normalize a variable to ensure it is always a block, wrapping a single item (e.g., a word! or string!) in a block if it isn't one already."
-		category: "data-handling"
+		desc: "Normalize a variable to ensure it is always a block, wrapping a single item (e.g., a `word!` or `string!`), in a block if it isn't one already."
+		category: "handle-data"
 	]
 
 	make object! [
@@ -289,102 +289,140 @@ sample-snippets: reduce [
 
 	make object! [
 		code: {ajoin ["ABC" "DEF"]}
-		tags: ['ajoin 'basic 'concatenate 'combine 'join 'simple 'string 'format 'merge 'strcat]
+		tags: ['ajoin 'basic 'concatenate 'combine 'join 'simple 'string 'format 'merge 'strcat 'block!]
 		desc: "Concatenate two strings into a single string.  Any `none` values are excluded."
-		category: "data-formatting"
+		category: "format-data"
 	]
 
 	make object! [
 		code: {ajoin ["<H1>" "header text" "<\H1>"]}
-		tags: ['ajoin 'basic 'concatenate 'combine 'join 'simple 'string 'format 'merge 'strcat 'HTML 'tag 'header]
+		tags: ['ajoin 'basic 'concatenate 'combine 'join 'simple 'string 'format 'merge 'strcat 'HTML 'tag 'header 'block!]
 		desc: "Concatenate tag strings into a single HTML header string.  Any `none` values are excluded."
-		category: "data-formatting"
+		category: "format-data"
 	]
 
 	make object! [
 		code: {ajoin [0 " Date: " 2025-01-20  " Cost: " $4.50 " Tolerance: " 0.534]}
-		tags: ['ajoin 'concatenate 'combine 'join 'mix 'datatype 'hybrid 'format 'merge 'string 'sprintf]
+		tags: ['ajoin 'concatenate 'combine 'join 'mix 'datatype 'hybrid 'format 'merge 'string 'sprintf 'block!]
 		desc: "Concatenate mixed datatypes into a single string.  Any `none` values are excluded."
-		category: "data-formatting"
+		category: "format-data"
 	]
 
 	make object! [
 		code: {ajoin [1 + 2]}
-		tags: ['ajoin 'reduce 'add 'math 'number 'expression 'formula 'calculate 'plus 'operator 'string 'convert 'sprintf]
+		tags: ['ajoin 'reduce 'add 'math 'number 'expression 'formula 'calculate 'plus 'operator 'string 'convert 'sprintf 'block!]
 		desc: "Add two numbers and output the result as a single string.  Any `none` values are excluded."
-		category: "data-formatting"
+		category: "format-data"
 	]
 
 	make object! [
 		code: {ajoin/all ["[result> '" none "'"]}
-		tags: ['ajoin 'concatenate 'combine 'join 'none! 'none 'debug 'format 'merge 'string 'sprintf]
+		tags: ['ajoin 'concatenate 'combine 'join 'none! 'none 'debug 'format 'merge 'string 'sprintf 'block!]
 		desc: "Concatenate output a text label to observe the `none` value as a combined string.  Any `none` values are included."
-		category: "data-formatting"
+		category: "format-data"
 	]
 
 	make object! [
 		code: {ajoin/with/all [1 none 2] "<|>"}
-		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'none! 'none 'debug 'format 'merge 'string 'sprintf]
+		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'none! 'none 'debug 'format 'merge 'string 'sprintf 'block!]
 		desc: "Concatenate output a block to observe the `none` value as a combined string.  Any `none` values are included."
-		category: "data-formatting"
+		category: "format-data"
 	]
 
 	make object! [
 		code: {ajoin/with [1 2 3] "<|>"}
-		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'field 'number 'format 'merge 'string 'sprintf]
+		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'field 'number 'format 'merge 'string 'sprintf 'block!]
 		desc: "Concatenate numbers and output the result as a field delimited string.  Any `none` values are excluded."
-		category: "data-formatting"
+		category: "format-data"
 	]
 
 	make object! [
 		code: {mold 2025-07-03}
 		tags: ['mold 'convert 'transform 'date 'datatype 'to 'string 'format 'sprintf]
 		desc: "Transform a date datatype to a string datatype."
-		category: "data-formatting"
+		category: "format-data"
 	]
 
 	make object! [
 		code: {mold 10:30}
 		tags: ['mold 'convert 'transform 'time 'datatype 'to 'string 'format 'sprintf]
 		desc: "Transform a time datatype to a string datatype."
-		category: "data-formatting"
+		category: "format-data"
 	]
 
 	make object! [
 		code: {ajoin/with ["x" "y"] reduce [tab]}
-		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'field 'tab 'character 'sequence 'format 'merge 'string 'sprintf  'reduce]
+		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'field 'tab 'character 'sequence 'format 'merge 'string 'sprintf  'reduce 'block!]
 		desc: "Concatenate a Rebol tab character sequence `^-`, delimited string with data fields.  Any `none` values are excluded."
-		category: "data-formatting"
+		category: "format-data"
 	]
 
 	make object! [
 		code: {ajoin/with ["x" "y"] reduce [lf]}
-		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'field 'lf 'newline 'character 'sequence 'format 'merge 'string 'sprintf  'reduce]
+		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'field 'lf 'newline 'character 'sequence 'format 'merge 'string 'sprintf  'reduce 'block!]
 		desc: "Concatenate a Rebol newline character sequence `^-`, delimited string with data fields.  Any `none` values are excluded."
-		category: "data-formatting"
+		category: "format-data"
 	]
 
 	make object! [
 		code: {either error? set/any 'tried try [ajoin [%/path/ %to/ %file]] [print :tried] [print "Success"]}
-		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'field 'slash 'path 'file 'file! 'folder 'directory 'merge 'string 'sprintf  'reduce]
+		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'field 'slash 'path 'file 'file! 'folder 'directory 'merge 'string 'sprintf  'reduce 'block!]
 		desc: "Concatenate the individual components of a file path delimited by the forward slash character.  Any `none` values are excluded."
-		category: "data-formatting"
+		category: "format-data"
 	]
 
 	make object! [
-		code: {error? set/any 'tried try [ajoin "string is an invalid input datatype"]}
+		code: {error? set/any 'tried try [ajoin "string is an invalid input datatype, input must be a block."]}
 		tags: ['ajoin 'try 'error? 'validate 'graceful ]
 		desc: "Concatenate the individual components of a file path delimited by the forward slash character.  Any `none` values are excluded."
-		category: "data-formatting"
+		category: "format-data"
 	]
 
 	make object! [
 		code: {shy-get: funct [a-word [word!]] [if error? try [return get a-word] [return ""]]}
 		tags: ['get 'try 'error? 'validate 'graceful 'safer 'shy 'unset 'word! 'string]
 		desc: "A safer `get` function to gracefully handle unset Rebol words by returning an empty string instead of crashing the script."
-		category: "data-formatting"
+		category: "format-data"
+	]
+
+	make object! [
+		code: {to-integer #{7FFFFFFFFFFFFFFF}}
+		tags: ['maximum 'signed 'integer 'value 'upper 'limit 'overflow 'number 'numeric 'ceiling 'max 'int 'integer! 'largest 'possible 'int64_t 'system 'size 'capacity 'range #9223372036854775807]
+		desc: "The largest integer value possible without causing an overflow error is 9223372036854775807."
+		category: "limits"
+	]
+
+	make object! [
+		code: {to-integer #{8000000000000000}}
+		tags: ['minimum 'signed 'integer 'value 'lower 'limit 'underflow 'number 'numeric 'floor 'min 'int 'integer! 'smallest 'possible 'int64_t 'system 'size 'capacity 'range #-9223372036854775807]
+		desc: "The smallest integer value possible without causing an underflow error is -9223372036854775807."
+		category: "limits"
+	]
+
+	make object! [
+		code: {system/build/arch = 'x64}
+		tags: ['OS 'architecture 'x64 #64 'integer 'range 'limit 'number 'numeric 'int 'integer! 'int64_t 'system 'word 'size 'capacity #9223372036854775807 #-9223372036854775807]
+		desc: "Determine if the the script is running on a 64-bit operating system."
+		category: "platform"
 	]
 ]
+
+comment {
+    category: "convert"
+    category: "format-data"
+    category: "handle-data"
+    category: "header"
+    category: "limits"
+    category: "output"
+    category: "platform"
+    category: "process-information"
+    category: "process-management"
+    category: "search"
+    category: "security"
+    category: "specification"
+    category: "status"
+    category: "string"
+}
 
 ;;-----------------------------------------------------------------------------
 ;; Enhanced Search Functions
