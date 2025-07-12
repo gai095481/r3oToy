@@ -1,6 +1,9 @@
 ### Project Name
 Rebol 3 Oldes 'alter' Function Demo & QA (as it pertains to the `alter.r3` script).
 
+### Related
+`supplement`: Append a value to a series if not already present.
+
 ### Purpose
 To comprehensively demonstrate the `alter` function in Rebol 3 Oldes, highlighting its use cases, quirks, and verifying its behavior.
 
