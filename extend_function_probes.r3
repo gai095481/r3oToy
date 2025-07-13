@@ -305,9 +305,9 @@ test-function: function [] [print "test"]
 func-return: extend test-obj-func 'func-prop :test-function
 
 ;; OBSERVED BEHAVIOR: `extend` evaluates a function! value and returns the result.
-;; The test function returns `none` by default.
-assert-equal none func-return "extend should return result of function evaluation (none)"
-assert-equal none test-obj-func/func-prop "extend should store result of function evaluation (none)"
+;; The test function returns no value, which results in `unset!`.
+assert-equal true unset? func-return "extend returns unset! after evaluating function"
+assert-equal true unset? test-obj-func/func-prop "extend stores unset! after evaluating function"
 assert-equal true same? func-return test-obj-func/func-prop "extend should store the same function reference"
 
 ;; HYPOTHESIS: extend should handle refinement words
