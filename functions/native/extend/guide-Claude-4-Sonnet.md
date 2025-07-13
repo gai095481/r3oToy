@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `extend` function is a powerful utility in Rebol 3 Oldes Branch that adds key-value pairs to objects, maps, block, and `paren!` structures.
+The `extend` function is a powerful utility in Rebol 3 (Oldes Branch) that adds key-value pairs to objects, maps, blocks, and paren! structures.
 It modifies the target container **in place** and returns the value that was added.
 
 ## Syntax
@@ -18,6 +18,32 @@ extend target word value
 ## Return Value
 
 **CRITICAL**: `extend` always returns the **value** that was added, NOT the modified container.
+
+## CRITICAL: Non-Evaluative Nature
+
+⚠️ **IMPORTANT**: `extend` is **NON-EVALUATIVE**. It takes its value argument literally and stores it as-is.
+
+```rebol
+obj: make object! []
+
+; `extend` stores the block literally
+extend obj 'my-block [10 + 20]
+; obj/my-block is now [10 + 20] (the block, not 30)
+
+; To store the result of an expression, evaluate it BEFORE calling extend
+result: 10 + 20
+extend obj 'my-result result
+; obj/my-result is now 30
+
+; Another example with a more complex expression
+extend obj 'literal-code [print "hello" 1 + 2]
+; obj/literal-code is now [print "hello" 1 + 2] (not executed)
+
+; To store the result of the code, evaluate first
+calculated: do [print "hello" 1 + 2]
+extend obj 'calculated-result calculated
+; obj/calculated-result is now 3 (and "hello" was printed)
+```
 
 ## Supported Container Types
 
@@ -75,7 +101,7 @@ result: extend my-paren 'new-entry "paren-addition"
 
 ## Word Type Handling
 
-`extend` accepts any `word!` datatype and normalizes it to a standard word:
+`extend` accepts any word! type and normalizes it to a standard word:
 
 ```rebol
 obj: make object! []
@@ -111,9 +137,31 @@ extend obj 'zero-val 0          ; Zero is truthy for extend
 extend obj 'empty-string-val "" ; Empty string is truthy for extend
 ```
 
-## CRITICAL GOTCHA: Falsy Value Behavior
+## CRITICAL: Function Storage
 
-⚠️ **WARNING**: `extend` has special behavior with falsy values:
+⚠️ **IMPORTANT**: To store a function in a property, pass the **word** that holds the function.
+Be very careful not to use a get-word (`:my-func`), as the Rebol interpreter will run the function *before* calling extend and will pass its return value instead.
+
+```rebol
+my-obj: make object! []
+my-func: function [] [return 123]
+
+; CORRECT: Pass the word. The function value is stored.
+extend my-obj 'stored-func my-func
+; my-obj/stored-func is now a function!
+
+; INCORRECT: Pass a get-word. The function runs first.
+extend my-obj 'result-of-func :my-func
+; my-obj/result-of-func is now 123 (the return value)
+
+; Verify the function was stored correctly
+print function? my-obj/stored-func  ; true
+print my-obj/stored-func            ; calls the function, prints 123
+```
+
+## Falsy Value Behavior
+
+⚠️ **IMPORTANT**: `extend` has special behavior with falsy values - this is a **feature**, not a bug:
 
 ```rebol
 obj: make object! [existing: "original"]
@@ -133,51 +181,23 @@ print in obj 'zero-prop        ; true (added)
 print in obj 'empty-prop       ; true (added)
 ```
 
-### Safe Pattern for Falsy Values
+### Unconditional Setting with PUT
 
-```rebol
-;; To force addition of none or false values, use conditional logic:
-safe-extend: function [target word value] {
-    Safe extend that always adds the property regardless of value
-} [
-    either any [none? value, false = value] [
-        ;; Handle falsy values explicitly
-        do compose [extend (target) (word) (value)]
-        value
-    ][
-        extend target word value
-    ]
-]
-```
-
-## CRITICAL GOTCHA: Function Value Evaluation
-
-⚠️ **WARNING**: `extend` evaluates function values instead of storing them:
+The conditional behavior of `extend` with `none` and `false` is a useful feature.
+If you want to bypass this and set a key unconditionally, the correct tool is `put`, not a workaround for `extend`:
 
 ```rebol
 obj: make object! []
-test-func: function [] [print "Hello"]
 
-;; This evaluates the function and stores the result (unset!)
-result: extend obj 'func-prop :test-func
-;; result is unset! (function was called, returned nothing)
-;; obj/func-prop is unset! (not the function itself)
-```
+; Use put for unconditional setting
+put obj 'my-key none    ; Correctly and unconditionally sets the key
+put obj 'flag-key false ; Correctly and unconditionally sets the key
 
-### Workaround for Function Storage
-
-```rebol
-;; To store functions, wrap them in a block or use a different approach:
-obj: make object! []
-test-func: function [] [print "Hello"]
-
-;; Method 1: Store in a block
-extend obj 'func-prop reduce [:test-func]
-;; Access with: do first obj/func-prop
-
-;; Method 2: Direct object assignment (recommended)
-obj: make obj [func-prop: :test-func]
-;; Access with: obj/func-prop
+; Verify the properties exist
+print in obj 'my-key     ; true
+print in obj 'flag-key   ; true
+print obj/my-key         ; none
+print obj/flag-key       ; false
 ```
 
 ## In-Place Modification
@@ -197,38 +217,22 @@ print obj-reference/count     ; 1
 
 ## Common Patterns and Best Practices
 
-### 1. Safe Property Addition
+### 1. Conditional Extension (Leveraging the Feature)
 
 ```rebol
-;; Always check return value for expected result
-safe-add: function [obj key val] {
-    Add property and verify it was added successfully
-} [
-    result: extend obj key val
-    either in obj key [
-        result
-    ][
-        make error! "Property was not added (likely falsy value)"
-    ]
-]
+;; Use extend's conditional behavior for clean code
+config: make object! []
+
+;; Only add properties if they have meaningful values
+extend config 'debug-mode debug-flag        ; Only added if not false/none
+extend config 'log-level log-setting        ; Only added if not false/none
+extend config 'max-connections max-conn     ; Only added if not false/none
+
+;; Use put when you need to store false/none unconditionally
+put config 'allow-anonymous false  ; Always set this flag
 ```
 
-### 2. Conditional Extension
-
-```rebol
-;; Only extend if value is meaningful
-conditional-extend: function [obj key val] {
-    Only extend if value is not none or false
-} [
-    either any [none? val, false = val] [
-        none  ; Don't extend
-    ][
-        extend obj key val
-    ]
-]
-```
-
-### 3. Builder Pattern
+### 2. Builder Pattern
 
 ```rebol
 ;; Chain extensions for object building
@@ -239,12 +243,13 @@ build-config: function [name version] {
     extend config 'name name
     extend config 'version version
     extend config 'timestamp now
-    extend config 'debug false
+    extend config 'debug false      ; Won't be added due to false
+    put config 'debug false         ; Use put to actually set false
     config  ; Return the built object
 ]
 ```
 
-### 4. Safe Block Extension
+### 3. Safe Block Extension
 
 ```rebol
 ;; When extending blocks, ensure proper set-word format
@@ -255,6 +260,24 @@ safe-block-extend: function [block-target key val] {
     set-key: either set-word? key [key] [to-set-word key]
     extend block-target set-key val
 ]
+```
+
+### 4. Literal vs Evaluated Values
+
+```rebol
+;; Store code vs store results
+code-storage: make object! []
+
+;; Store code blocks for later execution
+extend code-storage 'init-code [print "Initializing..."]
+extend code-storage 'cleanup-code [print "Cleaning up..."]
+
+;; Store calculated results
+extend code-storage 'startup-time now
+extend code-storage 'config-hash checksum to-string config
+
+;; Execute stored code later
+do code-storage/init-code     ; Prints "Initializing..."
 ```
 
 ## Error Handling
@@ -283,12 +306,13 @@ safe-extend-with-error: function [target key val] {
 
 ## Summary
 
-The `extend` function is powerful but has important nuances:
+The `extend` function is powerful with these key characteristics:
 - Returns the **value added**, not the container
 - Modifies containers **in place**
-- Handles falsy values (`none`, `false`) by NOT adding them
-- Evaluates function values instead of storing them
+- Is **non-evaluative** - stores values literally
+- Handles falsy values (`none`, `false`) by NOT adding them (use `put` for unconditional setting)
+- Stores functions when passed as words, not get-words
 - Works with objects, maps, blocks, and paren! structures
 - Accepts any word! type as the key
 
-Understanding these behaviors will help you use `extend` effectively and avoid common pitfalls.
+Understanding these behaviors will help you use `extend` effectively and leverage its conditional features appropriately.
