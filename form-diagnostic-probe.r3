@@ -77,7 +77,7 @@ assert-equal "A" form #"A" "form on char! should produce the character as a stri
 ;;-----------------------------------------------------------------------------
 print "^/=== SECTION 2: Probing Word Types ===^/"
 
-;; HYPOTHESIS: `form` on any word! type will produce the spelling of the word as a string.
+;; HYPOTHESIS: `form` on any word! type will produce the spelling of the word as a string, without special characters.
 test-word: 'some-word
 assert-equal "some-word" form test-word "form on word! should produce its spelling"
 
@@ -85,13 +85,13 @@ test-lit-word: to-lit-word 'literal-word
 assert-equal "literal-word" form test-lit-word "form on lit-word! should produce its spelling"
 
 test-set-word: to-set-word 'setting-word
-assert-equal "setting-word:" form test-set-word "form on set-word! should produce its spelling with a colon"
+assert-equal "setting-word" form test-set-word "form on set-word! should produce its spelling"
 
 test-get-word: to-get-word 'getting-word
-assert-equal ":getting-word" form test-get-word "form on get-word! should produce its spelling with a leading colon"
+assert-equal "getting-word" form test-get-word "form on get-word! should produce its spelling"
 
 test-refinement: to-refinement 'refinement-word
-assert-equal "/refinement-word" form test-refinement "form on refinement! should produce its spelling with a slash"
+assert-equal "refinement-word" form test-refinement "form on refinement! should produce its spelling"
 
 ;;-----------------------------------------------------------------------------
 ;; SECTION 3: Probing Series Types (block!, paren!, path!)
@@ -125,25 +125,26 @@ assert-equal "user@example.com" form user@example.com "form on email! should pro
 assert-equal "http://www.rebol.com" form http://www.rebol.com "form on url! should produce its string representation"
 assert-equal "<tag>" form <tag> "form on tag! should produce its string representation"
 
-;; HYPOTHESIS: `form` on binary data will produce a URL-encoded-style string.
+;; HYPOTHESIS: `form` on binary data produces a raw hex string.
 binary-data: #{DECAFBAD}
-assert-equal "%DE%CA%FB%AD" form binary-data "form on binary! should produce a URL-encoded style string"
+assert-equal "DECAFBAD" form binary-data "form on binary! should produce a raw hex string"
 
-;; HYPOTHESIS: `form` on bitset will produce a readable representation.
+;; HYPOTHESIS: `form` on bitset will produce its internal hex representation.
 bitset-data: charset "a-c123"
-assert-equal "make bitset! #{414243B1B2B3}" form bitset-data "form on bitset! should produce its construction representation"
+assert-equal "make bitset! #{00000000000470000000000050}" form bitset-data "form on bitset! should produce its internal hex representation"
 
 ;;-----------------------------------------------------------------------------
 ;; SECTION 5: Probing Function and Object Types
 ;;-----------------------------------------------------------------------------
 print "^/=== SECTION 5: Probing Function and Object Types ===^/"
 
-;; HYPOTHESIS: `form` on functions and objects will produce a string indicating their type and structure.
+;; HYPOTHESIS: `form` on functions and objects will produce their source representation.
 test-function: function [arg] [arg + 1]
-assert-equal "make function! [[arg] [arg + 1]]" form :test-function "form on function! should produce its source representation"
+assert-equal "make function! [[arg^//local][arg + 1]]" form :test-function "form on function! should produce its source representation"
 
+;; HYPOTHESIS: `form` on an object produces only its content, not the constructor.
 test-object: make object! [name: "Test" value: 10]
-assert-equal "make object! [^/    name: ^"Test^"^/    value: 10^/]" form test-object "form on object! should produce its source representation"
+assert-equal join "name: ^"Test^"" [newline "value: 10"] form test-object "form on object! should produce its contents"
 
 ;;-----------------------------------------------------------------------------
 ;; SECTION 6: Probing Edge Cases
@@ -164,9 +165,9 @@ assert-equal "" form get/any unset-val-word "form on unset! should produce an em
 mixed-existence-block: reduce ["a" none "b" (get/any unset-val-word) "c"]
 assert-equal "a none b  c" form mixed-existence-block "form on block with none and unset should form them accordingly"
 
-;; HYPOTHESIS: `form` on a `map!` should show its contents.
+;; HYPOTHESIS: `form` on a `map!` produces only its content, not the constructor.
 test-map: make map! [a 1 b 2]
-assert-equal "make map! [^/    a: 1^/    b: 2^/]" form test-map "form on map! should produce its source representation"
+assert-equal join "a: 1" [newline "b: 2"] form test-map "form on map! should produce its contents"
 
 
 print "^/=== ALL FORM FUNCTION PROBES COMPLETED ===^/"
