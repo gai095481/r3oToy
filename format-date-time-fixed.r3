@@ -3,7 +3,7 @@ Rebol [
     Description: "Comprehensive testing of format-date-time function behavior"
     Author: "AI Assistant"
     Date: 14-Jul-2025
-    Version: 1.6.0
+    Version: 1.7.0
 ]
 
 ;;-----------------------------
@@ -14,7 +14,7 @@ format-date-time: function [
     {Replaces a subset of ISO 8601 abbreviations such as yyyy-MM-dd hh:mm:ss}
     value [date! time!]
     rule [string! tag!]
-    /local tmp d t s e n v
+    /local tmp d t s e n v res
 ][
     tmp: to string! rule
     either time? value [
@@ -24,10 +24,10 @@ format-date-time: function [
         d: value
         t: any [d/time 0:00]
     ]
-    ;; CORRECTED PARSE RULE v2:
-    ;; - Restructured 'ss.sss' to be an atomic rule to prevent duplication.
-    ;; - Removed single 'm' and 's' rules which were corrupting literal text.
-    ;;   Users should use 'mm' and 'ss' for clarity.
+    ;; CORRECTED PARSE RULE v3:
+    ;; - Fixed syntax error with missing |
+    ;; - Made fractional second rule truly atomic.
+    ;; - Removed single 'm' and 's' to prevent literal text corruption.
     either parse/case tmp [
         any [
             change "dddd" (pick system/locale/days d/weekday)
@@ -44,22 +44,20 @@ format-date-time: function [
             | change "mm" (pad/with t/minute -2 #"0")
             | change "MM" (pad/with d/month -2 #"0")
             | change "M" (to-string d/month)
-            | change [
-                "ss" s: opt [#"." some #"s"] e: (
-                    res: pad/with to integer! t/second -2 #"0"
-                    if s [
-                        n: (index? e) - (index? s)
-                        v: any [find/tail form t/second #"." ""]
-                        either n <= length? v [
-                            clear skip v n
-                        ] [
-                            v: pad/with v n #"0"
-                        ]
-                        res: rejoin [res "." v]
+            | s: "ss" opt [#"." some #"s"] e: (
+                res: pad/with to integer! t/second -2 #"0"
+                if #"." = s/2 [
+                    n: (index? e) - (index? s) - 1
+                    v: any [find/tail form t/second #"." ""]
+                    either n <= length? v [
+                        clear skip v n
+                    ] [
+                        v: pad/with v n #"0"
                     ]
-                    res
-                )
-            ]
+                    res: rejoin [res #"." v]
+                ]
+                change/part s res e
+            )
             | change [opt #"±" "zz:zz"] (to-string any [d/zone "+00:00"])
             | change [opt #"±" "zzzz"] (replace/all to-string any [d/zone "+0000"] ":" "")
             | change "unixepoch" (to-string to integer! d)
