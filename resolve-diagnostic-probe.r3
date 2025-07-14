@@ -1,9 +1,9 @@
 Rebol [
-    Title: "Resolve Function Diagnostic Probe"
+    Title: "Resolve Function Diagnostic Probe (Corrected)"
     Purpose: "Comprehensive testing of the resolve native function and its refinements"
     Author: "AI Assistant"
     Date: 14-Jul-2025
-    Version: 1.0.0
+    Version: 2.0.0
     Target: "REBOL/Bulk 3.19.0 (Oldes Branch)"
 ]
 
@@ -63,49 +63,33 @@ print "^/=== RESOLVE FUNCTION DIAGNOSTIC PROBE ==="
 print "Testing resolve native function behavior systematically^/"
 
 ;;-----------------------------------------------------------------------------
-;; Section 1: Basic Behavior - No Refinements
+;; Section 1: Basic Behavior - Unset vs. None
 ;;-----------------------------------------------------------------------------
 
-print "^/--- Section 1: Basic Behavior (No Refinements) ---"
+print "^/--- Section 1: Basic Behavior (Unset vs. None) ---"
 
-;; HYPOTHESIS: resolve copies values from source object to target object
-;; but only for words that exist in both objects and only if target value is 'none' (as a proxy for unset in this test)
-target-obj1: make object! [name: none age: none city: "Default"]
-source-obj1: make object! [name: "John" age: 30 country: "USA"]
+;; HYPOTHESIS: `resolve` (no refinements) only copies values from source to target
+;; if the corresponding word in the target is UNSET. It does NOT overwrite `none`.
 
-;; Test basic copying behavior
-resolve target-obj1 source-obj1
-assert-equal "John" target-obj1/name "Basic resolve: copies name from source to target"
-assert-equal 30 target-obj1/age "Basic resolve: copies age from source to target"
-assert-equal "Default" target-obj1/city "Basic resolve: leaves existing target values unchanged"
+;; Test with UNSET target fields
+target-obj-unset: context [name: _ age: _ city: "Default"]
+clear 'target-obj-unset/name
+clear 'target-obj-unset/age
+source-obj1: context [name: "John" age: 30 country: "USA"]
+
+resolve target-obj-unset source-obj1
+assert-equal "John" target-obj-unset/name "Basic resolve: copies value to unset field 'name'"
+assert-equal 30 target-obj-unset/age "Basic resolve: copies value to unset field 'age'"
+assert-equal "Default" target-obj-unset/city "Basic resolve: leaves existing set fields unchanged"
 
 ;; HYPOTHESIS: resolve does not add new words to target by default
-target-has-country: false
-set/any 'country-check try [target-obj1/country]
-either error? country-check [
-    target-has-country: false
-][
-    target-has-country: true
-]
-assert-equal false target-has-country "Basic resolve: does not add new words to target"
+assert-equal false value? in target-obj-unset 'country "Basic resolve: does not add new words to target"
 
-;; Test with objects containing different value types
-target-obj2: make object! [num: none text: none flag: none lst: none]
-source-obj2: make object! [num: 42 text: "hello" flag: true lst: [1 2 3]]
-
-resolve target-obj2 source-obj2
-assert-equal 42 target-obj2/num "Basic resolve: copies integer values"
-assert-equal "hello" target-obj2/text "Basic resolve: copies string values"
-assert-equal true target-obj2/flag "Basic resolve: copies logic values"
-assert-equal [1 2 3] target-obj2/lst "Basic resolve: copies block values"
-
-;; Test with none values
-target-obj3: make object! [value1: none value2: "preset"]
-source-obj3: make object! [value1: "test" value2: "new"]
-
-resolve target-obj3 source-obj3
-assert-equal "test" target-obj3/value1 "Basic resolve: copies over none values"
-assert-equal "preset" target-obj3/value2 "Basic resolve: does not overwrite existing non-none values"
+;; Test with NONE target fields
+target-obj-none: context [name: none age: none city: "Default"]
+resolve target-obj-none source-obj1
+assert-equal none target-obj-none/name "Basic resolve: does NOT overwrite 'none' field"
+assert-equal none target-obj-none/age "Basic resolve: does NOT overwrite 'none' field (2)"
 
 ;;-----------------------------------------------------------------------------
 ;; Section 2: /all Refinement
@@ -113,23 +97,15 @@ assert-equal "preset" target-obj3/value2 "Basic resolve: does not overwrite exis
 
 print "^/--- Section 2: /all Refinement ---"
 
-;; HYPOTHESIS: /all refinement forces resolve to overwrite existing values in target
-target-obj4: make object! [name: "Jane" age: 25 city: "Default"]
-source-obj4: make object! [name: "John" age: 30 country: "USA"]
+;; HYPOTHESIS: /all refinement forces resolve to overwrite existing values, including `none`.
+target-obj-all: make object! [name: "Jane" age: 25 city: "Default" status: none]
+source-obj-all: make object! [name: "John" age: 30 country: "USA" status: "Active"]
 
-resolve/all target-obj4 source-obj4
-assert-equal "John" target-obj4/name "/all refinement: overwrites existing name value"
-assert-equal 30 target-obj4/age "/all refinement: overwrites existing age value"
-assert-equal "Default" target-obj4/city "/all refinement: leaves non-matching words unchanged"
-
-;; Test /all with mixed none and set values
-target-obj5: make object! [val1: "existing" val2: none val3: 100]
-source-obj5: make object! [val1: "new" val2: "fresh" val3: 200]
-
-resolve/all target-obj5 source-obj5
-assert-equal "new" target-obj5/val1 "/all refinement: overwrites existing non-none values"
-assert-equal "fresh" target-obj5/val2 "/all refinement: sets none values"
-assert-equal 200 target-obj5/val3 "/all refinement: overwrites existing numeric values"
+resolve/all target-obj-all source-obj-all
+assert-equal "John" target-obj-all/name "/all refinement: overwrites existing string value"
+assert-equal 30 target-obj-all/age "/all refinement: overwrites existing integer value"
+assert-equal "Active" target-obj-all/status "/all refinement: overwrites existing none value"
+assert-equal "Default" target-obj-all/city "/all refinement: leaves non-matching words unchanged"
 
 ;;-----------------------------------------------------------------------------
 ;; Section 3: /extend Refinement
@@ -137,41 +113,16 @@ assert-equal 200 target-obj5/val3 "/all refinement: overwrites existing numeric 
 
 print "^/--- Section 3: /extend Refinement ---"
 
-;; HYPOTHESIS: /extend refinement adds new words from source to target
-target-obj6: make object! [name: none age: 25]
-source-obj6: make object! [name: "Alice" age: 30 country: "Canada" city: "Toronto"]
+;; HYPOTHESIS: /extend adds new words from source to target, but still only resolves UNSET (not `none`) fields.
+target-obj-extend: context [name: _ age: 25]
+clear 'target-obj-extend/name
+source-obj-extend: make object! [name: "Alice" age: 30 country: "Canada" city: "Toronto"]
 
-resolve/extend target-obj6 source-obj6
-assert-equal "Alice" target-obj6/name "/extend refinement: copies to existing none words"
-assert-equal 25 target-obj6/age "/extend refinement: leaves existing set values unchanged"
-
-;; Check if new words were added
-target-has-country6: false
-target-has-city6: false
-set/any 'country-check6 try [target-obj6/country]
-set/any 'city-check6 try [target-obj6/city]
-
-either error? country-check6 [
-    target-has-country6: false
-][
-    target-has-country6: true
-]
-
-either error? city-check6 [
-    target-has-city6: false
-][
-    target-has-city6: true
-]
-
-assert-equal true target-has-country6 "/extend refinement: adds new words to target"
-assert-equal true target-has-city6 "/extend refinement: adds multiple new words to target"
-
-if target-has-country6 [
-    assert-equal "Canada" target-obj6/country "/extend refinement: new word has correct value"
-]
-if target-has-city6 [
-    assert-equal "Toronto" target-obj6/city "/extend refinement: second new word has correct value"
-]
+resolve/extend target-obj-extend source-obj-extend
+assert-equal "Alice" target-obj-extend/name "/extend: copies to existing unset words"
+assert-equal 25 target-obj-extend/age "/extend: leaves existing set values unchanged"
+assert-equal "Canada" target-obj-extend/country "/extend: adds new 'country' word and value"
+assert-equal "Toronto" target-obj-extend/city "/extend: adds new 'city' word and value"
 
 ;;-----------------------------------------------------------------------------
 ;; Section 4: /all and /extend Combined
@@ -179,27 +130,14 @@ if target-has-city6 [
 
 print "^/--- Section 4: /all and /extend Combined ---"
 
-;; HYPOTHESIS: /all and /extend together both overwrite existing values and add new words
-target-obj7: make object! [name: "Bob" age: none]
-source-obj7: make object! [name: "Charlie" age: 35 country: "UK"]
+;; HYPOTHESIS: /all and /extend together both overwrite existing values (including `none`) AND add new words.
+target-obj-combo: make object! [name: "Bob" age: none]
+source-obj-combo: make object! [name: "Charlie" age: 35 country: "UK"]
 
-resolve/all/extend target-obj7 source-obj7
-assert-equal "Charlie" target-obj7/name "/all + /extend: overwrites existing values"
-assert-equal 35 target-obj7/age "/all + /extend: sets none values"
-
-;; Check if new word was added
-target-has-country7: false
-set/any 'country-check7 try [target-obj7/country]
-either error? country-check7 [
-    target-has-country7: false
-][
-    target-has-country7: true
-]
-
-assert-equal true target-has-country7 "/all + /extend: adds new words to target"
-if target-has-country7 [
-    assert-equal "UK" target-obj7/country "/all + /extend: new word has correct value"
-]
+resolve/all/extend target-obj-combo source-obj-combo
+assert-equal "Charlie" target-obj-combo/name "/all+extend: overwrites existing value"
+assert-equal 35 target-obj-combo/age "/all+extend: overwrites none value"
+assert-equal "UK" target-obj-combo/country "/all+extend: adds new word"
 
 ;;-----------------------------------------------------------------------------
 ;; Section 5: /only Refinement with Block
@@ -207,25 +145,18 @@ if target-has-country7 [
 
 print "^/--- Section 5: /only Refinement with Block ---"
 
-;; HYPOTHESIS: /only with block limits copying to specified words only
-target-obj8: make object! [name: none age: none city: none country: none]
-source-obj8: make object! [name: "David" age: 40 city: "London" country: "UK"]
+;; HYPOTHESIS: /only with block limits copying to specified UNSET words.
+target-obj-only: context [name: _ age: _ city: _ country: "UK"]
+clear 'target-obj-only/name
+clear 'target-obj-only/age
+clear 'target-obj-only/city
+source-obj-only: make object! [name: "David" age: 40 city: "London"]
 
-resolve/only target-obj8 source-obj8 [name city]
-assert-equal "David" target-obj8/name "/only with block: copies specified word 'name'"
-assert-equal "London" target-obj8/city "/only with block: copies specified word 'city'"
-
-;; Check that non-specified words remain none
-assert-equal none target-obj8/age "/only with block: leaves non-specified words as none"
-assert-equal none target-obj8/country "/only with block: leaves non-specified words as none (2)"
-
-;; Test /only with block containing non-existent words
-target-obj9: make object! [name: none age: none]
-source-obj9: make object! [name: "Emma" age: 28 city: "Paris"]
-
-resolve/only target-obj9 source-obj9 [name nonexistent]
-assert-equal "Emma" target-obj9/name "/only with block: copies existing specified word"
-assert-equal none target-obj9/age "/only with block: ignores non-specified existing words"
+resolve/only target-obj-only source-obj-only [name city]
+assert-equal "David" target-obj-only/name "/only block: copies specified word 'name'"
+assert-equal "London" target-obj-only/city "/only block: copies specified word 'city'"
+assert-equal true unset? get in target-obj-only 'age "/only block: leaves non-specified unset words unset"
+assert-equal "UK" target-obj-only/country "/only block: leaves existing set words unchanged"
 
 ;;-----------------------------------------------------------------------------
 ;; Section 6: /only Refinement with Integer
@@ -233,17 +164,16 @@ assert-equal none target-obj9/age "/only with block: ignores non-specified exist
 
 print "^/--- Section 6: /only Refinement with Integer ---"
 
-;; HYPOTHESIS: /only with integer copies words starting from that position in target
-target-obj10: make object! [word1: none word2: none word3: none word4: none]
-source-obj10: make object! [word1: "val1" word2: "val2" word3: "val3" word4: "val4"]
+;; HYPOTHESIS: /only with integer copies values to UNSET words starting from that position in target.
+target-obj-int: context [word1: _ word2: _ word3: _ word4: "preset"]
+clear 'target-obj-int/word1; clear 'target-obj-int/word2; clear 'target-obj-int/word3
+source-obj-int: make object! [word1: "val1" word2: "val2" word3: "val3" word4: "val4"]
 
-;; Test with integer 3 (should copy from 3rd position onward)
-resolve/only target-obj10 source-obj10 3
-
-assert-equal none target-obj10/word1 "/only with integer: skips words before specified position"
-assert-equal none target-obj10/word2 "/only with integer: skips words before specified position (2)"
-assert-equal "val3" target-obj10/word3 "/only with integer: copies word at specified position"
-assert-equal "val4" target-obj10/word4 "/only with integer: copies words after specified position"
+resolve/only target-obj-int source-obj-int 3
+assert-equal true unset? get in target-obj-int 'word1 "/only integer: skips word1"
+assert-equal true unset? get in target-obj-int 'word2 "/only integer: skips word2"
+assert-equal "val3" target-obj-int/word3 "/only integer: copies word at specified position"
+assert-equal "preset" target-obj-int/word4 "/only integer: does not overwrite existing set value after position"
 
 ;;-----------------------------------------------------------------------------
 ;; Section 7: Edge Cases and Error Conditions
@@ -251,44 +181,20 @@ assert-equal "val4" target-obj10/word4 "/only with integer: copies words after s
 
 print "^/--- Section 7: Edge Cases and Error Conditions ---"
 
-;; Test with empty objects
-empty-target: make object! []
-empty-source: make object! []
-resolve empty-target empty-source
-;; Should complete without error
-
 ;; Test with object containing functions
-target-with-func: make object! [func-val: none data-val: none]
+target-with-func: context [func-val: _ data-val: _]
+clear 'target-with-func/func-val; clear 'target-with-func/data-val
 source-with-func: make object! [func-val: does [print "hello"] data-val: "test"]
 
 resolve target-with-func source-with-func
 assert-equal "test" target-with-func/data-val "Edge case: copies non-function values normally"
+assert-equal true function? get in target-with-func 'func-val "Edge case: copies function values correctly"
 
-;; Check if function was copied
-assert-equal true function? get in target-with-func 'func-val "Edge case: copies function values"
-
-;; Test with very long word names
-target-long: make object! [very-long-word-name-for-testing: none]
-source-long: make object! [very-long-word-name-for-testing: "long-test"]
-
-resolve target-long source-long
-assert-equal "long-test" target-long/very-long-word-name-for-testing "Edge case: handles long word names"
-
-;; Test resolve behavior with refinement combinations that should error
-;; (This tests the error handling rather than successful operation)
+;; Test invalid /only argument
 error-target: make object! [test: none]
 error-source: make object! [test: "value"]
-
-;; Test invalid /only argument (should handle gracefully or error)
 set/any 'resolve-error try [resolve/only error-target error-source "invalid"]
-either error? resolve-error [
-    print "✅ PASSED: /only with invalid argument type produces expected error"
-][
-    print "❌ FAILED: /only with invalid argument should produce error"
-    set 'all-tests-passed? false
-    set 'fail-count fail-count + 1
-]
-set 'test-count test-count + 1
+assert-equal true error? resolve-error "/only with invalid argument type produces expected error"
 
 ;;-----------------------------------------------------------------------------
 ;; Section 8: Return Value Testing
@@ -297,7 +203,8 @@ set 'test-count test-count + 1
 print "^/--- Section 8: Return Value Testing ---"
 
 ;; HYPOTHESIS: resolve returns the modified target object
-ret-target: make object! [name: none]
+ret-target: context [name: _]
+clear 'ret-target/name
 ret-source: make object! [name: "Return Test"]
 
 returned-value: resolve ret-target ret-source
