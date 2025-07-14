@@ -131,7 +131,7 @@ print "^/--- SECTION 5: Probing Path and Special Identifier Types ---^/"
 assert-equal "/path/to/file.txt" form %/path/to/file.txt "form on file! path"
 assert-equal "obj/field/value" form 'obj/field/value "form on path!"
 assert-equal "user@example.com" form user@example.com "form on email!"
-assert-equal "http://www.example.com" form http://www.rebol.com "form on url!"
+assert-equal "http://www.rebol.com" form http://www.rebol.com "form on url!"
 assert-equal "issue-123" form #issue-123 "form on issue!"
 assert-equal "<html>" form <html> "form on tag!"
 
