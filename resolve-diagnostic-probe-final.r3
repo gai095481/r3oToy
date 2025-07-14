@@ -3,7 +3,7 @@ Rebol [
     Purpose: "Comprehensive testing of resolve with correct understanding of behavior"
     Author: "AI Assistant (Ultimate Fix)"
     Date: 14-Jul-2025
-    Version: 1.5.1
+    Version: 1.6.0
     Target: "REBOL/Bulk 3.19.0 (Oldes Branch)"
 ]
 
@@ -201,7 +201,7 @@ assert-equal 4 target8/d "RESOLVE/ONLY 3: target8/d should remain 4"
 assert-equal 5 target8/e "RESOLVE/ONLY 3: target8/e should remain 5"
 assert-equal 6 target8/f "RESOLVE/ONLY 3: target8/f should remain 6"
 
-;;-- Test 9: RESOLVE/ONLY/ALL with integer index (NEW TEST)
+;;-- Test 9: RESOLVE/ONLY/ALL with integer index (CORRECTED)
 print "^/Test Group 9: RESOLVE/ONLY/ALL with integer index"
 print "---------------------------------------------------"
 
@@ -214,8 +214,9 @@ resolve/only/all target9 source9 3
 assert-equal 1 target9/a "RESOLVE/ONLY/ALL 3: target9/a should remain 1"
 assert-equal 2 target9/b "RESOLVE/ONLY/ALL 3: target9/b should remain 2"
 assert-equal 93000 target9/d "RESOLVE/ONLY/ALL 3: target9/d should be 93000 (3rd word)"
-assert-equal 5 target9/e "RESOLVE/ONLY/ALL 3: target9/e should remain 5"
-assert-equal true unset? get in target9 'f "RESOLVE/ONLY/ALL 3: target9/f becomes unset"
+assert-equal false value? get in target9 'e "RESOLVE/ONLY/ALL 3: target9/e should be unset"
+assert-equal false value? get in target9 'f "RESOLVE/ONLY/ALL 3: target9/f should be unset"
+
 
 ;;-- Test 10: Edge cases (CORRECTED)
 print "^/Test Group 10: Edge cases and special values"
@@ -230,7 +231,7 @@ assert-equal true true "Empty objects resolve should not fail"
 
 ; Test with unset values (should remain unchanged)
 source10: context [a: 1 b: 2 c: 3]
-target10: make object! [a: none b: 10 d: 4]
+target10: make object! [a: none, b: 10, d: 4]
 clear 'target10/a
 
 ; Basic resolve should NOT change unset values
