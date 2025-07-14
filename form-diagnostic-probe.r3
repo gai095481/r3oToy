@@ -59,117 +59,144 @@ print "=== COMPREHENSIVE FORM FUNCTION PROBE ==="
 print "============================================^/"
 
 ;;-----------------------------------------------------------------------------
-;; SECTION 1: Probing Basic Data Types
+;; SECTION 1: Probing Basic Scalar Data Types
 ;;-----------------------------------------------------------------------------
-print "^/=== SECTION 1: Probing Basic Data Types ===^/"
+print "^/--- SECTION 1: Probing Basic Scalar Data Types ---^/"
 
-;; HYPOTHESIS: `form` on basic scalar types will produce their direct string representation.
-assert-equal "Hello World" form "Hello World" "form on string! should return the string itself"
-assert-equal "1024" form 1024 "form on integer! should produce its string representation"
-assert-equal "10.24" form 10.24 "form on decimal! should produce its string representation"
-assert-equal "true" form true "form on logic! 'true' should produce 'true'"
-assert-equal "false" form false "form on logic! 'false' should produce 'false'"
-assert-equal "none" form none "form on none! should produce 'none'"
-assert-equal "A" form #"A" "form on char! should produce the character as a string"
+;; HYPOTHESIS: form should convert basic scalar values to their string representation
+;; without quotes or special formatting, providing human-readable output.
+
+assert-equal "42" form 42 "form on positive integer"
+assert-equal "-17" form -17 "form on negative integer"
+assert-equal "0" form 0 "form on zero integer"
+assert-equal "3.14159" form 3.14159 "form on positive decimal"
+assert-equal "-2.718" form -2.718 "form on negative decimal"
+assert-equal "0.0" form 0.0 "form on zero decimal"
+assert-equal "true" form true "form on true logical"
+assert-equal "false" form false "form on false logical"
+assert-equal "A" form #"A" "form on character literal"
+assert-equal " " form #" " "form on space character"
+assert-equal "^/" form #"^/" "form on newline character"
+assert-equal "none" form none "form on none value"
 
 ;;-----------------------------------------------------------------------------
-;; SECTION 2: Probing Word Types
+;; SECTION 2: Probing String Data Types
 ;;-----------------------------------------------------------------------------
-print "^/=== SECTION 2: Probing Word Types ===^/"
+print "^/--- SECTION 2: Probing String Data Types ---^/"
+
+;; HYPOTHESIS: form should return strings without quotes or escape sequences,
+;; presenting the raw string content as human-readable text.
+
+assert-equal "Hello World" form "Hello World" "form on basic string"
+assert-equal "" form "" "form on empty string"
+assert-equal "Line 1^/Line 2" form "Line 1^/Line 2" "form on string with newlines"
+assert-equal {He said "Hello"} form {He said "Hello"} "form on string containing quotes"
+assert-equal "Tab:^-End" form "Tab:^-End" "form on string with tab character"
+
+;;-----------------------------------------------------------------------------
+;; SECTION 3: Probing Block and Paren Data Types
+;;-----------------------------------------------------------------------------
+print "^/--- SECTION 3: Probing Block and Paren Data Types ---^/"
+
+;; HYPOTHESIS: form should convert blocks and parens to space-separated string representation
+;; without outer brackets, showing the contents in a readable format.
+
+assert-equal "" form [] "form on empty block"
+assert-equal "1 2 3 4 5" form [1 2 3 4 5] "form on block of integers"
+assert-equal "42 hello true x" form [42 "hello" true #"x"] "form on block with mixed types"
+assert-equal "1 2 3 4" form [1 [2 3] 4] "form on nested blocks"
+assert-equal "first item second item" form ["first item" "second item"] "form on block with spaced strings"
+assert-equal "1 2 3" form make paren! [1 2 3] "form on paren! behaves like a block"
+
+;;-----------------------------------------------------------------------------
+;; SECTION 4: Probing Word Data Types
+;;-----------------------------------------------------------------------------
+print "^/--- SECTION 4: Probing Word Data Types ---^/"
 
 ;; HYPOTHESIS: `form` on any word! type will produce the spelling of the word as a string, without special characters.
-test-word: 'some-word
-assert-equal "some-word" form test-word "form on word! should produce its spelling"
-
-test-lit-word: to-lit-word 'literal-word
-assert-equal "literal-word" form test-lit-word "form on lit-word! should produce its spelling"
-
-test-set-word: to-set-word 'setting-word
-assert-equal "setting-word" form test-set-word "form on set-word! should produce its spelling"
-
-test-get-word: to-get-word 'getting-word
-assert-equal "getting-word" form test-get-word "form on get-word! should produce its spelling"
-
-test-refinement: to-refinement 'refinement-word
-assert-equal "refinement-word" form test-refinement "form on refinement! should produce its spelling"
+assert-equal "hello" form 'hello "form on word!"
+assert-equal "hello-world" form 'hello-world "form on word! with hyphen"
+assert-equal "item123" form 'item123 "form on word! with numbers"
+assert-equal "literal-word" form to-lit-word 'literal-word "form on lit-word!"
+assert-equal "setting-word" form to-set-word 'setting-word "form on set-word!"
+assert-equal "getting-word" form to-get-word 'getting-word "form on get-word!"
+assert-equal "refinement-word" form to-refinement 'refinement-word "form on refinement!"
 
 ;;-----------------------------------------------------------------------------
-;; SECTION 3: Probing Series Types (block!, paren!, path!)
+;; SECTION 5: Probing Path and Special Identifier Types
 ;;-----------------------------------------------------------------------------
-print "^/=== SECTION 3: Probing Series Types ===^/"
+print "^/--- SECTION 5: Probing Path and Special Identifier Types ---^/"
 
-;; HYPOTHESIS: `form` on series will produce a space-delimited string of the `form`ed elements within the series.
-assert-equal "1 abc true" form [1 "abc" true] "form on block! should create a space-delimited string"
-assert-equal "a b c" form [a b c] "form on block! of words should form the words"
-assert-equal "1 2 3" form make paren! [1 2 3] "form on paren! should behave like block!"
-
-;; HYPOTHESIS: Nested blocks will be recursively formed with space delimiters.
-assert-equal "a 1 2 3 b" form ['a [1 2 3] 'b] "form on a nested block should recursively form with spaces"
-
-;; HYPOTHESIS: Paths will be formed into their canonical string representation.
-assert-equal "path/to/my/file.txt" form %path/to/my/file.txt "form on file! path should produce string version"
-assert-equal "obj/field/value" form 'obj/field/value "form on path! should produce string version"
+;; HYPOTHESIS: Paths and special identifier types are formed into their canonical string representation.
+assert-equal "/path/to/file.txt" form %/path/to/file.txt "form on file! path"
+assert-equal "obj/field/value" form 'obj/field/value "form on path!"
+assert-equal "user@example.com" form user@example.com "form on email!"
+assert-equal "http://www.example.com" form http://www.rebol.com "form on url!"
+assert-equal "issue-123" form #issue-123 "form on issue!"
+assert-equal "<html>" form <html> "form on tag!"
 
 ;;-----------------------------------------------------------------------------
-;; SECTION 4: Probing Special Datatypes
+;; SECTION 6: Probing Date, Time, Tuple, and Money Types
 ;;-----------------------------------------------------------------------------
-print "^/=== SECTION 4: Probing Special Datatypes ===^/"
+print "^/--- SECTION 6: Probing Date, Time, Tuple, and Money Types ---^/"
 
-;; HYPOTHESIS: `form` on special datatypes will produce their standard string representation.
-test-date: 14-Jul-2025/10:20:30
-assert-equal "14-Jul-2025/10:20:30" form test-date "form on date! should produce a standard date/time string"
+;; HYPOTHESIS: These datatypes will be formed into their standard string representations.
+assert-equal "13-Jul-2025" form 13-Jul-2025 "form on basic date"
+assert-equal "13-Jul-2025/14:30:45" form 13-Jul-2025/14:30:45 "form on date with time"
+assert-equal "14:30:45" form 14:30:45 "form on time value"
+assert-equal "14:30:45.123" form 14:30:45.123 "form on time with milliseconds"
+assert-equal "192.168.1.1" form 192.168.1.1 "form on tuple! (IP address)"
+assert-equal "$12.34" form $12.34 "form on money!"
 
-assert-equal "1.2.3" form 1.2.3 "form on tuple! should produce a dot-delimited string"
-assert-equal "$12.34" form $12.34 "form on money! should produce its currency representation"
-assert-equal "user@example.com" form user@example.com "form on email! should produce its string representation"
-assert-equal "http://www.rebol.com" form http://www.rebol.com "form on url! should produce its string representation"
-assert-equal "<tag>" form <tag> "form on tag! should produce its string representation"
+;;-----------------------------------------------------------------------------
+;; SECTION 7: Probing Binary and Bitset Types
+;;-----------------------------------------------------------------------------
+print "^/--- SECTION 7: Probing Binary and Bitset Types ---^/"
 
 ;; HYPOTHESIS: `form` on binary data produces a raw hex string.
-binary-data: #{DECAFBAD}
-assert-equal "DECAFBAD" form binary-data "form on binary! should produce a raw hex string"
+assert-equal "48656C6C6F" form #{48656C6C6F} "form on binary data"
+assert-equal "" form #{} "form on empty binary!"
 
 ;; HYPOTHESIS: `form` on bitset will produce its internal hex representation.
 bitset-data: charset "a-c123"
-assert-equal "make bitset! #{00000000000470000000000050}" form bitset-data "form on bitset! should produce its internal hex representation"
+assert-equal "make bitset! #{00000000000470000000000050}" form bitset-data "form on bitset!"
 
 ;;-----------------------------------------------------------------------------
-;; SECTION 5: Probing Function and Object Types
+;; SECTION 8: Probing Function, Object, and Map Types
 ;;-----------------------------------------------------------------------------
-print "^/=== SECTION 5: Probing Function and Object Types ===^/"
+print "^/--- SECTION 8: Probing Function, Object, and Map Types ---^/"
 
-;; HYPOTHESIS: `form` on functions and objects will produce their source representation.
+;; HYPOTHESIS: `form` on complex container types will produce their source or content representation.
 test-function: function [arg] [arg + 1]
-assert-equal "make function! [[arg^//local][arg + 1]]" form :test-function "form on function! should produce its source representation"
+assert-equal "make function! [[arg^//local][arg + 1]]" form :test-function "form on function!"
 
-;; HYPOTHESIS: `form` on an object produces only its content, not the constructor.
 test-object: make object! [name: "Test" value: 10]
-assert-equal join "name: ^"Test^"" [newline "value: 10"] form test-object "form on object! should produce its contents"
+assert-equal join "name: ^"Test^"" [newline "value: 10"] form test-object "form on object! produces contents"
+
+test-map: make map! [name: "John" age: 30]
+assert-equal join "name: ^"John^"" [newline "age: 30"] form test-map "form on map! produces contents"
 
 ;;-----------------------------------------------------------------------------
-;; SECTION 6: Probing Edge Cases
+;; SECTION 9: Probing Series Position and Other Edge Cases
 ;;-----------------------------------------------------------------------------
-print "^/=== SECTION 6: Probing Edge Cases ===^/"
+print "^/--- SECTION 9: Probing Series Position and Other Edge Cases ---^/"
 
-;; HYPOTHESIS: `form` should handle empty values gracefully.
-assert-equal "" form "" "form on an empty string should be an empty string"
-assert-equal "" form [] "form on an empty block should be an empty string"
-assert-equal "" form #{} "form on an empty binary should be an empty string"
+;; HYPOTHESIS: `form` on a series at a position other than the head will form from that position onward.
+test-series-pos: next "Hello World"
+assert-equal "ello World" form test-series-pos "form on string! at next position"
+assert-equal "" form tail "Hello World" "form on string! at tail"
 
-;; HYPOTHESIS: `form` should handle `unset!` values.
+test-block-pos: next [1 2 3 4]
+assert-equal "2 3 4" form test-block-pos "form on block! at next position"
+
+;; HYPOTHESIS: `form` on `unset!` produces an empty string.
 unset-val-word: 'my-unset-val
 unset unset-val-word
-assert-equal "" form get/any unset-val-word "form on unset! should produce an empty string"
+assert-equal "" form get/any unset-val-word "form on unset!"
 
-;; HYPOTHESIS: `form` on a block containing `none` and `unset`.
-mixed-existence-block: reduce ["a" none "b" (get/any unset-val-word) "c"]
-assert-equal "a none b  c" form mixed-existence-block "form on block with none and unset should form them accordingly"
-
-;; HYPOTHESIS: `form` on a `map!` produces only its content, not the constructor.
-test-map: make map! [a 1 b 2]
-assert-equal join "a: 1" [newline "b: 2"] form test-map "form on map! should produce its contents"
+;; HYPOTHESIS: `form` on a `datatype!` produces its name.
+assert-equal "string!" form string! "form on datatype!"
 
 
 print "^/=== ALL FORM FUNCTION PROBES COMPLETED ===^/"
-
 print-test-summary
