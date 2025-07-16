@@ -1,9 +1,9 @@
 Rebol [
-    Title: "MOLD Function Diagnostic Probe Script"
+    Title: "MOLD Function Diagnostic Probe Script - Corrected"
     Author: "Jules, AI Assistant"
     Date: 15-Jul-2025
     Purpose: "Comprehensive testing of the MOLD function behavior in Rebol 3 Oldes"
-    Note: "This script systematically tests the MOLD function with various data types and refinements."
+    Note: "This script systematically tests the MOLD function with various data types and refinements, corrected according to REPL output."
 ]
 
 ;;-----------------------------
@@ -66,9 +66,9 @@ print "^/--- SECTION 1: Probing Basic Data Types ---^/"
 ;; HYPOTHESIS: `mold` on basic scalar types will produce their loadable string representation.
 assert-equal "1024" mold 1024 "mold on integer!"
 assert-equal "10.24" mold 10.24 "mold on decimal!"
-assert-equal "#[true]" mold true "mold on logic! true"
-assert-equal "#[false]" mold false "mold on logic! false"
-assert-equal "#[none]" mold none "mold on none!"
+assert-equal "#(true)" mold true "mold on logic! true"
+assert-equal "#(false)" mold false "mold on logic! false"
+assert-equal "#(none)" mold none "mold on none!"
 assert-equal {#"A"} mold #"A" "mold on char!"
 assert-equal {"Hello World"} mold "Hello World" "mold on string! adds quotes"
 assert-equal "[a b c]" mold [a b c] "mold on block! adds brackets"
@@ -113,18 +113,18 @@ assert-equal {a b [c d]} mold/only test-block-only "mold/only on a block"
 
 ;; HYPOTHESIS: /all will produce construction syntax for certain types.
 test-obj-all: make object! [name: "Test"]
-expected-obj-all: {make object! [^/    name: "Test"^/]}
+expected-obj-all: {#(object! [^/    name: "Test"^/])}
 assert-equal expected-obj-all mold/all test-obj-all "mold/all on an object"
 
 ;; HYPOTHESIS: /flat will prevent indentation for complex types.
 test-obj-flat: make object! [name: "Test" value: 10]
-expected-obj-flat: {make object! [ name: "Test" value: 10 ]}
-assert-equal expected-obj-flat mold/all/flat test-obj-flat "mold/all/flat on an object"
+expected-obj-flat: {object! [name: "Test" value: 10]}
+assert-equal join "#(" [expected-obj-flat ")"] mold/all/flat test-obj-flat "mold/all/flat on an object"
 
 ;; HYPOTHESIS: /part will limit the length of the molded output string.
 test-series-part: [1 2 3 4 5 6 7 8 9 10]
 assert-equal "[1 2 3 4 5" mold/part test-series-part 10 "mold/part on a block"
-assert-equal {"abcdefghij"} mold/part "abcdefghijklmnopqrstuvwxyz" 10 "mold/part on a string"
+assert-equal {^"abcdefghi} mold/part "abcdefghijklmnopqrstuvwxyz" 10 "mold/part on a string"
 
 ;;-----------------------------------------------------------------------------
 ;; SECTION 5: Probing Edge Cases
@@ -133,13 +133,13 @@ print "^/--- SECTION 5: Probing Edge Cases ---^/"
 
 ;; HYPOTHESIS: `mold` will handle empty values, unset, and complex structures correctly.
 assert-equal {[]} mold [] "mold on an empty block"
-assert-equal "unset!" mold unset! "mold on an unset value"
+assert-equal "#(unset!)" mold unset! "mold on an unset value"
 add-one: function [arg] [arg + 1]
-assert-equal {make function! [[arg] [arg + 1]]} mold :add-one "mold on a function"
+assert-equal {make function! [[arg^//local][arg + 1]]} mold :add-one "mold on a function"
 
-;; HYPOTHESIS: `mold` will correctly escape characters in strings.
+;; HYPOTHESIS: `mold` will correctly escape characters in strings by using braces.
 test-string-escape: rejoin ["a" #"^"" "b"]
-expected-string-escape: {"a^"b"}
+expected-string-escape: {{a"b}}
 assert-equal expected-string-escape mold test-string-escape "mold on string with quotes"
 
 ;; HYPOTHESIS: `mold` on a series not at its head will mold from the current position.
