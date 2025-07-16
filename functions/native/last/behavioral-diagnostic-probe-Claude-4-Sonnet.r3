@@ -10,17 +10,17 @@ REBOL [
         across all supported data types, refinements, and edge cases. The script
         follows a "Truth from the REPL" philosophy where every claim about function
         behavior is backed by demonstrable code and empirical evidence.
-        
+
         The script generates structured test output showing passed/failed tests,
         expected vs actual values, and comprehensive coverage statistics. This serves
         as both a testing tool and living documentation for the LAST function.
-        
+
         Target: Rebol 3 Oldes
-        Coverage: series!, tuple!, gob! datatypes and edge cases
+        Coverage: series!, tuple!, gob! data types and edge cases
     }
     Notes: {
         - Uses battle-tested QA harness functions for structured testing
-        - Groups tests logically by datatype and behavior
+        - Groups tests logically by data type and behavior
         - Includes hypothesis comments explaining expected outcomes
         - Follows idiomatic Rebol conventions with descriptive variable names
     }
@@ -39,14 +39,14 @@ pass-count: 0
 fail-count: 0
 
 ;; Assert-equal function for structured test comparisons
-assert-equal: funct [
+assert-equal: func [
     "Compare expected and actual values with formatted output"
     expected [any-type!] "Expected value"
-    actual [any-type!] "Actual value" 
+    actual [any-type!] "Actual value"
     description [string!] "Test description"
 ] [
     test-count: test-count + 1
-    
+
     either equal? expected actual [
         pass-count: pass-count + 1
         print rejoin ["✅ PASSED: " description]
@@ -60,7 +60,7 @@ assert-equal: funct [
 ]
 
 ;; Print-test-summary function for final statistics output
-print-test-summary: funct [
+print-test-summary: func [
     "Display final test statistics and success rate"
 ] [
     print ""
@@ -70,14 +70,14 @@ print-test-summary: funct [
     print rejoin ["Total Tests:  " test-count]
     print rejoin ["Passed:       " pass-count]
     print rejoin ["Failed:       " fail-count]
-    
+
     either test-count > 0 [
         success-rate: round/to (pass-count * 100.0) / test-count 0.1
         print rejoin ["Success Rate: " success-rate "%"]
     ] [
         print "Success Rate: N/A (no tests run)"
     ]
-    
+
     print ""
     either all-tests-passed? [
         print "🎉 ALL TESTS PASSED!"
@@ -89,7 +89,7 @@ print-test-summary: funct [
 
 
 ;; =============================================================================
-;; TEST DATA SETUP SECTION  
+;; TEST DATA SETUP SECTION
 ;; =============================================================================
 ;; This section defines comprehensive test data collections for all supported
 ;; data types that the LAST function can operate on.
@@ -172,7 +172,7 @@ version-number-tuples: [
 ;; Color tuples for comprehensive coverage (RGB values)
 color-value-tuples: [
     255.0.0               ; pure red
-    0.255.0               ; pure green  
+    0.255.0               ; pure green
     0.0.255               ; pure blue
     255.255.255           ; white
     0.0.0                 ; black
@@ -186,20 +186,20 @@ color-value-tuples: [
 ;; blocks, strings, and binary data to establish baseline behavior.
 
 ;; HYPOTHESIS: Basic series behavior tests
-;; 
+;;
 ;; Expected behavior for LAST function with common series types:
-;; 
+;;
 ;; BLOCKS: last [1 2 3 4 5] should return 5 (the final element)
 ;;         last [42] should return 42 (single element)
 ;;         last [] should return none (empty block has no last element)
 ;;         last [[1 2] [3 4]] should return [3 4] (last sub-block)
 ;;         last [1 "hello" 3.14] should return 3.14 (last mixed-type element)
-;; 
+;;
 ;; STRINGS: last "hello" should return #"o" (the final character)
 ;;          last "a" should return #"a" (single character)
 ;;          last "" should return none (empty string has no last character)
 ;;          last "test123" should return #"3" (last alphanumeric character)
-;; 
+;;
 ;; BINARY: last #{DEADBEEF} should return 239 (last byte as integer: EF = 239)
 ;;         last #{01} should return 1 (single byte as integer)
 ;;         last #{} should return none (empty binary has no last byte)
@@ -209,12 +209,14 @@ color-value-tuples: [
 ;; or none for empty series. For strings, it returns a character datatype.
 ;; For binary data, it returns the last byte as an integer value.
 
-print "^/=========================================="
+print ""
+print "=========================================="
 print "    BASIC SERIES BEHAVIOR TESTS"
 print "=========================================="
 
 ;; Block testing with various sizes and content types
-print "^/--- Block Testing ---"
+print ""
+print "--- Block Testing ---"
 
 ;; Test basic numeric blocks
 assert-equal 5 last [1 2 3 4 5] "last of basic numeric sequence [1 2 3 4 5]"
@@ -232,7 +234,8 @@ assert-equal [3 4] last [[1 2] [3 4]] "last of nested blocks [[1 2] [3 4]]"
 assert-equal 20 last [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20] "last of twenty-element block"
 
 ;; String testing with single-character and multi-character strings
-print "^/--- String Testing ---"
+print ""
+print "--- String Testing ---"
 
 ;; Test basic string samples
 assert-equal #"o" last "hello" "last character of hello string"
@@ -251,7 +254,8 @@ assert-equal #"é" last "café" "last character of accented string"
 assert-equal #"试" last "测试" "last character of non-Latin string"
 
 ;; Binary testing with various lengths and patterns
-print "^/--- Binary Testing ---"
+print ""
+print "--- Binary Testing ---"
 
 ;; Test basic binary samples
 assert-equal 1 last #{01} "last byte of single-byte binary #{01}"
@@ -273,20 +277,21 @@ assert-equal 165 last #{A5A5A5A5} "last byte of alternating pattern #{A5A5A5A5} 
 ;; IP addresses and version numbers.
 
 ;; HYPOTHESIS: Tuple behavior tests
+;;
 ;; Expected behavior for LAST function with tuple data types:
-;; 
+;;
 ;; IP ADDRESS TUPLES: last 1.2.3.4 should return 4 (the final octet)
 ;;                    last 192.168.1.1 should return 1 (last octet of private IP)
 ;;                    last 127.0.0.1 should return 1 (last octet of localhost)
 ;;                    last 255.255.255.255 should return 255 (broadcast address last octet)
 ;;                    last 0.0.0.0 should return 0 (null route last octet)
-;; 
+;;
 ;; VERSION NUMBER TUPLES: last 1.0.0 should return 0 (patch version number)
 ;;                        last 2.1.3 should return 3 (patch version number)
 ;;                        last 1.0.0.0 should return 0 (final version component)
 ;;                        last 10.15.7 should return 7 (last version component)
 ;;                        last 0.1.1 should return 1 (patch version of zero major)
-;; 
+;;
 ;; COLOR VALUE TUPLES: last 255.0.0 should return 0 (blue component of pure red)
 ;;                     last 0.255.0 should return 0 (blue component of pure green)
 ;;                     last 0.0.255 should return 255 (blue component of pure blue)
@@ -298,12 +303,14 @@ assert-equal 165 last #{A5A5A5A5} "last byte of alternating pattern #{A5A5A5A5} 
 ;; This applies to IP addresses (returning the final octet), version numbers (returning
 ;; the final version component), and color values (returning the final color channel).
 
-print "^/=========================================="
+print ""
+print "=========================================="
 print "      TUPLE BEHAVIOR TESTS"
 print "=========================================="
 
 ;; IP address tuple testing
-print "^/--- IP Address Tuple Testing ---"
+print ""
+print "--- IP Address Tuple Testing ---"
 
 ;; Test standard IP address tuples
 assert-equal 4 last 1.2.3.4 "last octet of standard IPv4 address 1.2.3.4"
@@ -313,7 +320,8 @@ assert-equal 255 last 255.255.255.255 "last octet of broadcast address 255.255.2
 assert-equal 0 last 0.0.0.0 "last octet of null route address 0.0.0.0"
 
 ;; Version number tuple testing
-print "^/--- Version Number Tuple Testing ---"
+print ""
+print "--- Version Number Tuple Testing ---"
 
 ;; Test various version number formats
 assert-equal 0 last 1.0.0 "last component of three-part version 1.0.0"
@@ -323,7 +331,8 @@ assert-equal 7 last 10.15.7 "last component of larger version numbers 10.15.7"
 assert-equal 1 last 0.1.1 "last component of zero major version 0.1.1"
 
 ;; Color value tuple testing
-print "^/--- Color Value Tuple Testing ---"
+print ""
+print "--- Color Value Tuple Testing ---"
 
 ;; Test RGB color tuples
 assert-equal 0 last 255.0.0 "blue component of pure red color 255.0.0"
@@ -340,6 +349,7 @@ assert-equal 0 last 0.0.0 "blue component of black color 0.0.0"
 ;; to understand error handling and edge case behavior.
 
 ;; HYPOTHESIS: Edge case tests
+;;
 ;; Expected behavior for LAST function with edge cases and boundary conditions:
 ;;
 ;; EMPTY SERIES: last [] should return none (empty block has no elements)
@@ -368,25 +378,30 @@ assert-equal 0 last 0.0.0 "blue component of black color 0.0.0"
 ;; - Invalid data types produce clear, consistent error messages
 ;; - Error handling is graceful and informative
 
-print "^/=========================================="
+print ""
+print "=========================================="
 print "         EDGE CASE TESTS"
 print "=========================================="
 
 ;; Empty series testing
-print "^/--- Empty Series Testing ---"
+print ""
+print "--- Empty Series Testing ---"
 
 ;; Test empty blocks
 assert-equal none last [] "last of empty block []"
 
-;; Test empty strings  
+;; Test empty strings
 assert-equal none last "" "last of empty string"
 
 ;; Test empty binary data
 assert-equal none last #{} "last of empty binary #{}"
-print "^/Empty series consistently return none across all series types."
+
+print ""
+print "Empty series consistently return none across all series types."
 
 ;; Single-element series testing
-print "^/--- Single-Element Series Testing ---"
+print ""
+print "--- Single-Element Series Testing ---"
 
 ;; Test single-element blocks
 assert-equal 42 last [42] "last of single-element block [42]"
@@ -403,27 +418,29 @@ assert-equal 255 last #{FF} "last byte of single-byte binary #{FF} (255)"
 assert-equal 0 last #{00} "last byte of single-byte binary #{00} (0)"
 assert-equal 170 last #{AA} "last byte of single-byte binary #{AA} (170)"
 
-print "^/Single-element series correctly return their only element."
+print ""
+print "Single-element series correctly return their only element."
 
 ;; Invalid input testing with error handling
-print "^/--- Invalid Input Testing ---"
+print ""
+print "--- Invalid Input Testing ---"
 
 ;; Helper function to test error conditions
-test-error: funct [
+test-error: func [
     "Test that a function call produces an error"
     test-code [block!] "Code to test (as block)"
     description [string!] "Test description"
 ] [
     test-count: test-count + 1
-    
+
     error-caught?: false
     result: none
-    
-    ;; Try to execute the code and catch any errors
+
+    ; Try to execute the code and catch any errors
     set/any 'result try [
         do test-code
     ]
-    
+
     either error? result [
         error-caught?: true
         pass-count: pass-count + 1
@@ -450,6 +467,13 @@ test-error [last make object! []] "last with object input should generate error"
 
 print ""
 print "Invalid input types produce consistent error messages as expected."
+
+
+;; =============================================================================
+;; TEST EXECUTION AND SUMMARY
+;; =============================================================================
+;; This section executes all tests and provides final summary output with
+;; statistics and success rate calculation.
 
 ;; Execute all test sections and display final summary
 print-test-summary
