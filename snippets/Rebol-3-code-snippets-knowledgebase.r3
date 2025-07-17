@@ -405,14 +405,74 @@ sample-snippets: reduce [
 		desc: "Determine if the the script is running on a 64-bit operating system."
 		category: "platform"
 	]
+
+    make object! [
+        code: {DIGIT_CHARSET: protect charset {0123456789} protect 'DIGIT_CHARSET}
+        tags: ['DIGIT_CHARSET 'charset 'digit 'character 'constant 'immutable 'read-only 'bitset 'protect 'isdigit?]
+        desc: {Create an immutable constant for all standard digit characters.}
+        category: "character"
+    ]
+
+	make object! [
+		code: {isdigit?: funct [chr [char!]] [to-logic find/case DIGIT_CHARSET chr]}
+		tags: ['isdigit? 'ask 'is 'single 'digit 'character 'charset 'charset! 'group 'type]
+		desc: {Determine if a character is a digit.  Usage: `isdigit? #"1"`}
+		category: "character"
+	]
+
+    make object! [
+        code: {LETTER_CHARSET: protect charset {abcdefghijklmnopqrstuvwxyz} protect 'LETTER_CHARSET}
+        tags: ['LETTER_CHARSET 'charset 'letter 'alphabet 'character 'constant 'immutable 'read-only 'bitset 'protect 'isalpha?]
+        desc: {Create an immutable constant for all standard alphabetic letter characters.}
+        category: "character"
+    ]
+
+	make object! [
+		code: {isalpha?: funct [chr [char!]] [to-logic find LETTER_CHARSET chr]}
+		tags: ['isalpha? 'ask 'is 'single 'alphabet 'letter 'case 'insensitive 'character 'group 'type 'LETTER_CHARSET]
+		desc: {Determine if a character is an alphabetic letter.  Usage: `isalpha? #"a"`}
+		category: "character"
+	]
+
+	make object! [
+		code: {islower?: funct [chr [char!]] [to-logic find/case LETTER_CHARSET chr]}
+		tags: ['islower? 'ask 'is 'single 'alphabet 'letter 'lower 'case 'lowercase 'sensitive 'character 'group 'type 'LETTER_CHARSET]
+		desc: {Determine if a character is a lowercase alphabetic letter.  Usage: `islower? #"a"`}
+		category: "character"
+	]
+
+    make object! [
+        code: {PUNCT_CHARSET: protect charset {~`!@#$%&*()_+-={}[]|\:;'<>?,./^^"} protect 'PUNCT_CHARSET}
+        tags: ['charset 'punctuation 'characters 'constant 'immutable 'read-only 'bitset 'protect 'ispunct? 'PUNCT_CHARSET]
+        desc: {Create an immutable constant for all standard punctuation characters.}
+        category: "character"
+    ]
+
+	make object! [
+		code: {ispunct?: funct [chr [char!]] [to-logic find/case PUNCT_CHARSET chr]}
+		tags: ['ispunct? 'ask 'is 'single 'punctuation 'charset 'charset! 'symbol 'character 'group 'type 'PUNCT_CHARSET]
+		desc: "Determine if a character is a punctuation symbol. Usage: `ispunct? #";"`"
+		category: "character"
+	]
+
+	make object! [
+		code: {obj-has-word?: funct [an-obj [object!] a-word [word!]][return not none! find words-of an-obj a-word]}
+		tags: ['object 'ask 'has 'exist 'Rebol 'word 'symbol 'validate 'function 'find 'words-of]
+		desc: "Validate if a Rebol word exists in an object"
+		category: "object"
+	]
 ]
 
+;print rejoin ["Success Rate: " round/to (pass-count * 100.0) / test-count 0.1 "%"]
+
 comment {
+    category: "character"
     category: "convert"
     category: "format-data"
     category: "handle-data"
     category: "header"
     category: "limits"
+    category: "object"
     category: "output"
     category: "platform"
     category: "process-information"
