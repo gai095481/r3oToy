@@ -21,7 +21,6 @@ REBOL [
 ;; =============================================================================
 ;; These variables track the overall test execution state and are passed as
 ;; parameters to all test functions to maintain proper scoping.
-
 test-count: 0           ;; Total number of tests executed
 pass-count: 0           ;; Number of tests that passed
 fail-count: 0           ;; Number of tests that failed
@@ -32,7 +31,6 @@ all-tests-passed: true  ;; Boolean indicating overall test success
 ;; =============================================================================
 ;; Core testing infrastructure functions that provide structured test execution,
 ;; result tracking, and comprehensive output formatting with multi-line support.
-
 assert-equal: funct [
     "Compare expected and actual mold output with multi-line string handling"
     expected [string!] "Expected mold output"
