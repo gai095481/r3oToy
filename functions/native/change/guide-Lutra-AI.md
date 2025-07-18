@@ -1,4 +1,4 @@
-# The Complete CHANGE Function User Guide
+# Unofficial CHANGE Function User Guide
 
 ## Overview
 
