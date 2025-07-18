@@ -1,4 +1,4 @@
-# Rebol 3 Oldes Branch - EXTEND Function User's Guide
+# Unofficial EXTEND Function User's Guide
 
 ## Overview
 
