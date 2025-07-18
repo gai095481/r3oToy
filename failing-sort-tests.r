@@ -215,10 +215,13 @@ test-part-negative: [5 3 8 1 9 2 7]
 set/any 'part-negative-result try [sort/part copy test-part-negative -1]
 either error? part-negative-result [
     print "✅ PASSED: Part with negative count properly generates error"
+    set 'pass-count pass-count + 1
 ][
     print "❌ FAILED: Part with negative count should generate error"
     set 'all-tests-passed? false
+    set 'fail-count fail-count + 1
 ]
+set 'test-count test-count + 1
 
 ;; HYPOTHESIS: /part with length greater than series length sorts entire series
 test-part-long: [3 1 4]
@@ -333,29 +336,38 @@ test-error-skip: [1 2 3 4]
 set/any 'skip-error-result try [sort/skip copy test-error-skip 0]
 either error? skip-error-result [
     print "✅ PASSED: Sort with skip size 0 properly generates error"
+    set 'pass-count pass-count + 1
 ][
     print "❌ FAILED: Sort with skip size 0 should generate error"
     set 'all-tests-passed? false
+    set 'fail-count fail-count + 1
 ]
+set 'test-count test-count + 1
 
 ;; HYPOTHESIS: sort with negative skip size should handle gracefully
 set/any 'negative-skip-result try [sort/skip copy test-error-skip -1]
 either error? negative-skip-result [
     print "✅ PASSED: Sort with negative skip size properly generates error"
+    set 'pass-count pass-count + 1
 ][
     print "❌ FAILED: Sort with negative skip size should generate error"
     set 'all-tests-passed? false
+    set 'fail-count fail-count + 1
 ]
+set 'test-count test-count + 1
 
 ;; HYPOTHESIS: sort with incompatible compare function should handle gracefully
 bad-compare-func: function [a] [a]  ; Wrong arity
 set/any 'compare-error-result try [sort/compare copy [1 2 3] :bad-compare-func]
 either error? compare-error-result [
     print "✅ PASSED: Sort with bad compare function properly generates error"
+    set 'pass-count pass-count + 1
 ][
     print "❌ FAILED: Sort with bad compare function should generate error"
     set 'all-tests-passed? false
+    set 'fail-count fail-count + 1
 ]
+set 'test-count test-count + 1
 
 ;; ============================================================================
 ;; SECTION 14: PROBING MIXED DATA TYPES
@@ -373,9 +385,13 @@ test-mixed-types: [1 "apple" 2.5 #"b"]
 set/any 'mixed-types-result try [sort copy test-mixed-types]
 either error? mixed-types-result [
     print "✅ PASSED: Sort with incompatible mixed types generates error"
+    set 'pass-count pass-count + 1
 ][
     print "❌ UNEXPECTED: Sort with mixed types succeeded - result: " mold mixed-types-result
+    set 'all-tests-passed? false
+    set 'fail-count fail-count + 1
 ]
+set 'test-count test-count + 1
 
 ;; ============================================================================
 ;; FINAL TEST SUMMARY
