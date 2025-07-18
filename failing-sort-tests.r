@@ -376,8 +376,8 @@ assert-equal [1 1.5 2.5 3 4] mixed-numbers-result "Mixed integers and decimals s
 ;; HYPOTHESIS: sort with mixed types may have specific behavior
 test-mixed-types: [1 "apple" 2.5 #"b"]
 set/any 'mixed-types-result try [sort copy test-mixed-types]
-set/any 'mixed-types-result try [sort copy test-mixed-types]
-assert-equal true error? mixed-types-result "Sort with incompatible mixed types generates error"
+mixed-types-result: sort copy test-mixed-types
+assert-equal [1 2.5 "apple" #"b"] mixed-types-result "Sort with mixed types has a defined order"
 
 ;; ============================================================================
 ;; FINAL TEST SUMMARY
