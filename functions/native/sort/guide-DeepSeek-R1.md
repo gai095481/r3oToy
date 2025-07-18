@@ -13,6 +13,7 @@ sort series [case skip size compare comparator part range all reverse]
 - **Modifies in-place**: Original series is modified (use `copy` to preserve original)
 - **Default order**: Ascending (lexicographical for strings, numerical for numbers)
 - **Mixed types**: Numbers sort before strings (`[5 "alpha"]` not `["alpha" 5]`)
+  - Mixed types: Sorted by type (order: `integer!` < `decimal!` < `char!` < `string!`)
 - **Stability**: Preserves order of equal elements (important for multi-key sorts)
 
 ## Basic Usage
@@ -200,4 +201,3 @@ Mastering `sort` requires understanding its refinements and edge case behaviors.
 2. Specify record size when working with structured data
 3. Use `/compare` for custom ordering logic
 4. Test with diverse datasets (mixed types, duplicates, empty series)
-
