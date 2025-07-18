@@ -1,4 +1,4 @@
-# Rebol `sort` Function Comprehensive Guide
+# Rebol `sort` Function Unofficial Guide
 
 ## Introduction
 
