@@ -1,4 +1,4 @@
-# The Complete COPY Function User Guide
+# Unofficial COPY Function User Guide
 
 ## Overview
 
