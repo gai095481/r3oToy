@@ -5,6 +5,9 @@ print "• bullet item"
 print "🎉 a complete success"
 ```
 ```rebol
+print "🎯 target / match / hit"
+```
+```rebol
 print "🔒 secure / security / locked / protected"
 ```
 ```rebol
