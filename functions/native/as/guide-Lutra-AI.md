@@ -60,23 +60,26 @@ try [as string! [block]] catch [print "Error: incompatible types"]
 
 ## Memory Behavior Patterns
 
-### Pattern 1: Identity Operations Share Memory
-
-```rebol
+### Pattern 1: Identity Operations - Same Reference
+```
 original: "test"
 identical: as string! original
+print same? original identical    ;; true - exact same reference
 insert original "MODIFIED-"
-print identical  ;; "MODIFIED-test" - reflects changes.
+print identical                   ;; "MODIFIED-test" - same object.
 ```
 
-### Pattern 2: Type Conversions Create New Series
-
-```rebol
-original: "test"
+### Pattern 2: Type Conversions - New Header, Shared Data Buffer
+```
+original: "test" 
 converted: as file! original
+print same? original converted    ;; false - different series headers
 insert original "MODIFIED-"
-print converted  ;; %test - unaffected by original changes.
+print converted                   ;; %MODIFIED-test - SHARES data buffer!
+print original                    ;; "MODIFIED-test" - both affected.
 ```
+
+KEY INSIGHT: `as` creates new series headers for type safety while maintaining shared data buffers for memory efficiency.
 
 ## Type Specification Methods
 
