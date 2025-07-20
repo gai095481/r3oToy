@@ -1,7 +1,6 @@
 REBOL [
-    Title: "REBOL 3 Regular Expressions Engine"
+    Title: "REBOL 3 PCRE Lite Regular Expressions Engine"
     Date: 17-Jul-2025
-  Version: 0.1.0
     File: %regexp-engine.r3
     Author: "Claude 4 Sonnet"
 ]
@@ -205,20 +204,58 @@ TranslateRegExp: funct [
         return copy []  ;; Empty pattern matches empty string
     ]
     
+    ;; Preprocess grouped quantifiers - expand common patterns
+    preprocessed-pattern: strRegExp
+    
+    ;; Handle patterns like (\w\d\s){3} - expand to \w\d\s\w\d\s\w\d\s
+    ;; This is a simplified implementation for common cases
+    if find preprocessed-pattern "(" [
+        ;; Look for patterns like (pattern){n}
+        parse preprocessed-pattern [
+            some [
+                "(" copy group-content to ")" skip "{" copy count-str to "}" skip (
+                    ;; Try to convert count to integer
+                    count-result: none
+                    set/any 'count-result try [to integer! count-str]
+                    if all [not error? count-result count-result > 0 count-result < 10] [
+                        ;; Expand the group
+                        expanded: copy ""
+                        repeat i count-result [
+                            append expanded group-content
+                        ]
+                        ;; Replace the grouped quantifier with the expanded version
+                        group-pattern: rejoin ["(" group-content "){" count-str "}"]
+                        preprocessed-pattern: replace preprocessed-pattern group-pattern expanded
+                    ]
+                ) |
+                skip
+            ]
+        ]
+    ]
+    
     ;; Initialize result block
     blkRules: copy []
     translation-result: none
     
     ;; Wrap the entire translation process in error handling
     set/any 'translation-result try [
-        parse-success: parse strRegExp [
+        parse-success: parse/case strRegExp [
             some [
                 ;; Handle escape sequences first (before general escaping)
                 "\" [
                     "d" [
-                        "+" (append blkRules compose [some (MakeCharSet "0-9")]) |
-                        "*" (append blkRules compose [any (MakeCharSet "0-9")]) |
-                        "?" (append blkRules compose [opt (MakeCharSet "0-9")]) |
+                        "+" (
+                            digit-charset: MakeCharSet "0-9"
+                            append blkRules reduce ['some digit-charset]
+                        ) |
+                        "*" (
+                            digit-charset: MakeCharSet "0-9"
+                            append blkRules reduce ['any digit-charset]
+                        ) |
+                        "?" (
+                            digit-charset: MakeCharSet "0-9"
+                            append blkRules reduce ['opt digit-charset]
+                        ) |
                         "{" copy strCount to "}" skip (
                             quantifier-rule: ProcessQuantifierSafely strCount (MakeCharSet "0-9")
                             either quantifier-rule [
@@ -228,7 +265,10 @@ TranslateRegExp: funct [
                                 fail
                             ]
                         ) |
-                        (append blkRules MakeCharSet "0-9")
+                        (
+                            digit-charset: MakeCharSet "0-9"
+                            append blkRules digit-charset
+                        )
                     ] |
                     "w" [
                         "+" (append blkRules compose [some (MakeCharSet "0-9A-Za-z_")]) |
@@ -259,6 +299,54 @@ TranslateRegExp: funct [
                             ]
                         ) |
                         (append blkRules MakeCharSet " ^-^/")
+                    ] |
+                    "D" [
+                        "+" (append blkRules compose [some (complement MakeCharSet "0-9")]) |
+                        "*" (append blkRules compose [any (complement MakeCharSet "0-9")]) |
+                        "?" (append blkRules compose [opt (complement MakeCharSet "0-9")]) |
+                        "{" copy strCount to "}" skip (
+                            quantifier-rule: ProcessQuantifierSafely strCount (complement MakeCharSet "0-9")
+                            either quantifier-rule [
+                                append blkRules quantifier-rule
+                            ] [
+                                ;; Invalid quantifier - fail translation
+                                fail
+                            ]
+                        ) |
+                        (
+                            non-digit-charset: complement MakeCharSet "0-9"
+                            append blkRules non-digit-charset
+                        )
+                    ] |
+                    "S" [
+                        "+" (append blkRules compose [some (complement MakeCharSet " ^-^/")]) |
+                        "*" (append blkRules compose [any (complement MakeCharSet " ^-^/")]) |
+                        "?" (append blkRules compose [opt (complement MakeCharSet " ^-^/")]) |
+                        "{" copy strCount to "}" skip (
+                            quantifier-rule: ProcessQuantifierSafely strCount (complement MakeCharSet " ^-^/")
+                            either quantifier-rule [
+                                append blkRules quantifier-rule
+                            ] [
+                                ;; Invalid quantifier - fail translation
+                                fail
+                            ]
+                        ) |
+                        (append blkRules complement MakeCharSet " ^-^/")
+                    ] |
+                    "W" [
+                        "+" (append blkRules compose [some (complement MakeCharSet "0-9A-Za-z_")]) |
+                        "*" (append blkRules compose [any (complement MakeCharSet "0-9A-Za-z_")]) |
+                        "?" (append blkRules compose [opt (complement MakeCharSet "0-9A-Za-z_")]) |
+                        "{" copy strCount to "}" skip (
+                            quantifier-rule: ProcessQuantifierSafely strCount (complement MakeCharSet "0-9A-Za-z_")
+                            either quantifier-rule [
+                                append blkRules quantifier-rule
+                            ] [
+                                ;; Invalid quantifier - fail translation
+                                fail
+                            ]
+                        ) |
+                        (append blkRules complement MakeCharSet "0-9A-Za-z_")
                     ] |
                     "(" (append blkRules [collect [keep (copy [])]]) |
                     ")" (append blkRules []) |
@@ -441,19 +529,186 @@ RegExp: funct [
     either none? blkRules [
         none  ;; Translation failed, return none
     ] [
+        ;; Check if this is an exact quantifier pattern
+        is-exact-quantifier: all [
+            (length? blkRules) = 2
+            integer? blkRules/1
+            bitset? blkRules/2
+        ]
+        
         ;; Try to execute the parse with error handling
         parse-result: none
+        matched: none
         set/any 'parse-result try [
-            parse strHaystack blkRules
+            either is-exact-quantifier [
+                ;; Use anchored matching for exact quantifiers like \d{3}
+                parse strHaystack compose [
+                    copy matched (blkRules) end
+                ]
+            ] [
+                ;; Handle different rule patterns
+                either (length? blkRules) = 1 [
+                    ;; Single rule - use it directly
+                    single-rule: blkRules/1
+                    parse strHaystack [
+                        some [
+                            copy matched single-rule (break) |
+                            skip
+                        ]
+                    ]
+                ] [
+                    either (length? blkRules) = 2 [
+                        ;; Two rules - like [some bitset] for quantified patterns
+                        parse strHaystack [
+                            some [
+                                copy matched blkRules (break) |
+                                skip
+                            ]
+                        ]
+                    ] [
+                        ;; Complex multi-element patterns - like [some bitset some bitset]
+                        ;; Handle greedy matching issues with backtracking simulation
+                        either (length? blkRules) = 4 [
+                            ;; Two quantified patterns - need special handling for greedy matching
+                            ;; Try to find the pattern anywhere in the string with backtracking simulation
+                            found-match: none
+                            string-pos: strHaystack
+                            while [all [not empty? string-pos not found-match]] [
+                                ;; Try matching from this position
+                                test-match: none
+                                direct-rule: reduce ['copy 'test-match blkRules]
+                                test-result: parse string-pos direct-rule
+                                either test-match [
+                                    found-match: test-match
+                                    matched: found-match  ;; Set matched for return
+                                ] [
+                                    ;; If direct match failed, try with backtracking simulation
+                                    ;; For patterns like \w+\d+, try different split points
+                                    if all [
+                                        word? blkRules/1
+                                        bitset? blkRules/2
+                                        word? blkRules/3
+                                        bitset? blkRules/4
+                                        blkRules/1 = 'some
+                                        blkRules/3 = 'some
+                                    ] [
+                                        ;; Try different split points for greedy patterns
+                                        string-len: length? string-pos
+                                        repeat split-point (string-len - 1) [
+                                            first-part: copy/part string-pos split-point
+                                            second-part: skip string-pos split-point
+                                            
+                                            ;; Test if first part matches first pattern and second part matches second pattern
+                                            first-match: none
+                                            second-match: none
+                                            
+                                            first-result: parse first-part [
+                                                copy first-match [some blkRules/2]
+                                            ]
+                                            second-result: parse second-part [
+                                                copy second-match [some blkRules/4]
+                                            ]
+                                            
+                                            if all [first-result second-result first-match second-match] [
+                                                found-match: rejoin [first-match second-match]
+                                                matched: found-match  ;; Set the matched variable for return
+                                                break
+                                            ]
+                                        ]
+                                    ]
+                                    string-pos: next string-pos
+                                ]
+                            ]
+                            either found-match [true] [false]
+                        ] [
+                            ;; Other complex patterns - try backtracking for greedy patterns
+                            ;; Check if this might be a greedy pattern that needs backtracking
+                            has-overlapping-quantifiers: false
+                            
+                            ;; Look for patterns with multiple 'some' quantifiers that might overlap
+                            some-count: 0
+                            repeat i length? blkRules [
+                                if blkRules/:i = 'some [
+                                    some-count: some-count + 1
+                                ]
+                            ]
+                            
+                            either some-count >= 2 [
+                                ;; Try backtracking approach for patterns with multiple quantifiers
+                                found-match: none
+                                string-pos: strHaystack
+                                while [all [not empty? string-pos not found-match]] [
+                                    ;; Try direct match first
+                                    test-match: none
+                                    direct-rule: reduce ['copy 'test-match blkRules]
+                                    test-result: parse string-pos direct-rule
+                                    either test-match [
+                                        found-match: test-match
+                                        matched: found-match
+                                    ] [
+                                        ;; If direct match failed, try splitting at different points
+                                        string-len: length? string-pos
+                                        repeat split-point (string-len - 1) [
+                                            ;; Try splitting the pattern - this is a simplified approach
+                                            ;; For \w+\d+\s\w+, try \w+ vs \d+\s\w+
+                                            if some-count >= 2 [
+                                                first-part: copy/part string-pos split-point
+                                                second-part: skip string-pos split-point
+                                                
+                                                ;; Test if we can match first part with first quantifier
+                                                ;; and second part with remaining pattern
+                                                first-match: none
+                                                first-result: parse first-part [
+                                                    copy first-match [some blkRules/2]  ;; First quantified pattern
+                                                ]
+                                                
+                                                if first-result [
+                                                    ;; Build remaining pattern (everything after first quantifier)
+                                                    remaining-rules: copy skip blkRules 2
+                                                    second-match: none
+                                                    remaining-rule: reduce ['copy 'second-match remaining-rules]
+                                                    second-result: parse second-part remaining-rule
+                                                    
+                                                    if all [second-result first-match second-match] [
+                                                        found-match: rejoin [first-match second-match]
+                                                        matched: found-match
+                                                        break
+                                                    ]
+                                                ]
+                                            ]
+                                        ]
+                                        string-pos: next string-pos
+                                    ]
+                                ]
+                                either found-match [true] [false]
+                            ] [
+                                ;; No overlapping quantifiers - use manual rule approach
+                                manual-rule: reduce ['copy 'matched blkRules]
+                                parse strHaystack manual-rule
+                            ]
+                        ]
+                    ]
+                ]
+            ]
         ]
         
         either error? parse-result [
             none  ;; Parse execution failed, return none
         ] [
-            either parse-result [
-                strHaystack  ;; Match successful, return matched string
+            either is-exact-quantifier [
+                ;; For exact quantifiers, only return match if parse succeeded
+                either parse-result [
+                    either matched [matched] [false]
+                ] [
+                    false  ;; Parse failed, return false
+                ]
             ] [
-                false  ;; No match, return false
+                ;; For other patterns, return match if found
+                either matched [
+                    matched  ;; Match successful, return matched portion
+                ] [
+                    false  ;; No match, return false
+                ]
             ]
         ]
     ]
