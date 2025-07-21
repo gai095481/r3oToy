@@ -2,7 +2,7 @@ REBOL [
     Title: "REBOL 3 Regular Expressions Engine - Phase 2"
     Date: 20-Jul-2025
     File: %regexp-engine.r3
-    Author: "Enhanced by Kiro AI Assistant"
+    Author: "Claude 4 Sonnet AI Assistant"
     Version: "0.3.0"
     Purpose: "Clean production RegExp engine with backslash escaping fixes and advanced pattern matching"
     Note: "Includes fixes for exact quantifiers, mixed patterns, complex patterns and grouped quantifiers"
