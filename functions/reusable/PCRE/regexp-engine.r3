@@ -1,6 +1,6 @@
 REBOL [
     Title: "REBOL 3 Regular Expressions Engine - Phase 2"
-    Date: 20-Jul-2025
+    Date: 21-Jul-2025
     File: %regexp-engine.r3
     Author: "Claude 4 Sonnet AI Assistant"
     Version: "0.3.0"
