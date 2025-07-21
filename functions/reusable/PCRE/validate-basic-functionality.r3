@@ -8,7 +8,7 @@ REBOL [
 ]
 
 ;; Load the consolidated RegExp engine
-do %../src/regexp-engine.r3
+do %regexp-engine.r3
 
 ;;=============================================================================
 ;; SIMPLE VALIDATION HARNESS
