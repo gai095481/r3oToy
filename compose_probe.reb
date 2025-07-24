@@ -71,7 +71,7 @@ assert-equal [1 2 3] compose [(1) (1 + 1) (1 + 2)] "Simple arithmetic expression
 assert-equal [10 "hello" #c] compose [(basic-value) ("hello") (#c)] "Evaluation of different data types"
 assert-equal [a 2 c] compose [a (1 + 1) c] "Mixing literals and evaluated expressions"
 assert-equal [10 20 30] compose [(basic-value) (basic-value * 2) (basic-value * 3)] "Using a variable in expressions"
-assert-equal [true false] compose [(1 = 1) (1 = 2)] "Evaluation of logic expressions"
+assert-equal [#(true) #(false)] compose [(1 = 1) (1 = 2)] "Evaluation of logic expressions"
 
 
 ;;;============================================================================
@@ -109,25 +109,25 @@ assert-equal [1 [2 [x y z]] 3] compose/deep/only [1 [2 (block-to-insert)] 3] "/d
 
 
 ;;;============================================================================
-;;; SECTION 4: PROBING THE /INTO REFINEMENT
+;;; SECTION 4: PROBING THE /INTO REFINEMENT (CORRECTED)
 ;;;============================================================================
-print "^/--- SECTION 4: PROBING THE /INTO REFINEMENT ---"
-; Hypothesis: `compose/into` will append the results of the composition into
-; a specified target block, modifying that block in place.
+print "^/--- SECTION 4: PROBING THE /INTO REFINEMENT (CORRECTED) ---"
+; Hypothesis: `compose/into` will PREPEND the results of the composition
+; into a specified target block, modifying it in place. The function returns
+; the state of the target block BEFORE the modification.
 
 target-block-one: [a b]
-compose/into [c (1 + 2) d] target-block-one
-assert-equal [a b c 3 d] target-block-one "/into appends composed elements to an existing block"
+original-state-one: copy target-block-one
+return-val-one: compose/into [c (1 + 2) d] target-block-one
+assert-equal [c 3 d a b] target-block-one "/into PREPENDS composed elements to the target block"
+assert-equal original-state-one return-val-one "/into returns the ORIGINAL state of the target block"
 
-target-block-two: [m]
-return-val: compose/into [n o] target-block-two
-assert-equal [m n o] target-block-two "Verifying modification of the 'into' block"
-assert-equal target-block-two return-val "/into should return the modified target block"
 
-; Test /into with /deep
-target-block-three: [x]
-compose/deep/into [y [z (99 + 1)]] target-block-three
-assert-equal [x y [z 100]] target-block-three "/into works correctly with /deep"
+target-block-two: [x]
+original-state-two: copy target-block-two
+return-val-two: compose/deep/into [y [z (99 + 1)]] target-block-two
+assert-equal [y [z 100] x] target-block-two "/into with /deep also PREPENDS elements"
+assert-equal original-state-two return-val-two "/into with /deep also returns the ORIGINAL state"
 
 
 ;;;============================================================================
@@ -154,10 +154,10 @@ assert-equal none compose none "Probing compose with none"
 assert-equal [100] compose [(10 * 10)] "A single paren in a block"
 
 ; Hypothesis 5: A paren can evaluate to `none` and `none` can be composed.
-assert-equal [a none b] compose [a (if false [c]) b] "A paren evaluating to none is inserted"
+assert-equal [a #(none) b] compose [a (if false [c]) b] "A paren evaluating to none is inserted"
 
 ; Hypothesis 6: Test composing just `none`
-assert-equal [none] compose [(none)] "Composing a block containing just `none`"
+assert-equal [#(none)] compose [(none)] "Composing a block containing just `none`"
 
 ;;;============================================================================
 ;;; SCRIPT EXECUTION SUMMARY
