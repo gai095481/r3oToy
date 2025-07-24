@@ -110,6 +110,78 @@ print result-ref   ; Output: [New 3 Item existing items] (Reference to modified 
 6. **`/into` Target Type**: The `target-series` for `/into` must be a proper, modifiable series. Using `()` as the target will cause an error.
 7. **Return Value of `/into`**: It returns a reference to the head of the (now modified) `target-series`. If the target was not at its head position before the call, the returned reference might point to a different part of the series than expected, although it's still the same series context.
 
+---
+Based on the diagnostic probe script and its findings for Rebol/Bulk 3.19.0, here are some common pitfalls when using the `compose` function and how to avoid them:
+
+1. **Misunderstanding Block Splicing (Default Behavior):**
+    
+    * **Pitfall:** Expecting a block returned by a parenthesized expression to be inserted as a single nested block.
+    * **Example:**
+        ```rebol
+        items: [A B]
+        result: compose [Start (items) End]
+        print result ; Incorrectly expected: [Start [A B] End]
+                     ; Actual output:     [Start A B End]
+        ```
+    * **Avoidance:** Use the `/only` refinement when you want the block result inserted as a single element.
+        ```rebol
+        items: [A B]
+        result: compose/only [Start (items) End]
+        print result ; Correct output: [Start [A B] End]
+        ```
+2. **Incorrect Assumptions about `/into` Behavior:**
+    
+    * **Pitfall 1: Assuming `/into` appends.** The `/into` refinement **prepends** the composed result to the beginning of the target series.
+        * **Example:**
+            ```rebol
+            target: [existing]
+            compose/into [new] target
+            print target ; Incorrectly expected: [existing new]
+                         ; Actual output:     [new existing]
+            ```
+        * **Avoidance:** Remember that `compose/into` prepends. Plan your target block's initial content accordingly, or adjust your logic to account for the prepended result.
+    * **Pitfall 2: Using invalid target types.** Attempting to use `()` (a `paren!` *value*) as the target for `/into` is invalid because it's not a modifiable series context in the way a variable holding a `block!` or `paren!` series is.
+        * **Example (Error):**
+            ```rebol
+            paren-target: () ; This is just the value ()
+            compose/into [item] paren-target ; Error: paren-target needs a value / Invalid target
+            ```
+        * **Avoidance:** Use a variable that holds a modifiable `block!` or `paren!` series as the target.
+            ```rebol
+            target-series: [] ; An empty block series
+            compose/into [item] target-series ; Correct
+            print target-series ; Output: [item]
+            ```
+3. **Confusing Return Value of `/into`:**
+    
+    * **Pitfall:** Expecting `compose/into` to return the modified target *series content* or a *copy*. It returns a *reference* to the (head of the) *same series object* that was passed as the target.
+    * **Avoidance:** Understand that `compose/into source target` modifies `target` itself and returns a reference to `target` (specifically, its head after modification). Use the target variable directly if needed, or be aware that modifying the returned reference modifies the original target.
+4. **Misinterpreting Handling of `none` and `unset`:**
+    
+    * **Pitfall 1: Expecting `none` values to be omitted.** If a parenthesized expression evaluates to the `none!` value (`#(none)`), this value is **included** in the resulting block.
+        * **Example:**
+            ```rebol
+            result: compose [Value (none)]
+            print result ; Incorrectly expected: [Value] or [Value none as word]
+                         ; Actual output:     [Value #(none)]
+            ```
+        * **Avoidance:** Be aware that `none` is a value and gets included. If omission is desired, ensure the expression evaluates to `unset!` (e.g., using `()`, `print`, or `do []`).
+    * **Pitfall 2: Not understanding `unset` omission.** Values of type `unset!` (distinct from `none!`) are correctly omitted from the composed result.
+        * **Avoidance:** This behavior is generally as expected, but it's good to know *why* empty parens `()` disappear – they evaluate to `unset!`.
+5. **Incorrect Expectations for Non-Block Inputs:**
+    
+    * **Pitfall:** Expecting `compose` to process or evaluate non-`series!` inputs like strings or numbers in a special way.
+    * **Example:**
+        ```rebol
+        str: "hello"
+        result: compose str
+        print result ; Output is just "hello", unchanged
+        ```
+    * **Avoidance:** Remember that `compose` primarily operates on `series!` types (like `block!`, `paren!`). If the input isn't a series, it's returned as-is without any paren evaluation attempted.
+
+By being mindful of these points – especially the default splicing behavior, the prepending nature of `/into`, and the distinction between `none!` and `unset!` handling – you can use `compose` effectively and avoid common mistakes.
+
+---
 ## Examples for Novices
 
 ```rebol
