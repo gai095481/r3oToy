@@ -50,21 +50,33 @@ combine [1 [2 [3 4] 5] 6]        ;; => "123456"
 
 ## Default Ignored Types
 
-**IMPORTANT:** The documentation is incorrect about default ignored types.
-
-**Actually Ignored by Default:**
+**Ignored by Default:**
 
 * `unset!` values
 * `error!` values
 * `any-function!` values (functions, natives, etc.)
 
-**NOT Ignored by Default (contrary to documentation):**
+**How to properly ignore `none` values**
 
-* `none!` values → converted to string "none"
+* `none!` values → converted to string "none".
 
 ```rebol
-combine [1 none 2]               ;; => "1none2" (NOT "12")
-combine [1 :print 2]             ;; => "12" (function ignored)
+combine/ignore reduce [1 none 2] make typeset! [none!]
+;;== "12"
+
+combine/ignore [1 #[none] 2] make typeset! [none!]
+;;== "12"
+
+;; This works because get-words are resolved by the `combine` function:
+combine/ignore [1 :none 2] make typeset! [none!]
+;;== "12"
+```
+The default ignore set (`make typeset! [none! unset! error! any-function!]`), works the same way: it only filters the value `#[none]`, not the word `none`.
+
+An incorrect method to ignore `none` values:
+```rebol
+combine/ignore [1 none 2] make typeset! [none!]
+;;== "1none2"
 ```
 
 ## Type Formatting Behavior
