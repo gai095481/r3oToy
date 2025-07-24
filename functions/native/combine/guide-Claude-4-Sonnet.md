@@ -5,7 +5,7 @@
 The `combine` function is a powerful tool for merging blocks of values into strings or other series types.
 It evaluates expressions, handles multiple data types and provides fine-grained control over output formatting.
 
-**Signature:**`COMBINE data /with delimiter /into out /ignore ignored /only`
+**Function Signature:**`COMBINE data /with delimiter /into out /ignore ignored /only`
 
 ## Basic Usage
 
@@ -77,10 +77,22 @@ combine [1 none 3]                               ;; => "1none3" (none NOT ignore
 ;; Custom filtering:
 custom-ignored: make typeset! [integer!]
 combine/ignore [1 "text" 3] custom-ignored      ;; => "text"
+```
 
-;; Include everything:
-empty-ignored: make typeset! []
-combine/ignore [1 none 3] empty-ignored         ;; => "1none3"
+**How to properly ignore `none` values**
+
+```rebol
+* `none!` values → converted to string "none".
+
+combine/ignore reduce [1 none 2] make typeset! [none!]
+;;== "12"
+
+combine/ignore [1 #[none] 2] make typeset! [none!]
+;;== "12"
+
+;; This works because get-words are resolved by the `combine` function:
+combine/ignore [1 :none 2] make typeset! [none!]
+;;== "12"
 ```
 
 ### `/only` - Block Preservation
@@ -158,22 +170,12 @@ combine ["café" "naïve" "résumé"]  ;; => "cafénaïverésumé"
 
 ## Common Pitfalls & Solutions
 
-### Pitfall 1: Expecting `none` to be Ignored by Default
-
-**Problem:**`none` values appear in output
-
-```rebol
-combine [1 none 3]  ;; => "1none3" (not "13" as might be expected)
-```
-
-**Solution:** Use `/ignore` with a custom typeset if you want to filter `none`:
-
 ```rebol
 ignore-none: make typeset! [none!]
 combine/ignore [1 none 3] ignore-none  ;; => "13"
 ```
 
-### Pitfall 2: Misunderstanding `/into` Behavior
+### Pitfall: Misunderstanding `/into` Behavior
 
 **Problem:** Expecting string concatenation with block targets
 
@@ -189,7 +191,7 @@ target: copy ""
 combine/into [1 2 3] target  ;; => "123"
 ```
 
-### Pitfall 3: Block Processing vs. Block Preservation
+### Pitfall: Block Processing vs. Block Preservation
 
 **Problem:** Nested blocks processed when you want them preserved
 
@@ -203,7 +205,7 @@ combine [[a b] [c d]]        ;; => "abcd" (recursive processing)
 combine/only [[a b] [c d]]   ;; => "[a b][c d]"
 ```
 
-### Pitfall 4: Delimiter Placement with `/into`
+### Pitfall: Delimiter Placement with `/into`
 
 **Problem:** Unexpected delimiter placement
 
@@ -221,7 +223,6 @@ combine/with/into [1 2] "," target  ;; => ["start" "," 1 "," 2] (delimiter befor
 2. **Use `/only` Judiciously:** Only when you specifically want blocks preserved as single values
 3. **Validate Your Target:** When using `/into`, ensure your target series type matches expectations
 4. **Handle Errors Gracefully:** Wrap in `try` blocks when processing untrusted data with expressions
-5. **Document Your Typesets:** When using custom `/ignore` typesets, clearly document what's being filtered
 
 ---
 
@@ -233,7 +234,6 @@ combine/with/into [1 2] "," target  ;; => ["start" "," 1 "," 2] (delimiter befor
 | With delimiter              | `combine/with [1 2 3] ","`                        | `"1,2,3"`            |
 | Into block (preserve types) | `combine/into [1 2] copy []`                      | `[1 2]`              |
 | Into string                 | `combine/into [1 2] copy ""`                      | `"12"`               |
-| Ignore specific types       | `combine/ignore [1 "a"] make typeset! [integer!]` | `"a"`                |
 | Preserve blocks             | `combine/only [[a] [b]]`                          | `"[a][b]"`           |
 | Expression evaluation       | `combine [1 (1 + 1) 3]`                           | `"1 2 3"`            |
 | Get-word resolution         | `combine [1 :var 3]`                              | Depends on`var`value |
