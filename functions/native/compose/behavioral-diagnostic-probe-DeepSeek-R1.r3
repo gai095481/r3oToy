@@ -60,7 +60,7 @@ test-target: copy []
 test-string: "a(b)c"
 test-empty: []
 
-print "===== BEGIN COMPOSE TESTS (Corrected v2.0) ====="
+print "===== BEGIN COMPOSE TESTS (Final v3.1) ====="
 
 ;; === Hypothesis 1: Basic Composition ===
 comment {
@@ -94,19 +94,19 @@ assert-equal [a 1 2 3 b] compose [a (test-insert) b] "Without /only: block splic
 assert-equal [a [1 2 3] b] compose/only [a (test-insert) b] "With /only: block inserted whole"
 assert-equal [[1 2 3]] compose/only [(test-insert)] "Single block insertion"
 
-;; === Hypothesis 4: /INTO Refinement (Corrected) ===
+;; === Hypothesis 4: /INTO Refinement ===
 comment {
-    Corrected behavior based on test evidence:
-    - Inserts composed result at CURRENT position (head by default)
+    Confirmed behavior:
+    - Inserts composed result at current position (head by default)
     - Returns target block at position AFTER insertion
     - Must use HEAD to get full modified block
 }
 target-block: copy [x y]
 compose-result: compose/into [a (1 + 2)] target-block
-assert-equal [a 3 x y] head target-block "/into: inserts at current position (head)"
+assert-equal [a 3 x y] head target-block "/into: inserts at current position"
 assert-equal [x y] compose-result "/into: returns target at new position"
 
-;; === Hypothesis 5: Refinement Combinations (Corrected) ===
+;; === Hypothesis 5: Refinement Combinations ===
 comment {
     Confirmed behavior:
     - /deep and /only work together as expected
@@ -115,7 +115,7 @@ comment {
 assert-equal [a [1 2 3] b] compose/deep/only [a (test-insert) b] "/deep/only: no effect on flat"
 assert-equal [a [b [1 2 3]] c] compose/deep/only [a [b (test-insert)] c] "/deep/only: nested block inserted"
 
-;; Test combination with /into (corrected)
+;; Test combination with /into
 target-combo: copy [prefix]
 compose-result: compose/deep/only/into [a [b (test-insert)] c] target-combo
 assert-equal [a [b [1 2 3]] c prefix] head target-combo "/deep/only/into: full block content"
@@ -131,13 +131,22 @@ assert-equal [] compose test-empty "Empty input block"
 assert-equal [""] compose [""] "String in block"
 assert-equal [3] compose [(do [1 + 2])] "DO in paren works"
 
-;; === Error Case Testing (Corrected) ===
+;; === Hypothesis 7: Non-block Input Handling ===
 comment {
     Confirmed behavior:
-    - Non-block inputs cause errors
-    - /into requires block argument
+    - Non-block inputs are accepted and returned unchanged
+    - Strings, integers, decimals, and issues handled
 }
+assert-equal "a(b)c" compose "a(b)c" "String input returned unchanged"
+assert-equal 123 compose 123 "Integer input returned unchanged"
+assert-equal 3.14 compose 3.14 "Decimal input returned unchanged"
+assert-equal #valid-issue compose #valid-issue "Issue input returned unchanged"
 
+;; === Error Case Testing ===
+comment {
+    Confirmed behavior:
+    - /into refinement requires block argument
+}
 assert-equal true error? try [compose/into [a] 'not-a-block] "/into with non-block causes error"
 
 ;; === Final Test Summary ===
