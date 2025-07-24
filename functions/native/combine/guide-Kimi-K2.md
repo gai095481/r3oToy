@@ -4,7 +4,7 @@
 
 ---
 
-### 1. The 10-Second Version
+### Overview
 
 The `combine` function walks through a block, turns every value into text (or keeps the original datatype if you use `/into`), and scrunches the pieces together.
 
@@ -15,7 +15,7 @@ The `combine` function walks through a block, turns every value into text (or ke
 
 ---
 
-### 2. Quick-start Cheat Sheet
+### Quick-start Cheat Sheet
 
 | What you want | Call | Result |
 |---------------|------|--------|
@@ -27,7 +27,7 @@ The `combine` function walks through a block, turns every value into text (or ke
 
 ---
 
-### 3. Core Behavior (What the REPL Proved)
+### Core Behavior (What the REPL Proved)
 
 | Item | Evidence-Based Truth |
 |------|----------------------|
@@ -37,7 +37,6 @@ The `combine` function walks through a block, turns every value into text (or ke
 | **Paren `()`** | **Evaluated** before processing (`(3 + 1) → 4`). |
 | **Get-word `:`** | **Evaluated** (`:my-var` → value of `my-var`). |
 | **Ignored by default** | `unset!`, `error!`, any-function! (but **NOT `none!`**). |
-| **None values** | Rendered as the literal word `"none"` unless you add `none!` to `/ignore`. |
 | **Datatype quirks** | 
 Binary `#{}` loses the `#{}` wrapper.
 Issue `#abc` loses the `#`.
@@ -46,7 +45,7 @@ File `%f` loses `%`.
 
 ---
 
-### 4. Refinements – The Complete Map
+### Refinements – The Complete Map
 
 #### `/with delimiter`
 
@@ -65,6 +64,22 @@ Adds the delimiter **between** items only when more than one item survives filte
 - **You must supply a full typeset**: `make typeset! [integer! string!]`.
 - `none!` **cannot** be ignored in practice—`combine` still prints `"none"` even if you add `none!` to the set.
 
+**How to properly ignore `none` values**
+
+* `none!` values → converted to string "none".
+
+```rebol
+combine/ignore reduce [1 none 2] make typeset! [none!]
+;;== "12"
+
+combine/ignore [1 #[none] 2] make typeset! [none!]
+;;== "12"
+
+;; This works because get-words are resolved by the `combine` function:
+combine/ignore [1 :none 2] make typeset! [none!]
+;;== "12"
+```
+
 #### `/only`
 
 - Treats an entire sub-block as **one value** instead of flattening it.
@@ -72,7 +87,7 @@ Adds the delimiter **between** items only when more than one item survives filte
 
 ---
 
-### 5. Novice Traps & How to Dodge Them
+### Novice Traps & How to Dodge Them
 
 | Trap | Symptom | Fix |
 |------|---------|-----|
@@ -83,7 +98,7 @@ Adds the delimiter **between** items only when more than one item survives filte
 | **`/ignore` seems to ignore you** | You forgot to build a full typeset: `make typeset! [integer!]`. |
 
 
-### 6. Idiomatic Patterns
+### Idiomatic Patterns
 
 ```rebol
 ;; 1. Safe concat that skips NONE and errors
@@ -107,7 +122,7 @@ json-chunks: []
 combine/only/into [["a" 1] ["b" 2]] json-chunks
 ```
 
-### 7. Summary Flowchart
+### Summary Flowchart
 
 ```
 Input block
