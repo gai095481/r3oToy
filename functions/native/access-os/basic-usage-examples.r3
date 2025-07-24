@@ -4,15 +4,12 @@ REBOL []
 ;; retrieving and setting user IDs, group IDs, and process IDs, as well as sending termination signals to processes.
 ;;
 ;; USAGE:
-;;
 ;; `access-os` FIELD
 ;;
 ;; ARGUMENTS:
-;;
 ;; FIELD         [word!]  Valid words: 'uid, 'euid, 'gid, 'egid, 'pid.
 ;;
 ;; REFINEMENTS:
-;;
 ;; /set          To set or kill pid (signal 15)
 ;; VALUE        [integer! block!] Argument, such as 'uid, 'gid, or 'pid (in which case, it can be a block with the signal number).
 ;;
@@ -99,8 +96,88 @@ print rejoin ["User ID: " access-os 'uid " Group ID: " access-os 'gid]
 ;; Note: Probably unnecessary since IDs are typically numbers without whitespace.
 print ["Trimmed User ID:" trim to-string access-os 'uid]
 
-;; Validation Suite
-;; Verify the functionality of the examples:
+
+
+;; `access-os` is a native function in Rebol 3 to provide access to various operating system functions such as
+;; retrieving and setting user IDs, group IDs, and process IDs, as well as sending termination signals to processes.
+;;
+;; USAGE:
+;;
+;; `access-os` FIELD
+;;
+;; ARGUMENTS:
+;;
+;; FIELD         [word!]  Valid words: 'uid, 'euid, 'gid, 'egid, 'pid.
+;;
+;; REFINEMENTS:
+;;
+;; /set          To set or kill pid (signal 15)
+;; VALUE        [integer! block!] Argument, such as 'uid, 'gid, or 'pid (in which case, it can be a block with the signal number).
+;;
+;; DESCRIPTION:
+;; Provide access to OS-level identifiers and process control.  Retrieval operations are safe, but setting IDs or
+;; killing processes requires elevated permissions.
+;;
+;; RETURNS:
+;; [integer!] for ID retrieval; varies for /set operations.
+
+;; Helper function to convert a decimal integer to its binary string representation
+decimal-to-binary: function [
+    "Converts an integer to its binary string representation (e.g., 10 -> '1010')"
+    n [integer!] "The integer to convert"
+][
+    if n = 0 [return "0"]
+    digits: copy []
+    while [n > 0] [
+        insert digits to-string mod n 2
+        n: to-integer n / 2 ; Ensure integer division
+    ]
+    join "" reverse digits
+]
+
+;; --- Previously Shown Examples (for context) ---
+user-ID: access-os 'uid
+print ["User ID of the current process:" user-ID]
+print ["Effective User ID of the current process:" access-os 'euid]
+print ["Group ID of the current process:" access-os 'gid]
+print ["Effective Group ID of the current process:" access-os 'egid]
+print ["Process ID of the current process:" access-os 'pid]
+print ["User ID in Hexadecimal:" to-hex access-os 'uid]
+print rejoin ["Process ID at " now/time ": " access-os 'pid]
+print ["Is User ID even?" either even? access-os 'uid ["Yes"] ["No"]]
+
+;; Example: Check if the current process is running with root privileges (UID = 0).
+print ["^/--- Example: Checking for Root Privileges ---"]
+is-root?: (access-os 'uid) = 0
+print ["Is the script running as root (UID=0)? " either is-root? ["Yes"] ["No"]]
+
+;; Exampl: Store Process Information for Later Use (e.g., logging, debugging)
+print ["^/--- Example: Storing Process Information ---"]
+process-info: context [
+    uid: access-os 'uid
+    gid: access-os 'gid
+    pid: access-os 'pid
+    start-time: now
+]
+print ["Process Info Context:" mold process-info]
+
+;; Example: Use access-os within a conditional to perform an action based on UID.
+print ["^/--- Example: Conditional Action Based on UID ---"]
+if (access-os 'uid) = 1000 [ ; Assuming UID 1000 is a specific user
+    print "Hello, User 1000! Special greeting for you."
+]
+
+;; Example: Combine access-os with error handling for robust scripts.
+print ["^/--- Example: Robust access-os Usage ---"]
+retrieve-uid-result: try [my-uid: access-os 'uid]
+either error? retrieve-uid-result [
+    print "Error retrieving UID. Using default value."
+    my-uid: -1 ; Default or fallback value
+] [
+    print ["Successfully retrieved UID:" my-uid]
+]
+
+;; --- Validation Suite (Updated) ---
 test-access-os: function [] [
     tests: copy []
     append tests [
@@ -110,7 +187,9 @@ test-access-os: function [] [
         "Retrieve EGID" [integer? access-os 'egid]
         "Retrieve PID" [integer? access-os 'pid]
         "Binary Conversion" [string? decimal-to-binary 10]
+        "Even UID Check" [logic? even? access-os 'uid] ; Basic test for even?
     ]
+    print ["^/--- Validation Suite ---"]
     foreach [name test] tests [
         print reform ["Test:" name either do test ["✅ PASSED"] ["❌ FAILED"]]
     ]
