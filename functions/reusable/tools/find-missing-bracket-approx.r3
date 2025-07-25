@@ -1,5 +1,5 @@
 REBOL [
-    Title: "Rebol 3 Missing Square Bracket Finder (Report Opening Bracket) - Fixed Helpers"
+    Title: "Rebol 3 Missing Square Bracket Finder (Report Opening Bracket) - Fixed Helpers & Unless"
     Author: "Qwen 3 Coder"
     File: %find-missing-bracket-approx.r3
     Date:   25-Jul-2025
@@ -11,13 +11,14 @@ REBOL [
         Supports UTF-8 and common Unicode text files.
         Reports the location of the opening bracket(s) that are missing their closing match.
         Complies with r3oToy Rebol style guide.
-        Uses fixed and enhanced helper functions.
+        Uses fixed and enhanced helper functions. Uses `unless` for cleaner conditionals.
+        Improved CLI argument parsing.
     }
     Usage: { r3 find-missing-brackets.r3 <script-file.r3> }
 ]
 
 ; --- FIXED & ENHANCED Helper Functions ---
-
+; (These functions remain the same as in the previous version)
 eprt: function [
     {Write any Rebol value to the standard error stream (stderr).
     Writes any Rebol value to stderr with optional newline suppression.
@@ -130,25 +131,50 @@ read-text-file: function [
         ]
     ]
 ]
+; --- END FIXED & ENHANCED Helper Functions ---
 
 
-; --- 1. Argument Validation (FR-2) ---
-script-file-arg: system/script/args
-either any [script-file-arg = none script-file-arg = ""] [
-    print-error ["Error: No script file provided."]
-    print-usage
-    quit/return 1
-] [
-    script-file: to-file script-file-arg
+; --- 1. Improved Argument Validation (FR-2) ---
+script-args-block: any [system/script/args []] ; Ensure args is always a block
+if not block? script-args-block [
+    ; If system/script/args was a string, split it by spaces into a block
+    script-args-block: split script-args-block " "
+]
+; Trim whitespace from each argument and remove empty strings
+script-args-block: collect [
+    foreach arg script-args-block [
+        arg: trim arg
+        if not empty? arg [keep arg]
+    ]
 ]
 
+arg-count: length? script-args-block
+
+either arg-count = 1 [
+    ; Correct number of arguments: proceed
+    script-file-string: first script-args-block
+    script-file: to-file script-file-string
+][
+    ; Incorrect number of arguments: report error and quit
+    either arg-count = 0 [
+        print-error ["Error: No script file provided."]
+    ][
+        print-error ["Error: Too many arguments provided."]
+    ]
+    print-usage
+    quit/return 1
+]
+; --- End Argument Validation ---
+
+
 ; --- 2. Input Handling & File Access (FR-1) ---
-either exists? script-file [
-    ; File exists, proceed
-] [
+; FIXED: Replaced `either [...] []` with `unless`
+unless exists? script-file [
     print-error ["Error: File '" script-file "' does not exist."]
     quit/return 1
 ]
+; If we reach here, script-file exists.
+
 
 ; --- Robust File Reading (Handles Binary/UTF-8) - FIXED/ENHANCED ---
 ; Replaced original inline logic with call to new helper function.
@@ -160,7 +186,9 @@ if error? content [
      quit/return 1
 ]
 ; If no error, 'content' is now the string content of the file.
-; --- State Tracking Variables ---
+
+
+; --- 3. State Tracking Variables ---
 bracket-stack: make block! 100 ; Stores [start-line start-col]
 current-line: 1
 current-col: 1
@@ -172,6 +200,7 @@ in-brace-string: false
 brace-string-level: 0
 in-comment: false
 error-found: false
+
 
 ; --- 4. Main Parsing Loop (FR-3) ---
 while [pos <= len] [
@@ -188,14 +217,14 @@ while [pos <= len] [
         ]
     ]
 
-    either in-comment [
+    ; FIXED: Replaced several `either [...] [continue] [...] [continue]` with `unless`
+    if in-comment [
         pos: pos + 1
         continue
-    ] [
-        ; Not in comment
     ]
+    ; Not in comment
 
-    either in-double-quote-string [
+    if in-double-quote-string [
         either all [
             char = #"^""
             (pos + 1) <= len
@@ -205,82 +234,79 @@ while [pos <= len] [
             current-col: current-col + 2
             continue
         ] [
-            either char = #"^"" [
+            if char = #"^"" [
                 in-double-quote-string: false
-            ] [
-                ; Other chars in string
             ]
+            ; Other chars in string
         ]
         pos: pos + 1
         continue
-    ] [
-        ; Not in double quote string
     ]
+    ; Not in double quote string
 
-    either in-brace-string [
-        either char = #"{" [
-            brace-string-level: brace-string-level + 1
-        ] [
-            either char = #"}" [
+    if in-brace-string [
+        case [
+            char = #"{" [
+                brace-string-level: brace-string-level + 1
+            ]
+            char = #"}" [
                 brace-string-level: brace-string-level - 1
-                either brace-string-level = 0 [
+                if brace-string-level = 0 [
                     in-brace-string: false
-                ] [
-                    ; Nested
                 ]
-            ] [
-                ; Other chars in brace string
+                 ; Nested or still inside
             ]
+            ; Other chars in brace string
         ]
         pos: pos + 1
         continue
-    ] [
-        ; Not in brace string
     ]
+    ; Not in brace string
 
-    either char = #"^"" [
-        in-double-quote-string: true
-        pos: pos + 1
-        continue
-    ] [
-        either char = #"{" [
+    ; Main character processing logic
+    case [
+        char = #"^"" [
+            in-double-quote-string: true
+            pos: pos + 1
+        ]
+        char = #"{" [
             in-brace-string: true
             brace-string-level: 1
             pos: pos + 1
-            continue
-        ] [
-            either char = #";" [
-                in-comment: true
-                pos: pos + 1
-                continue
-            ] [
-                case [
-                    char = #"[" [
-                        append/only bracket-stack reduce [current-line current-col]
-                    ]
-                    char = #"]" [
-                        either empty? bracket-stack [
-                            print-error [
-                                "Unexpected closing bracket ']' found at Line " current-line
-                                " Column " current-col "."
-                            ]
-                            error-found: true
-                            break
-                        ] [
-                            take/last bracket-stack
-                        ]
-                    ]
+        ]
+        char = #";" [
+            in-comment: true
+            pos: pos + 1
+        ]
+        char = #"[" [
+            append/only bracket-stack reduce [current-line current-col]
+            pos: pos + 1
+        ]
+        char = #"]" [
+            either empty? bracket-stack [
+                print-error [
+                    "Unexpected closing bracket ']' found at Line " current-line
+                    " Column " current-col "."
                 ]
+                error-found: true
+                break
+            ] [
+                take/last bracket-stack
                 pos: pos + 1
             ]
         ]
+        true [
+             ; Any other character
+             pos: pos + 1
+        ]
     ]
-]
+    ; End Main character processing logic
+] ; End while loop
+
 
 ; --- 5. Final Check after Parsing (FR-4) - REPORT OPENING BRACKET LOCATIONS ---
-either error-found [
-    ; Error already reported
-] [
+; FIXED: Replaced `either error-found [...] [...]` with `unless`
+unless error-found [
     either empty? bracket-stack [
         print "No unmatched square brackets found." ; Standard output (FR-5.4)
     ] [
@@ -306,9 +332,13 @@ either error-found [
                 ; Ignore snippet error
             ]
         ]
-        error-found: true
+        error-found: true ; Set flag as errors are now reported
     ]
 ]
+; If error-found is true, errors were already reported.
+
 
 ; --- 6. Exit Status (FR-6) ---
+; FIXED: Replaced `either error-found [...] [...]` with `either` as both branches are needed.
+; Using `either` here is appropriate because we need distinct actions for true/false.
 either error-found [quit/return 1] [quit/return 0]
