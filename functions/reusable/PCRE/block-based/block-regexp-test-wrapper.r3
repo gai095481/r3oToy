@@ -1,6 +1,6 @@
 REBOL [
     Title: "REBOL 3 Block-Based Regular Expressions Engine - Test Wrapper Module"
-    Date: 20-Jul-2025
+    Date: 27-Jul-2025
     File: %block-regexp-test-wrapper.r3
     Author: "AI Assistant"
     Version: "2.0.0"
@@ -197,7 +197,7 @@ BenchmarkBlockVsString: funct [
         ]
         
         ;; Benchmark string-based engine (if available)
-        if string-engine-available [
+        either string-engine-available [
             string-start: now/time
             string-error: none
             repeat i iterations [
@@ -208,9 +208,9 @@ BenchmarkBlockVsString: funct [
             test-detail/string-time: now/time - string-start
             test-detail/string-success: not error? string-error
             
-            if test-detail/string-success [
+            either test-detail/string-success [
                 benchmark-results/string-successes: benchmark-results/string-successes + 1
-            ] else [
+            ] [
                 benchmark-results/string-failures: benchmark-results/string-failures + 1
             ]
             
@@ -227,7 +227,7 @@ BenchmarkBlockVsString: funct [
                     test-detail/improvement-factor: string-seconds / block-seconds
                 ]
             ]
-        ] else [
+        ] [
             ;; No string engine available - use block engine time as baseline
             test-detail/string-time: test-detail/block-time
             test-detail/string-result: test-detail/block-result
@@ -365,14 +365,14 @@ ValidateBlockTokens: funct [
             validation-result/rule-generation-successful: true
             
             ;; Check for error markers in rules
-            if all [
+            either all [
                 block? validation-result/rules
                 not empty? validation-result/rules
                 validation-result/rules/1 = 'error
             ] [
                 append validation-result/validation-errors "Rule generation produced error marker"
                 validation-result/rule-generation-successful: false
-            ] else [
+            ] [
                 validation-result/rule-count: length? validation-result/rules
             ]
         ]
@@ -456,9 +456,9 @@ PrintBenchmarkResults: funct [
     print ["String Engine Average Time:" benchmark-results/string-average-time]
     print ["Performance Improvement Factor:" benchmark-results/performance-improvement]
     
-    if benchmark-results/performance-improvement > 1.0 [
+    either benchmark-results/performance-improvement > 1.0 [
         print ["✅ Block engine is" benchmark-results/performance-improvement "times faster"]
-    ] else [
+    ] [
         print ["⚠️  Block engine performance needs optimization"]
     ]
 ]
