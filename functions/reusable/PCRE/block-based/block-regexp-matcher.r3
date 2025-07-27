@@ -2,8 +2,8 @@ REBOL [
     Title: "REBOL 3 Block-Based Regular Expressions Engine - Block RegExp Matcher Module"
     Date: 20-Jul-2025
     File: %block-regexp-matcher.r3
-    Author: "Enhanced by Kiro AI Assistant"
-    Version: "1.0.0"
+    Author: "AI Assistant"
+    Version: "2.0.0"
     Purpose: "Execute pattern matching using block-generated parse rules with enhanced capabilities"
     Note: "Enhanced matching with block-based rules, optimized quantifier processing, and improved error detection"
     Exports: [ExecuteBlockMatch HandleBlockQuantifiers HandleComplexBlockPatterns]
@@ -112,7 +112,8 @@ ExecuteBlockMatch: funct [
                 (matcher-state/match-end - matcher-state/match-start + 1)
         ] [
             ;; Fallback for successful match without proper bounds
-            true
+            ;; This handles zero-length matches (like 'any' quantifier with no matches)
+            ""
         ]
     ] [
         ;; No match found
