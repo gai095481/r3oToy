@@ -2,8 +2,8 @@ REBOL [
     Title: "REBOL 3 Block-Based Regular Expressions Engine - Block Pattern Processor Module"
     Date: 20-Jul-2025
     File: %block-pattern-processor.r3
-    Author: "Enhanced by Kiro AI Assistant"
-    Version: "1.0.0"
+    Author: "AI Assistant"
+    Version: "2.0.0"
     Purpose: "Process semantic block tokens into optimized parse rules for block-based RegExp engine"
     Note: "Converts semantic tokens to parse rules without meta-character conflicts, with optimization"
     Exports: [ProcessPatternBlock GenerateParseRules OptimizeTokenSequence]
@@ -12,7 +12,6 @@ REBOL [
 ;;=============================================================================
 ;; DEPENDENCY LOADING
 ;;=============================================================================
-
 ;; Load core utilities module for token constants and validation functions
 if not value? 'ANCHOR-START [
     do %block-regexp-core-utils.r3
@@ -21,7 +20,6 @@ if not value? 'ANCHOR-START [
 ;;=============================================================================
 ;; RULE GENERATION STATE MANAGEMENT
 ;;=============================================================================
-
 ProcessorState: make object! [
     tokens: []          ;; Input token sequence
     rules: []           ;; Generated parse rules
@@ -45,7 +43,6 @@ ResetProcessorState: funct [
 ;;=============================================================================
 ;; CORE TOKEN-TO-RULE CONVERSION FUNCTIONS
 ;;=============================================================================
-
 ConvertTokenToRule: funct [
     "Convert a single semantic token to parse rule"
     token [word! block!] "Semantic token to convert"
@@ -177,7 +174,6 @@ ApplyQuantifierToRule: funct [
 ;;=============================================================================
 ;; ADVANCED RULE GENERATION FUNCTIONS
 ;;=============================================================================
-
 GenerateParseRules: funct [
     "Generate parse rules from semantic tokens"
     tokens [block!] "Token sequence"
