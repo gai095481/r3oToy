@@ -2,8 +2,8 @@ REBOL [
     Title: "REBOL 3 Block-Based Regular Expressions Engine - Test Wrapper Module"
     Date: 20-Jul-2025
     File: %block-regexp-test-wrapper.r3
-    Author: "Enhanced by Kiro AI Assistant"
-    Version: "1.0.0"
+    Author: "AI Assistant"
+    Version: "2.0.0"
     Purpose: "Comprehensive test wrapper with enhanced block validation and performance comparison"
     Note: "Provides testing utilities, benchmarking, and validation for block-based RegExp engine"
     Exports: [TestBlockRegExp BenchmarkBlockVsString ValidateBlockTokens]
@@ -15,7 +15,6 @@ REBOL [
 ;;=============================================================================
 ;; AUTOMATIC DEPENDENCY LOADING
 ;;=============================================================================
-
 ;; Load main block-based engine module
 engine-loaded: false
 engine-error: none
