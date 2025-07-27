@@ -2,8 +2,8 @@ REBOL [
     Title: "REBOL 3 Block-Based Regular Expressions Engine - Main Orchestrator"
     Date: 20-Jul-2025
     File: %block-regexp-engine.r3
-    Author: "Enhanced by Kiro AI Assistant"
-    Version: "1.0.0"
+    Author: "AI Assistant"
+    Version: "2.0.0"
     Purpose: "Main orchestrator for block-based RegExp engine with automatic dependency loading"
     Note: "Orchestrates tokenizer → processor → matcher pipeline while maintaining backward compatibility"
     Dependencies: [
@@ -307,7 +307,7 @@ GetPerformanceStats: funct [
     "Get current performance statistics"
     return: [object!] "Performance statistics object"
 ] [
-    success-rate: either performance-stats/total-matches > 0 [
+    calculated-success-rate: either performance-stats/total-matches > 0 [
         to integer! (performance-stats/successful-matches * 100.0) / performance-stats/total-matches
     ] [0]
     
@@ -316,7 +316,7 @@ GetPerformanceStats: funct [
         successful-matches: performance-stats/successful-matches
         failed-matches: performance-stats/failed-matches
         error-matches: performance-stats/error-matches
-        success-rate: success-rate
+        success-rate: calculated-success-rate
         last-match-time: performance-stats/last-match-time
     ]
 ]
