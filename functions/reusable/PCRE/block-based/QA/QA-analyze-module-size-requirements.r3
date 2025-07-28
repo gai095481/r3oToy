@@ -9,11 +9,11 @@ print "=== MODULE SIZE REQUIREMENTS ANALYSIS ==="
 
 ;; Analyze the actual module sizes and their complexity
 modules: [
-    "src/regexp-core-utils.r3" 232 300 "Core utilities"
-    "src/regexp-pattern-processor.r3" 366 300 "Pattern processor" 
-    "src/regexp-matcher.r3" 342 300 "Matcher"
-    "src/regexp-engine-modular.r3" 101 200 "Main orchestrator"
-    "src/regexp-test-wrapper.r3" 257 300 "Test wrapper"
+    "../src/regexp-core-utils.r3" 232 300 "Core utilities"
+    "../src/regexp-pattern-processor.r3" 366 300 "Pattern processor" 
+    "../src/regexp-matcher.r3" 342 300 "Matcher"
+    "../src/regexp-engine-modular.r3" 101 200 "Main orchestrator"
+    "../src/regexp-test-wrapper.r3" 257 300 "Test wrapper"
 ]
 
 total-lines: 0
