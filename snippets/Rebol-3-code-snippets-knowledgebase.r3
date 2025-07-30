@@ -1,10 +1,10 @@
 REBOL [
     Title: "Enhanced Rebol Snippet Database System"
-    Version: 1.2.6
+    Version: 1.2.7
     Author: "Gemini Pro AI Assistant"
-    Date: 12-Jul-2025
+    Date: 30-Jul-2025
     File: %Rebol-3-code-snippets-knowledgebase.r3
-    Purpose: "Load and search Rebol code snippets with flexible search modes."
+    Purpose: "Load and search Rebol 3 code snippets with flexible search modes."
 ]
 
 ;;-----------------------------------------------------------------------------
@@ -13,6 +13,105 @@ REBOL [
 ;; Use `reduce` to evaluate the `make` expressions, creating a block of actual objects,
 ;; not a block of raw source code.
 sample-snippets: reduce [
+
+make object! [
+		code: {NULL_CHAR: #"^@"}
+		tags: ['NULL_CHAR 'null 'char! 'character 'constant 'define 'ASCII 'end 'terminate 'boundary 'zero #0 'Nul 'NULL 'special 'invisible]
+		desc: "Define a named constant for the null character (ASCII 0)."
+		category: "character"
+	]
+
+	make object! [
+		code: {SPACE_CHAR: #" "}
+		tags: ['SPACE_CHAR 'space 'sp 'whitespace 'char! 'character 'constant 'define 'Spc 'ASCII #20 'delimit]
+		desc: "Define a named constant for the space character."
+		category: "character"
+	]
+
+	make object! [
+		code: {BACKSPACE_CHAR: #"^H"}
+		tags: ['BACKSPACE_CHAR 'backspace 'bs 'char! 'character 'constant 'define 'caret 'H 'special 'invisible]
+		desc: "Define a named constant for the backspace character."
+		category: "character"
+	]
+
+	make object! [
+		code: {TAB_CHAR: #"^-"}
+		tags: ['TAB_CHAR 'tab 'whitespace 'indent 'char! 'character 'constant 'define 'caret 'hyphen 'delimit]
+		desc: "Define a named constant for the horizontal tab character."
+		category: "character"
+	]
+
+	make object! [
+		code: {NEWLINE_CHAR: #"^/"}
+		tags: ['NEWLINE_CHAR 'newline 'lf 'linefeed 'char! 'character 'constant 'define 'caret 'slash 'whitespace 'format 'paragraph 'special 'invisible 'delimit]
+		desc: "Define a named constant for the newline / linefeed (LF) character."
+		category: "character"
+	]
+
+	make object! [
+		code: {CR_CHAR: #"^M"}
+		tags: ['CR_CHAR 'carriage 'return 'CR 'char! 'character 'constant 'define 'caret 'M 'format 'paragraph 'special 'invisible 'delimit]
+		desc: "Define a named constant for the carriage return (CR) character."
+		category: "character"
+	]
+
+	make object! [
+		code: {NEWPAGE_CHAR: #"^L"}
+		tags: ['NEWPAGE_CHAR 'new-page 'form-feed 'form 'feed 'FF 'char! 'character 'constant 'define 'caret 'L 'page 'format 'special 'invisible 'delimit]
+		desc: "Define a named constant for the new-page / form-feed character."
+		category: "character"
+	]
+
+	make object! [
+		code: {ESCAPE_CHAR: #"^["}
+		tags: ['ESCAPE_CHAR 'escape 'ESC 'ANSI 'sequence 'char! 'character 'constant 'define 'caret 'bracket 'meta 'special 'invisible]
+		desc: "Define a named constant for the escape (ESC) character, often used to start ANSI terminal sequences."
+		category: "character"
+	]
+
+	make object! [
+		code: {SLASH_CHAR: #"/"}
+		tags: ['SLASH_CHAR 'slash 'forward 'path 'delimit 'char! 'character 'constant 'define 'punctuate]
+		desc: "Define a named constant for the forward slash character."
+		category: "character"
+	]
+
+	make object! [
+		code: {BACKSLASH_CHAR: #"\"}
+		tags: ['BACKSLASH_CHAR 'backslash 'escape 'Windows 'path 'char! 'character 'constant 'define 'meta 'delimit]
+		desc: "Define a named constant for the backslash character."
+		category: "character"
+	]
+
+	make object! [
+		code: {DBL_QUOTE_CHAR: #"^""}
+		tags: ['DBL_QUOTE_CHAR 'double 'quote 'delimit 'char! 'character 'constant 'define 'caret 'meta 'punctuate]
+		desc: "Define a named constant for the double-quote character."
+		category: "character"
+	]
+
+	make object! [
+		code: {COMMA_CHAR: #","}
+		tags: ['COMMA_CHAR 'comma 'delimit 'separate 'CSV 'char! 'character 'constant 'define 'punctuate]
+		desc: "Define a named constant for the comma character."
+		category: "character"
+	]
+
+	make object! [
+		code: {DOT_CHAR: #"."}
+		tags: ['DOT_CHAR 'dot 'period 'decimal 'point 'char! 'character 'constant 'define 'punctuate 'sentence 'terminate 'delimit]
+		desc: "Define a named constant for the dot or period character."
+		category: "character"
+	]
+
+	make object! [
+		code: {is-root?: (access-os 'uid) = 0}
+		tags: ['is-root? 'root 'administrator 'sudo 'superuser 'privilege 'permission 'security 'rights 'access-os 'UID 'user 'ID 'check 'ask 'elevated 'zero #0 'platform 'Linux 'UNIX]
+		desc: "Determine if the script is running with root (administrator) privileges by checking if the user ID is zero."
+		category: "security"
+	]
+
 	make object! [
 		code: {quit/return int-exit-code}
 		tags: ['provide 'exit 'quit 'return 'leave 'close 'end 'halt 'code 'terminate 'kill 'stop 'abort 'error 'success 'failure 'shutdown]
@@ -324,14 +423,14 @@ sample-snippets: reduce [
 
 	make object! [
 		code: {ajoin/with/all [1 none 2] "<|>"}
-		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'none! 'none 'debug 'format 'merge 'string 'sprintf 'block!]
+		tags: ['ajoin 'concatenate 'combine 'join 'delimit 'separate 'none! 'none 'debug 'format 'merge 'string 'sprintf 'block!]
 		desc: "Concatenate output a block to observe the `none` value as a combined string.  Any `none` values are included."
 		category: "format-data"
 	]
 
 	make object! [
 		code: {ajoin/with [1 2 3] "<|>"}
-		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'field 'number 'format 'merge 'string 'sprintf 'block!]
+		tags: ['ajoin 'concatenate 'combine 'join 'delimit 'separate 'field 'number 'format 'merge 'string 'sprintf 'block!]
 		desc: "Concatenate numbers and output the result as a field delimited string.  Any `none` values are excluded."
 		category: "format-data"
 	]
@@ -352,21 +451,21 @@ sample-snippets: reduce [
 
 	make object! [
 		code: {ajoin/with ["x" "y"] reduce [tab]}
-		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'field 'tab 'character 'sequence 'format 'merge 'string 'sprintf  'reduce 'block!]
+		tags: ['ajoin 'concatenate 'combine 'join 'delimit 'separate 'field 'tab 'character 'sequence 'format 'merge 'string 'sprintf  'reduce 'block!]
 		desc: "Concatenate a Rebol tab character sequence `^-`, delimited string with data fields.  Any `none` values are excluded."
 		category: "format-data"
 	]
 
 	make object! [
 		code: {ajoin/with ["x" "y"] reduce [lf]}
-		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'field 'lf 'newline 'character 'sequence 'format 'merge 'string 'sprintf  'reduce 'block!]
+		tags: ['ajoin 'concatenate 'combine 'join 'delimit 'separate 'field 'lf 'newline 'character 'sequence 'format 'merge 'string 'sprintf  'reduce 'block!]
 		desc: "Concatenate a Rebol newline character sequence `^-`, delimited string with data fields.  Any `none` values are excluded."
 		category: "format-data"
 	]
 
 	make object! [
 		code: {either error? set/any 'tried try [ajoin [%/path/ %to/ %file]] [print :tried] [print "Success"]}
-		tags: ['ajoin 'concatenate 'combine 'join 'delimiter 'separator 'field 'slash 'path 'file 'file! 'folder 'directory 'merge 'string 'sprintf  'reduce 'block!]
+		tags: ['ajoin 'concatenate 'combine 'join 'delimit 'separate 'field 'slash 'path 'file 'file! 'folder 'directory 'merge 'string 'sprintf  'reduce 'block!]
 		desc: "Concatenate the individual components of a file path delimited by the forward slash character.  Any `none` values are excluded."
 		category: "format-data"
 	]
@@ -443,15 +542,15 @@ sample-snippets: reduce [
 
     make object! [
         code: {PUNCT_CHARSET: protect charset {~`!@#$%&*()_+-={}[]|\:;'<>?,./^^"} protect 'PUNCT_CHARSET}
-        tags: ['charset 'punctuation 'characters 'constant 'immutable 'read-only 'bitset 'protect 'ispunct? 'PUNCT_CHARSET]
-        desc: {Create an immutable constant for all standard punctuation characters.}
+        tags: ['charset 'punctuate 'characters 'constant 'immutable 'read-only 'bitset 'protect 'ispunct? 'PUNCT_CHARSET]
+        desc: {Create an immutable constant for all standard punctuate characters.}
         category: "character"
     ]
 
 	make object! [
 		code: {ispunct?: funct [chr [char!]] [to-logic find/case PUNCT_CHARSET chr]}
-		tags: ['ispunct? 'ask 'is 'single 'punctuation 'charset 'charset! 'symbol 'character 'group 'type 'PUNCT_CHARSET]
-		desc: "Determine if a character is a punctuation symbol. Usage: `ispunct? #";"`"
+		tags: ['ispunct? 'ask 'is 'single 'punctuate 'charset 'charset! 'symbol 'character 'group 'type 'PUNCT_CHARSET]
+		desc: "Determine if a character is a punctuate symbol. Usage: `ispunct? #";"`"
 		category: "character"
 	]
 
@@ -460,6 +559,13 @@ sample-snippets: reduce [
 		tags: ['object 'ask 'has 'exist 'Rebol 'word 'symbol 'validate 'function 'find 'words-of]
 		desc: "Validate if a Rebol word exists in an object"
 		category: "object"
+	]
+
+    make object! [
+		code: {round/to ((items_passed * 100.0) / items_total) 0.1}
+		tags: ['percentage 'percent 'success 'rate 'rating 'ratio 'score 'round 'status 'calculate 'compute 'formula 'formulate 'decimal 'precision 'number 'approximate]
+		desc: "Calculate a success rate percentage from a count of successful items versus the total items rounding the result to one decimal place."
+		category: "status"
 	]
 ]
 
