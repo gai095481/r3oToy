@@ -1,7 +1,7 @@
 REBOL [
     Title: "Debug Block Engine Anchor Issue"
-    Date: 27-Jul-2025
-    Version: 1.0.0
+    Date: 30-Jul-2025
+    Version: 1.0.1
     Author: "AI Assistant"
     Purpose: "Debug start anchor functionality in block-based engine"
     Type: "Diagnostic Script"
