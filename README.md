@@ -1,5 +1,5 @@
 ### Project Name:
-Rebol 3 Oldes Function Demonstration and Quality Assurance Framework
+Rebol 3 Oldes Bulk Function Demonstration and Quality Assurance Framework
 ### Purpose:
 To comprehensively demonstrate a *specified target Rebol function* in Rebol 3 Oldes for developers, highlighting its use cases across various data types, identifying its nuances and areas of potential confusion.  Verifying its behavior against expected outcomes to uncover operational defects and security concerns using vibe coding techniques via AI assistants.
 ### Core Features of the Demo Scripts:
