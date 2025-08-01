@@ -235,14 +235,14 @@ rebol-regexp-engine/
 | **Performance** | 4 | 4 | 100% |
 | **Debugging** | 5 | 5 | 100% |
 | **Pipeline** | 5 | 5 | 100% |
-| **Overall** | **71** | **76** | **93%** |
+| **Overall** | **71** | **76** | **95%** |
 
 ### Architecture Comparison
 
 | Metric | String-Based Engine | Block-Based Engine | Improvement |
 |--------|---------------------|-------------------|-------------|
 | **Architecture** | String processing | Semantic tokens | Meta-character conflicts eliminated |
-| **Success Rate** | 95% (with gaps) | 100% (comprehensive) | +5 points |
+| **Success Rate** | 91% (with gaps) | 95% (comprehensive) | +5 points |
 | **Maintainability** | Good | Excellent | Modular design |
 | **Extensibility** | Limited | High | Token-based processing |
 
