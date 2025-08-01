@@ -1,8 +1,8 @@
 REBOL [
     Title: "Block-to-Parse-Rules Generator for RegExp Engine"
-    Date: 27-Jul-2025
+    Date: 30-Jul-2025
     Author: "AI Assistant"
-    Version: "1.0.0"
+    Version: "1.0.1"
     Purpose: "Convert semantic block tokens to REBOL parse rules for block-based RegExp processing"
     Note: "Implements rule generation from tokens with quantifier handling and optimization"
 ]
@@ -10,14 +10,12 @@ REBOL [
 ;;=============================================================================
 ;; DEPENDENCIES AND IMPORTS
 ;;=============================================================================
-
 ;; Import tokenizer constants and functions
 do %string-to-block-tokenizer.r3
 
 ;;=============================================================================
 ;; CHARACTER SET DEFINITIONS
 ;;=============================================================================
-
 ;; Character set specifications (constants for better maintainability)
 DIGITS: "0-9"
 WORD_CHARS: "0-9A-Za-z_"
