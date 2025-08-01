@@ -1,12 +1,12 @@
 REBOL [
     Title: "QA Test - Block-Based RegExp Engine Integration"
-    Date: 27-Jul-2025
-    File: %QA-test-block-engine-integration.r3
+    Date: 30-Jul-2025
+    File: %qa-test-block-engine-integration.r3
     Author: "AI Assistant"
-    Version: "1.0.0"
+    Version: 1.0.1
     Purpose: "Test integration of block-based RegExp engine with existing test patterns"
     Type: "QA Test Script"
-    Note: "Validates 95%+ success rate requirement and backward compatibility"
+    Note: "Validates 95%+ success rate requirement and backward compatibility - CORRECTED return value expectations"
 ]
 
 print "^/=== BLOCK-BASED REGEXP ENGINE INTEGRATION TEST ==="
@@ -20,7 +20,6 @@ print "^/Engine loaded. Testing integration..."
 ;;=============================================================================
 ;; SIMPLE QA HARNESS FOR INTEGRATION TESTING
 ;;=============================================================================
-
 test-count: 0
 pass-count: 0
 fail-count: 0
@@ -57,27 +56,32 @@ test-regexp: funct [
 
 ;;=============================================================================
 ;; CORE INTEGRATION TESTS
+;; 
+;; IMPORTANT: RegExp Return Value Semantics:
+;; - String: Successful match (returns matched portion)
+;; - False: Valid pattern with no match
+;; - None: Invalid pattern or error
 ;;=============================================================================
 print "^/--- Basic Functionality Tests ---"
 
 ;; Test basic literal matching
 test-regexp "hello" "hello" "hello" "Basic literal match"
-test-regexp "world" "hello" none "Basic literal non-match"
+test-regexp "world" "hello" false "Basic literal non-match"
 
 ;; Test digit escape sequences
 test-regexp "5" "\d" "5" "Single digit match with \d"
-test-regexp "a" "\d" none "Non-digit rejection with \d"
+test-regexp "a" "\d" false "Non-digit rejection with \d"
 test-regexp "123" "\d+" "123" "Multiple digits with \d+"
 
 ;; Test word escape sequences
 test-regexp "a" "\w" "a" "Single word character with \w"
 test-regexp "_" "\w" "_" "Underscore with \w"
-test-regexp "!" "\w" none "Non-word character rejection with \w"
+test-regexp "!" "\w" false "Non-word character rejection with \w"
 
 ;; Test space escape sequences
 test-regexp " " "\s" " " "Space character with \s"
 test-regexp "^-" "\s" "^-" "Tab character with \s"
-test-regexp "a" "\s" none "Non-space character rejection with \s"
+test-regexp "a" "\s" false "Non-space character rejection with \s"
 
 print "^/--- Quantifier Tests ---"
 
@@ -89,7 +93,7 @@ test-regexp "" "a?" "" "Optional quantifier absent"
 
 ;; Test exact quantifiers
 test-regexp "aaa" "a{3}" "aaa" "Exact quantifier {3}"
-test-regexp "aa" "a{3}" none "Exact quantifier {3} insufficient"
+test-regexp "aa" "a{3}" false "Exact quantifier {3} insufficient"
 
 ;; Test range quantifiers
 test-regexp "aa" "a{2,4}" "aa" "Range quantifier {2,4} minimum"
@@ -99,22 +103,22 @@ print "^/--- Anchor Tests (Critical for Block-Based Engine) ---"
 
 ;; Test start anchor (this is the key improvement)
 test-regexp "hello world" "^^hello" "hello" "Start anchor ^^hello"
-test-regexp "say hello" "^^hello" none "Start anchor ^^hello non-match"
+test-regexp "say hello" "^^hello" false "Start anchor ^^hello non-match"
 
 ;; Test end anchor
 test-regexp "hello world" "world$" "world" "End anchor world$"
-test-regexp "world hello" "world$" none "End anchor world$ non-match"
+test-regexp "world hello" "world$" false "End anchor world$ non-match"
 
 print "^/--- Character Class Tests ---"
 
 ;; Test character classes
 test-regexp "a" "[a-z]" "a" "Character class [a-z]"
-test-regexp "A" "[a-z]" none "Character class [a-z] case sensitive"
+test-regexp "A" "[a-z]" false "Character class [a-z] case sensitive"
 test-regexp "5" "[0-9]" "5" "Character class [0-9]"
 
 ;; Test negated character classes
 test-regexp "a" "[^^0-9]" "a" "Negated character class [^^0-9]"
-test-regexp "5" "[^^0-9]" none "Negated character class [^^0-9] rejection"
+test-regexp "5" "[^^0-9]" false "Negated character class [^^0-9] rejection"
 
 print "^/--- Complex Pattern Tests ---"
 
