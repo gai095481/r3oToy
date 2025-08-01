@@ -1,9 +1,9 @@
 REBOL [
     Title: "REBOL 3 Block-Based Regular Expressions Engine - Block RegExp Matcher Module"
-    Date: 27-Jul-2025
+    Date: 30-Jul-2025
     File: %block-regexp-matcher.r3
     Author: "AI Assistant"
-    Version: "1.0.0"
+    Version: "1.0.1"
     Purpose: "Execute pattern matching using block-generated parse rules with enhanced capabilities"
     Note: "Enhanced matching with block-based rules, optimized quantifier processing, and improved error detection"
     Exports: [ExecuteBlockMatch HandleBlockQuantifiers HandleComplexBlockPatterns]
@@ -74,7 +74,7 @@ ExecuteBlockMatch: funct [
                 either empty-match-result [
                     return ""  ;; Successful empty match
                 ] [
-                    return none  ;; Rules don't match empty string
+                    return false  ;; Rules don't match empty string (valid pattern, no match)
                 ]
             ]
         ]
@@ -114,8 +114,14 @@ ExecuteBlockMatch: funct [
             ""
         ]
     ] [
-        ;; No match found
-        none
+        ;; No match found - check if this was due to error or valid non-match
+        either matcher-state/error-info [
+            ;; Parse error occurred - return none for invalid pattern
+            none
+        ] [
+            ;; Valid pattern but no match - return false
+            false
+        ]
     ]
 ]
 
@@ -133,7 +139,8 @@ ExecuteMatchWithBacktracking: funct [
     
     either anchored-start [
         ;; Start-anchored pattern - only try at position 1
-        TryMatchAtPosition state 1
+        ;; For start anchor, we must match from the very beginning
+        TryMatchAtPositionWithAnchor state 1 true
     ] [
         ;; Non-anchored pattern - try at each position
         position: 1
@@ -155,12 +162,18 @@ ExecuteMatchWithBacktracking: funct [
     ]
 ]
 
-TryMatchAtPosition: funct [
-    "Try matching rules at specific position in haystack"
+TryMatchAtPositionWithAnchor: funct [
+    "Try matching rules at specific position with anchor handling"
     state [object!] "Matcher state object"
     start-pos [integer!] "Starting position to try matching"
+    is-start-anchored [logic!] "Whether this is a start-anchored match"
     return: [logic!] "True if match successful at this position"
 ] [
+    ;; For start-anchored patterns, we must be at position 1
+    if all [is-start-anchored start-pos <> 1] [
+        return false
+    ]
+    
     ;; Set up for matching at this position
     state/match-start: start-pos
     state/position: start-pos
@@ -177,8 +190,7 @@ TryMatchAtPosition: funct [
     matched-content: none
     
     set/any 'parse-result try [
-        ;; Create the parse rule with copy - use proper block structure
-        ;; Handle start anchor by removing it from rules (start is implicit in parse)
+        ;; Remove start anchor from rules since we're handling it explicitly
         actual-rules: either all [
             not empty? state/rules
             state/rules/1 = 'start
@@ -188,10 +200,22 @@ TryMatchAtPosition: funct [
             state/rules
         ]
         
-        ;; Use append/only to maintain the block structure of rules
-        parse-rule: copy [copy matched-content]
-        append/only parse-rule actual-rules
-        append parse-rule [to end]
+        ;; For start-anchored patterns, match from beginning without 'to' rule
+        parse-rule: either is-start-anchored [
+            ;; Start-anchored: must match from beginning, but don't require consuming entire string
+            rule-block: copy [copy matched-content]
+            append/only rule-block actual-rules
+            ;; Add optional remainder to make parse succeed
+            append rule-block [opt [to end]]
+            rule-block
+        ] [
+            ;; Non-anchored: can match anywhere
+            rule-block: copy [copy matched-content]
+            append/only rule-block actual-rules
+            append rule-block [to end]
+            rule-block
+        ]
+        
         ;; Use case-sensitive parsing for regexp compatibility
         parse/case haystack-from-pos parse-rule
     ]
@@ -217,6 +241,16 @@ TryMatchAtPosition: funct [
             false
         ]
     ]
+]
+
+TryMatchAtPosition: funct [
+    "Try matching rules at specific position in haystack"
+    state [object!] "Matcher state object"
+    start-pos [integer!] "Starting position to try matching"
+    return: [logic!] "True if match successful at this position"
+] [
+    ;; Delegate to anchor-aware function
+    TryMatchAtPositionWithAnchor state start-pos false
 ]
 
 ;;=============================================================================
