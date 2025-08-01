@@ -1,7 +1,7 @@
 REBOL [
     Title: "Diagnose Test Record Logic"
-    Date: 27-Jul-2025
-    Version: 1.0.0
+    Date: 30-Jul-2025
+    Version: 1.0.1
     Author: "AI Assistant"
     Purpose: "Debug the record-test function and error handling test logic"
     Type: "Diagnostic Script"
