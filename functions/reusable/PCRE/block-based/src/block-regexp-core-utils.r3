@@ -1,9 +1,9 @@
 REBOL [
     Title: "REBOL 3 Block-Based Regular Expressions Engine - Core Utilities Module"
-    Date: 27-Jul-2025
+    Date: 30-Jul-2025
     File: %block-regexp-core-utils.r3
     Author: "AI Assistant"
-    Version: "1.0.0"
+    Version: "1.0.1"
     Purpose: "Core utilities, constants, and validation functions for block-based RegExp engine"
     Note: "Enhanced from modular regexp-core-utils.r3 for block-based semantic token processing"
 ]
@@ -26,6 +26,7 @@ NON-DIGIT-CLASS: 'non-digit-class
 NON-WORD-CLASS: 'non-word-class
 NON-SPACE-CLASS: 'non-space-class
 CUSTOM-CLASS: 'custom-class
+NEGATED-CLASS: 'negated-class
 
 ;; Quantifier Token Types
 QUANTIFIER-PLUS: 'quantifier-plus
@@ -60,6 +61,23 @@ MakeCharSet: funct [
     return: [bitset!] "Character set bitset"
 ][
     strChars: make string! 256
+    
+    ;; Handle special cases for dash at beginning or end
+    if not empty? specStr [
+        ;; If dash is at the beginning, treat it as literal
+        if specStr/1 = #"-" [
+            append strChars #"-"
+            specStr: next specStr
+        ]
+        
+        ;; If dash is at the end, treat it as literal
+        if all [not empty? specStr (last specStr) = #"-"] [
+            append strChars #"-"
+            specStr: copy/part specStr (length? specStr) - 1
+        ]
+    ]
+    
+    ;; Parse the remaining specification
     parse specStr [
         some [
             ;; Handle character ranges like "a-z" or "0-9"
@@ -136,7 +154,7 @@ ValidateTokenType: funct [
         anchor-start anchor-end literal wildcard
         digit-class word-class space-class 
         non-digit-class non-word-class non-space-class
-        custom-class quantifier-plus quantifier-star quantifier-optional
+        custom-class negated-class quantifier-plus quantifier-star quantifier-optional
         quantifier-exact quantifier-range group alternation escaped-char
         error
     ] token-type
@@ -201,6 +219,14 @@ ValidateTokenSequence: funct [
                     ]
                     if not string? token/3 [
                         return "Custom-class requires string specification"
+                    ]
+                ]
+                negated-class [
+                    if (length? token) <> 2 [
+                        return "Invalid negated-class token structure"
+                    ]
+                    if not string? token/2 [
+                        return "Negated-class requires string specification"
                     ]
                 ]
                 group [
@@ -370,14 +396,9 @@ ValidateCharacterClass: funct [
         char-spec
     ]
     
-    ;; Basic validation - check for unclosed ranges
-    ;; Look for patterns like "a-" at the end or "-z" at the start
-    if any [
-        all [(length? spec-to-check) > 1 (last spec-to-check) = #"-"]
-        all [(length? spec-to-check) > 1 (first spec-to-check) = #"-"]
-    ] [
-        return false
-    ]
+    ;; Note: Dashes at the beginning or end of character classes are treated as literal characters
+    ;; Only dashes in the middle (like "a-z") are treated as ranges
+    ;; So we don't need to reject dashes at start or end
     
     ;; Check for reverse ranges like "z-a" where start > end
     if find spec-to-check "-" [
