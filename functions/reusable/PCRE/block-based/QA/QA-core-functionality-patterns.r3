@@ -1,7 +1,7 @@
 REBOL [
     Title: "Diagnose Core Functionality Failures"
-    Date: 27-Jul-2025
-    Version: 1.0.0
+    Date: 30-Jul-2025
+    Version: 1.0.1
     Author: "AI Assistant"
     Purpose: "Identify the 2 failing core functionality tests"
     Type: "Diagnostic Script"
@@ -13,7 +13,14 @@ do %../src/block-regexp-engine.r3
 print "=== CORE FUNCTIONALITY FAILURES DIAGNOSIS ==="
 
 ;; Test the core functionality patterns from the test
-core-tests: [
+;; Create patterns with proper caret character handling
+start-anchor-pattern: rejoin [to string! TypChrCaret "hello"]
+negated-class-pattern: rejoin ["[" to string! TypChrCaret "0-9]"]
+
+print ["Start anchor pattern:" mold start-anchor-pattern "type:" type? start-anchor-pattern]
+print ["Negated class pattern:" mold negated-class-pattern "type:" type? negated-class-pattern]
+
+core-tests: reduce [
     "hello" "hello" "hello" "Basic literal match"
     "hello" "world" false "Basic literal non-match"
     "123" "\d" "1" "Single digit match"
@@ -21,10 +28,10 @@ core-tests: [
     "123456" "\d+" "123456" "Multiple digits"
     "hello123" "\w+" "hello123" "Word character match"
     "hello world" "\s" " " "Space character match"
-    "hello" "^hello" "hello" "Start anchor"
+    "hello" start-anchor-pattern "hello" "Start anchor"
     "hello" "hello$" "hello" "End anchor"
     "abc" "[abc]" "a" "Character class"
-    "123" "[^0-9]" false "Negated character class"
+    "123" negated-class-pattern false "Negated character class"
 ]
 
 foreach [haystack pattern expected description] core-tests [
