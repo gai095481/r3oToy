@@ -1,4 +1,4 @@
-# Rebol Coding Standards and Best Practices
+# Rebol Coding Standards and Best Practices with AI Coding Assistants
 
 ## Function Definition Standards
 
