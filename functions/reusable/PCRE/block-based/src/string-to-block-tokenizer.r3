@@ -1,9 +1,9 @@
 REBOL [
     Title: "REBOL 3 Block-Based Regular Expressions Engine - String-to-Block Tokenizer Module"
-    Date: 27-Jul-2025
+    Date: 30-Jul-2025
     File: %string-to-block-tokenizer.r3
     Author: "AI Assistant"
-    Version: "1.0.0"
+    Version: "1.0.1"
     Purpose: "Convert string patterns to semantic block tokens, eliminating meta-character conflicts"
     Note: "Handles anchors, character classes, quantifiers, and complex patterns with block tokenization"
     Exports: [StringToPatternBlock TokenizePattern PreprocessMetaCharacters]
@@ -12,7 +12,6 @@ REBOL [
 ;;=============================================================================
 ;; DEPENDENCY LOADING
 ;;=============================================================================
-
 ;; Load core utilities module for token constants and validation functions
 if not value? 'ANCHOR-START [
     do %block-regexp-core-utils.r3
@@ -21,7 +20,6 @@ if not value? 'ANCHOR-START [
 ;;=============================================================================
 ;; TOKENIZATION STATE MANAGEMENT
 ;;=============================================================================
-
 TokenizerState: make object! [
     input: ""           ;; Original input string
     position: 1         ;; Current parsing position
@@ -61,7 +59,7 @@ IsAnchorChar: funct [
     char [char!] "Character to check"
     return: [logic!] "True if anchor character"
 ] [
-    any [char = TypChrCaret char = #"$"]
+    any [char = #"^(5E)" char = #"$"]
 ]
 
 IsMetaChar: funct [
@@ -70,7 +68,7 @@ IsMetaChar: funct [
     return: [logic!] "True if meta-character"
 ] [
     any [
-        char = TypChrCaret
+        char = #"^(5E)"
         find "$+*?[]{}()|\." char
     ]
 ]
@@ -86,27 +84,50 @@ ProcessEscapeSequence: funct [
 ] [
     ;; Check if we have enough characters for escape sequence
     if state/position >= length? state/input [
-        return none
+        ;; Trailing backslash - treat as literal backslash
+        state/position: state/position + 1
+        return reduce [ESCAPED-CHAR #"\"]
     ]
     
     ;; Get the escaped character
     escape-char: pick state/input (state/position + 1)
     
-    ;; Process common escape sequences (case-sensitive)
-    token: switch/case/default escape-char [
+    ;; Process escape sequences (case-sensitive)
+    token: switch/case escape-char [
+        ;; Character class escape sequences
         #"d" [reduce [DIGIT-CLASS]]
         #"D" [reduce [NON-DIGIT-CLASS]]
         #"w" [reduce [WORD-CLASS]]
         #"W" [reduce [NON-WORD-CLASS]]
         #"s" [reduce [SPACE-CLASS]]
         #"S" [reduce [NON-SPACE-CLASS]]
+        
+        ;; Whitespace escape sequences
         #"n" [reduce [ESCAPED-CHAR #"^/"]]      ;; Newline
         #"t" [reduce [ESCAPED-CHAR #"^-"]]      ;; Tab
         #"r" [reduce [ESCAPED-CHAR #"^M"]]      ;; Carriage return
+        
+        ;; Meta-character escape sequences (literal versions)
         #"\" [reduce [ESCAPED-CHAR #"\"]]       ;; Literal backslash
-    ] [
-        ;; For other escaped characters, treat as literal
-        reduce [ESCAPED-CHAR escape-char]
+        #"." [reduce [ESCAPED-CHAR #"."]]       ;; Literal dot
+        #"+" [reduce [ESCAPED-CHAR #"+"]]       ;; Literal plus
+        #"*" [reduce [ESCAPED-CHAR #"*"]]       ;; Literal star
+        #"?" [reduce [ESCAPED-CHAR #"?"]]       ;; Literal question
+        ;; Note: Caret character escaping removed due to REBOL syntax limitations
+        #"$" [reduce [ESCAPED-CHAR #"$"]]       ;; Literal dollar
+        #"(" [reduce [ESCAPED-CHAR #"("]]       ;; Literal left paren
+        #")" [reduce [ESCAPED-CHAR #")"]]       ;; Literal right paren
+        #"[" [reduce [ESCAPED-CHAR #"["]]       ;; Literal left bracket
+        #"]" [reduce [ESCAPED-CHAR #"]"]]       ;; Literal right bracket
+        #"{" [reduce [ESCAPED-CHAR #"{"]]       ;; Literal left brace
+        #"}" [reduce [ESCAPED-CHAR #"}"]]       ;; Literal right brace
+        #"|" [reduce [ESCAPED-CHAR #"|"]]       ;; Literal pipe
+    ]
+    
+    ;; Check if escape sequence was valid
+    if none? token [
+        ;; Invalid escape sequence - return error
+        return reduce ['error rejoin ["Invalid escape sequence: \" escape-char]]
     ]
     
     ;; Advance position past escape sequence
@@ -245,10 +266,10 @@ ProcessCharacterClass: funct [
     length-to-copy: end-pos - start-pos
     class-spec: copy/part (at state/input start-pos) length-to-copy
     
-    ;; Check for negated character class
+    ;; Check for negated character class using [!...] or [^...] syntax
     negated: false
     if not empty? class-spec [
-        if class-spec/1 = TypChrCaret [
+        if any [class-spec/1 = #"!" class-spec/1 = TypChrCaret] [
             negated: true
             class-spec: next class-spec
         ]
@@ -259,11 +280,11 @@ ProcessCharacterClass: funct [
         return none
     ]
     
-    ;; Create the token
-    token: reduce [
-        CUSTOM-CLASS 
-        either negated ['negated] ['normal]
-        class-spec
+    ;; Create the token using correct structure
+    token: either negated [
+        reduce [NEGATED-CLASS class-spec]
+    ] [
+        reduce [CUSTOM-CLASS 'normal class-spec]
     ]
     
     ;; Advance position past the character class
@@ -324,16 +345,29 @@ TokenizePattern: funct [
         ;; Handle specific characters first
         switch current-char [
             #"\" [
-                ;; Escape sequence - wrap result in compound block if needed
-                raw-token: ProcessEscapeSequence state
-                if raw-token [
-                    ;; Check if it's already a compound token or needs wrapping
-                    either all [block? raw-token (length? raw-token) = 2 word? raw-token/1] [
-                        ;; Simple token like [ESCAPED-CHAR #"."] - wrap it
-                        token: reduce [raw-token]
+                ;; Check if this is a consecutive backslash (\\)
+                either all [
+                    (state/position + 1) <= length? state/input
+                    (pick state/input (state/position + 1)) = #"\"
+                ] [
+                    ;; This is \\, treat as literal backslash and let next iteration handle the second one
+                    token: reduce [reduce [LITERAL #"\"]]
+                    state/position: state/position + 1
+                ] [
+                    ;; Regular escape sequence - wrap result in compound block if needed
+                    raw-token: ProcessEscapeSequence state
+                    either raw-token [
+                        ;; Check if it's already a compound token or needs wrapping
+                        either all [block? raw-token (length? raw-token) = 2 word? raw-token/1] [
+                            ;; Simple token like [ESCAPED-CHAR #"."] - wrap it
+                            token: reduce [raw-token]
+                        ] [
+                            ;; Already a simple word token like [DIGIT-CLASS] - use as is
+                            token: raw-token
+                        ]
                     ] [
-                        ;; Already a simple word token like [DIGIT-CLASS] - use as is
-                        token: raw-token
+                        ;; ProcessEscapeSequence returned none - this is an error
+                        token: reduce ['error "Incomplete or invalid escape sequence"]
                     ]
                 ]
             ]
@@ -397,7 +431,7 @@ TokenizePattern: funct [
         
         ;; Handle default case outside switch to avoid variable evaluation issues
         if none? token [
-            either current-char = TypChrCaret [
+            either current-char = #"^(5E)" [
                 either state/position = 1 [
                     token: reduce [ANCHOR-START]
                 ] [
@@ -503,12 +537,10 @@ TokensToString: funct [
                 quantifier-exact [rejoin ["{" token/2 "}"]]
                 quantifier-range [rejoin ["{" token/2 "," token/3 "}"]]
                 custom-class [
-                    class-content: either token/2 = 'negated [
-                        rejoin ["[" to string! TypChrCaret token/3 "]"]
-                    ] [
-                        rejoin ["[" token/3 "]"]
-                    ]
-                    class-content
+                    rejoin ["[" token/2 "]"]
+                ]
+                negated-class [
+                    rejoin ["[!" token/2 "]"]
                 ]
                 group [either token/2 = 'open ["("] [")"]]
                 alternation ["|"]
