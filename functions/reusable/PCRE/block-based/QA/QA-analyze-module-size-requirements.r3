@@ -1,7 +1,7 @@
 REBOL [
     Title: "Analyze Module Size Requirements"
-    Date: 27-Jul-2025
-    Version: 1.0.0
+    Date: 30-Jul-2025
+    Version: 1.0.1
     Purpose: "Analyze why modules exceed constraints and assess acceptability"
 ]
 
