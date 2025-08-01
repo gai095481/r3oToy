@@ -1,9 +1,9 @@
 REBOL [
     Title: "REBOL 3 Block-Based Regular Expressions Engine - Main Orchestrator"
-    Date: 27-Jul-2025
+    Date: 30-Jul-2025
     File: %block-regexp-engine.r3
     Author: "AI Assistant"
-    Version: "1.0.0"
+    Version: "1.0.1"
     Purpose: "Main orchestrator for block-based RegExp engine with automatic dependency loading"
     Note: "Orchestrates tokenizer → processor → matcher pipeline while maintaining backward compatibility"
     Dependencies: [
@@ -121,13 +121,29 @@ ValidateModuleDependencies: funct [
 RegExp: funct [
     "Match string against regular expression using block-based processing internally"
     strHaystack [string!] "String to match against"
-    strRegExp [string!] "Regular expression pattern"
+    strRegExp [string!] "Regular expression pattern (supports [!...] syntax)"
+    /caret "Treat pattern as if it has ^ start anchor (no ^ character needed)"
     return: [string! logic! none!] "Matched string, false if no match, none if error"
 ] [
     ;; Validate module dependencies first
     dependency-check: ValidateModuleDependencies
     if string? dependency-check [
         return none  ;; Module dependency error
+    ]
+    
+    ;; Handle empty pattern special case
+    ;; Empty pattern behavior depends on context
+    if empty? strRegExp [
+        ;; Empty pattern with /caret refinement always returns empty match
+        if caret [
+            return ""
+        ]
+        ;; Empty pattern without /caret: error if haystack non-empty, match if haystack empty
+        either empty? strHaystack [
+            return ""  ;; Empty haystack + empty pattern = empty match
+        ] [
+            return none  ;; Non-empty haystack + empty pattern = error
+        ]
     ]
     
     ;; Step 1: Convert string pattern to semantic block tokens
@@ -140,6 +156,11 @@ RegExp: funct [
         all [block? pattern-block not empty? pattern-block pattern-block/1 = 'error]
     ] [
         return none  ;; Tokenization failed or contains errors
+    ]
+    
+    ;; Step 1.5: Add start anchor if /caret refinement is used
+    if caret [
+        pattern-block: join [anchor-start] pattern-block
     ]
     
     ;; Step 2: Process semantic tokens into parse rules
@@ -213,9 +234,14 @@ TestRegExp: funct [
     "Test RegExp function returning boolean result for compatibility"
     strHaystack [string!] "String to match against"
     strRegExp [string!] "Regular expression pattern"
+    /caret "Treat pattern as if it has ^ start anchor (no ^ character needed)"
     return: [logic!] "True if match found, false otherwise"
 ] [
-    match-result: RegExp strHaystack strRegExp
+    match-result: either caret [
+        RegExp/caret strHaystack strRegExp
+    ] [
+        RegExp strHaystack strRegExp
+    ]
     either any [string? match-result logic? match-result] [
         not none? match-result
     ] [
@@ -243,8 +269,8 @@ GetEngineInfo: funct [
         supported-patterns: [
             "Escape sequences: \\d \\w \\s \\D \\W \\S"
             "Quantifiers: + * ? {n} {n,m}"
-            "Character classes: [a-z] [^0-9]"
-            "Anchors: ^ $"
+            "Character classes: [a-z] [!0-9] (alternative syntax)"
+            "Anchors: /caret refinement, $ end anchor"
             "Alternation: |"
             "Dot wildcard: ."
             "Complex patterns with backtracking"
@@ -329,10 +355,15 @@ RegExpWithStats: funct [
     "RegExp function with performance monitoring"
     strHaystack [string!] "String to match against"
     strRegExp [string!] "Regular expression pattern"
+    /caret "Treat pattern as if it has ^ start anchor (no ^ character needed)"
     return: [string! logic! none!] "Matched string, false if no match, none if error"
 ] [
     start-time: now/time
-    result: RegExp strHaystack strRegExp
+    result: either caret [
+        RegExp/caret strHaystack strRegExp
+    ] [
+        RegExp strHaystack strRegExp
+    ]
     UpdatePerformanceStats result start-time
     result
 ]
@@ -345,11 +376,13 @@ DebugRegExp: funct [
     "Debug RegExp execution with detailed step-by-step information"
     strHaystack [string!] "String to match against"
     strRegExp [string!] "Regular expression pattern"
+    /caret "Treat pattern as if it has ^ start anchor (no ^ character needed)"
     return: [object!] "Debug information object"
 ] [
     debug-info: make object! [
         input-haystack: strHaystack
         input-pattern: strRegExp
+        caret-refinement: caret
         tokenization-result: none
         tokenization-error: none
         rule-generation-result: none
@@ -368,6 +401,11 @@ DebugRegExp: funct [
     if error? debug-info/tokenization-result [
         debug-info/tokenization-error: debug-info/tokenization-result
         return debug-info
+    ]
+    
+    ;; Step 1.5: Add start anchor if /caret refinement is used
+    if caret [
+        debug-info/tokenization-result: join [anchor-start] debug-info/tokenization-result
     ]
     
     ;; Step 2: Rule Generation
@@ -439,17 +477,24 @@ BLOCK-BASED REGEXP ENGINE - VERSION 1.0.0
 100% backward compatible with existing RegExp engines:
 - Same API: RegExp strHaystack [string!] strRegExp [string!]
 - Same return values: string! (match), logic! (false), none! (error)
-- Enhanced: Eliminates REBOL meta-character conflicts (^ anchor)
+- Enhanced: Eliminates REBOL meta-character conflicts through alternative syntax
+- New: /caret refinement for start anchors (RegExp/caret haystack pattern)
+- New: [!...] syntax for negated character classes (avoids ^ control chars)
 - Faster: Block-based semantic token processing vs string parsing
 - Supported: All escape sequences, quantifiers, character classes, anchors
 
+ALTERNATIVE SYNTAX:
+- Start anchors: RegExp/caret "hello world" "hello" (no ^ character needed)
+- Negated classes: RegExp "test123" "[!0-9]+" (avoids control character overhead)
+- Combined: RegExp/caret "test123" "[!0-9]+" (start anchor + negated class)
+
 ADDITIONAL FUNCTIONS:
-- TestRegExp: Boolean result for compatibility
+- TestRegExp: Boolean result for compatibility (supports /caret)
 - GetEngineInfo: Detailed engine information
 - GetModuleStatus: Module loading status
 - GetPerformanceStats: Performance monitoring
-- RegExpWithStats: RegExp with performance tracking
-- DebugRegExp: Step-by-step debugging information
+- RegExpWithStats: RegExp with performance tracking (supports /caret)
+- DebugRegExp: Step-by-step debugging information (supports /caret)
 - ValidatePattern: Pattern validation without execution
 }
 
