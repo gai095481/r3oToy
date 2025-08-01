@@ -1,4 +1,4 @@
-# REBOL RegExp Engine - Complete Documentation
+# REBOL r3oToy RegExp Engine - Complete Documentation
 
 **Project**: REBOL 3 r3oToy Block-Based Regular Expressions Engine
 
