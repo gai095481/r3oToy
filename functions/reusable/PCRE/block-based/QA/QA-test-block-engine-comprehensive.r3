@@ -1,7 +1,7 @@
 REBOL [
     Title: "Test Block-based RegExp Engine with Robust QA Test Suite"
-    Date: 27-Jul-2025
-    Version: 1.0.0
+    Date: 30-Jul-2025
+    Version: 1.0.1
     Author: "AI Assistant"
     Purpose: "Test block-based engine against robust test suite"
     Type: "QA Test Script"
@@ -56,7 +56,7 @@ test-regexp: funct [
 ;;=============================================================================
 print "^/--- Escape Sequence Tests ---"
 test-regexp "5" "\d" "5" "\d matches single digit"
-test-regexp "a" "\d" none "\d rejects non-digit"
+test-regexp "a" "\d" false "\d rejects non-digit"
 test-regexp "123" "\d+" "123" "\d+ matches multiple digits"
 test-regexp "a" "\w" "a" "\w matches letter"
 test-regexp "_" "\w" "_" "\w matches underscore"
@@ -66,11 +66,11 @@ test-regexp "^-" "\s" "^-" "\s matches tab"
 
 print "^/--- Negated Escape Sequences ---"
 test-regexp "a" "\D" "a" "\D matches non-digit"
-test-regexp "5" "\D" none "\D rejects digit"
+test-regexp "5" "\D" false "\D rejects digit"
 test-regexp "!" "\W" "!" "\W matches non-word"
-test-regexp "a" "\W" none "\W rejects word char"
+test-regexp "a" "\W" false "\W rejects word char"
 test-regexp "x" "\S" "x" "\S matches non-space"
-test-regexp " " "\S" none "\S rejects space"
+test-regexp " " "\S" false "\S rejects space"
 
 print "^/--- Quantifier Tests ---"
 test-regexp "aaa" "a+" "aaa" "Plus quantifier"
@@ -84,15 +84,15 @@ test-regexp "aaaa" "a{2,4}" "aaaa" "Range quantifier max"
 
 print "^/--- Anchor Tests ---"
 test-regexp "hello world" "^^hello" "hello" "Start anchor"
-test-regexp "say hello" "^^hello" none "Start anchor fail"
+test-regexp "say hello" "^^hello" false "Start anchor fail"
 test-regexp "hello world" "world$" "world" "End anchor"
-test-regexp "world hello" "world$" none "End anchor fail"
+test-regexp "world hello" "world$" false "End anchor fail"
 
 print "^/--- Character Classes ---"
 test-regexp "a" "[a-z]" "a" "Character class range"
 test-regexp "5" "[0-9]" "5" "Digit character class"
 test-regexp "a" "[^^0-9]" "a" "Negated character class"
-test-regexp "5" "[^^0-9]" none "Negated class rejection"
+test-regexp "5" "[^^0-9]" false "Negated class rejection"
 
 print "^/--- Complex Patterns ---"
 test-regexp "test@example.com" "\w+@\w+\.\w+" "test@example.com" "Email pattern"
