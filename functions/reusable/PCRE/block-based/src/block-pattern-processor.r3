@@ -1,9 +1,9 @@
 REBOL [
-    Title: "r3oToy Block-Based Regular Expressions Engine - Block Pattern Processor Module"
-    Date: 27-Jul-2025
+    Title: "REBOL 3 Block-Based Regular Expressions Engine - Block Pattern Processor Module"
+    Date: 30-Jul-2025
     File: %block-pattern-processor.r3
-    Author: "AI Assistant"
-    Version: "1.0.0"
+    Author: "Enhanced by Kiro AI Assistant"
+    Version: "1.0.1"
     Purpose: "Process semantic block tokens into optimized parse rules for block-based RegExp engine"
     Note: "Converts semantic tokens to parse rules without meta-character conflicts, with optimization."
     Exports: [ProcessPatternBlock GenerateParseRules OptimizeTokenSequence]
@@ -84,17 +84,31 @@ ConvertTokenToRule: funct [
             custom-class [
                 ;; Custom character class
                 if (length? token) >= 3 [
-                    class-type: token/2
-                    class-spec: token/3
+                    class-type: token/2  ;; 'normal or 'negated
+                    class-spec: token/3  ;; Character specification
                     
                     ;; Create character set safely
                     charset-result: none
                     set/any 'charset-result try [
-                        either class-type = 'negated [
-                            complement CreateTokenizedCharSet class-spec
-                        ] [
-                            CreateTokenizedCharSet class-spec
-                        ]
+                        CreateTokenizedCharSet class-spec
+                    ]
+                    
+                    either error? charset-result [
+                        none  ;; Invalid character class
+                    ] [
+                        charset-result
+                    ]
+                ]
+            ]
+            negated-class [
+                ;; Negated character class using [!...] syntax
+                if (length? token) >= 2 [
+                    class-spec: token/2
+                    
+                    ;; Create negated character set safely
+                    charset-result: none
+                    set/any 'charset-result try [
+                        complement CreateTokenizedCharSet class-spec
                     ]
                     
                     either error? charset-result [
@@ -130,6 +144,7 @@ ConvertTokenToRule: funct [
             quantifier-star ['star]
             quantifier-optional ['optional]
             alternation ['alternation]
+            negated-class [none]  ;; Handled as compound token only
             default [none]  ;; Unknown simple token type
         ]
     ]
@@ -234,13 +249,15 @@ GenerateParseRules: funct [
                     base-rule = 'start
                     base-rule = 'end
                     base-rule = 'alternation
-                    all [block? base-rule base-rule/1 = 'group]
                 ] [
                     ;; Special rules - add directly
                     append rules base-rule
                 ] [
-                    ;; Regular rules - add as-is
-                    append rules base-rule
+                    ;; Skip group markers - they're not valid parse rules
+                    if not all [block? base-rule base-rule/1 = 'group] [
+                        ;; Regular rules - add as-is
+                        append rules base-rule
+                    ]
                 ]
                 token-index: token-index + 1
             ]
