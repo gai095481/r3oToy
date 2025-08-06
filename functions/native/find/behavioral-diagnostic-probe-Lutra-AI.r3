@@ -1,15 +1,13 @@
 Rebol [
-    Title: "Truly Final Corrected Comprehensive Diagnostic Probe Script for FIND Function"
+    Title: "Robust Diagnostic Probe Script for `find` Function"
     Date: 8-Jul-2025
-    Author: "Diagnostic Probe Generator"
-    Purpose: "Systematically test all behaviors of the FIND native function - TRULY FINAL VERSION"
-    Note: "Execute this script to generate a comprehensive truth log of FIND behavior"
+    Author: "Lutra AI"
+    Purpose: "Systematically test most behaviors of the `find` native function."
 ]
 
 ;;-----------------------------------------------------------------------------
 ;; Battle-Tested QA Harness Helper Functions
 ;;-----------------------------------------------------------------------------
-
 all-tests-passed?: true
 
 assert-equal: function [
@@ -45,19 +43,17 @@ print-test-summary: does [
 ]
 
 ;;-----------------------------------------------------------------------------
-;; TRULY FINAL CORRECTED DIAGNOSTIC PROBE SCRIPT FOR FIND FUNCTION
+;; DIAGNOSTIC PROBE SCRIPT FOR `find` FUNCTION
 ;;-----------------------------------------------------------------------------
-
-print "^/=== TRULY FINAL CORRECTED COMPREHENSIVE FIND FUNCTION DIAGNOSTIC PROBE ==="
-print "Testing FIND native function behavior systematically..."
+print "^/=== ROBUST `find` FUNCTION DIAGNOSTIC PROBE ==="
+print "Testing `find` native function behavior systematically..."
 
 ;;-----------------------------------------------------------------------------
-;; PROBING BASIC FIND BEHAVIOR WITH STRINGS
+;; PROBING BASIC `find` BEHAVIOR WITH STRINGS
 ;;-----------------------------------------------------------------------------
-
 print "^/--- Probing Basic FIND Behavior with Strings ---"
-;; HYPOTHESIS: find should return the position where value is found in series,
-;; or none if not found. For strings, it should find substrings.
+;; HYPOTHESIS: `find` should return the position where value is found in a series,
+;; or `none` if it's missing.  It should find substrings in strings.
 
 test-string: "Hello World"
 assert-equal "llo World" find test-string "llo" "Basic string search - should find substring"
@@ -68,10 +64,9 @@ assert-equal "d" find test-string "d" "Basic string search - should find last ch
 ;;-----------------------------------------------------------------------------
 ;; PROBING BASIC FIND BEHAVIOR WITH BLOCKS
 ;;-----------------------------------------------------------------------------
-
-print "^/--- Probing Basic FIND Behavior with Blocks ---"
-;; HYPOTHESIS: find should return the position where value is found in block,
-;; or none if not found. Should match exact values.
+print "^/--- Probing Basic `find` Behavior with Rebol Blocks ---"
+;; HYPOTHESIS: `find` should return the position where value is found in block,
+;; or `none` if it's missing.  Should match exact values.
 
 test-block: [1 2 3 "hello" 4 5]
 assert-equal [2 3 "hello" 4 5] find test-block 2 "Basic block search - should find integer"
@@ -80,11 +75,10 @@ assert-equal none find test-block "missing" "Basic block search - should return 
 assert-equal [1 2 3 "hello" 4 5] find test-block 1 "Basic block search - should find first element"
 
 ;;-----------------------------------------------------------------------------
-;; PROBING /PART REFINEMENT
+;; PROBING `/part` REFINEMENT
 ;;-----------------------------------------------------------------------------
-
-print "^/--- Probing /part Refinement ---"
-;; HYPOTHESIS: /part should limit the search to a specified length or position
+print "^/--- Probing `/part` Refinement ---"
+;; HYPOTHESIS: `/part` should limit the search to a specified length or position
 
 test-series: "abcdefghijk"
 assert-equal "cdefghijk" find/part test-series "c" 5 "find/part with length - should find within limit"
@@ -97,9 +91,8 @@ assert-equal none find/part test-block-part 6 4 "find/part with block - should n
 ;;-----------------------------------------------------------------------------
 ;; PROBING /ONLY REFINEMENT
 ;;-----------------------------------------------------------------------------
-
-print "^/--- Probing /only Refinement ---"
-;; HYPOTHESIS: /only should treat a series value as only a single value
+print "^/--- Probing the `/only` Refinement ---"
+;; HYPOTHESIS: `/only` should treat a series value as only a single value
 
 nested-block: [1 [2 3] 4 [5 6]]
 search-block: [2 3]
@@ -107,11 +100,10 @@ assert-equal [[2 3] 4 [5 6]] find/only nested-block search-block "find/only - sh
 assert-equal none find nested-block search-block "find without /only - should not find nested block as single value"
 
 ;;-----------------------------------------------------------------------------
-;; PROBING /CASE REFINEMENT
+;; PROBING `/case` REFINEMENT
 ;;-----------------------------------------------------------------------------
-
-print "^/--- Probing /case Refinement ---"
-;; HYPOTHESIS: /case should make character searches case-sensitive
+print "^/--- Probing the `/case` Refinement ---"
+;; HYPOTHESIS: `/case` should make searches case-sensitive
 
 case-test-string: "Hello World"
 assert-equal "ello World" find case-test-string "ello" "find without /case - should be case-insensitive for lowercase"
@@ -120,17 +112,16 @@ assert-equal "Hello World" find/case case-test-string "Hello" "find/case - shoul
 assert-equal none find/case case-test-string "hello" "find/case - should not match different case"
 
 ;;-----------------------------------------------------------------------------
-;; PROBING /SAME REFINEMENT - TRULY FINAL CORRECTION
+;; PROBING `/same REFINEMENT
 ;;-----------------------------------------------------------------------------
+print "^/--- Probing the `/same` Refinement ---"
+;; HYPOTHESIS: `find` always returns the first occurrence regardless of reference equality.
+;; `/same` only affects whether it finds at all.
 
-print "^/--- Probing /same Refinement - TRULY FINAL CORRECTION ---"
-;; TRULY FINAL CORRECTED HYPOTHESIS: find always returns the first occurrence
-;; regardless of reference equality. /same only affects whether it finds at all.
-
-; Test with string references
+;; Test with string references:
 str1: "test"
 str2: "test"
-str3: str1  ; same reference
+str3: str1  ;; same reference
 string-container: reduce [str1 str2 "other"]
 
 assert-equal reduce [str1 str2 "other"] find string-container str3 "find without /same - should find equal string using same reference"
@@ -138,21 +129,20 @@ assert-equal reduce [str1 str2 "other"] find string-container str2 "find without
 assert-equal reduce [str1 str2 "other"] find/same string-container str3 "find/same - should find only same string reference"
 assert-equal none find/same string-container "test" "find/same - should not find equal but different string reference"
 
-; Test with integer references
+;; Test with integer references:
 int1: 42
 int2: 42
 int3: int1
 int-container: reduce [int1 int2 "other"]
 
-assert-equal reduce [int1 int2 "other"] find int-container int3 "find without /same - should find equal integer using same reference"
-assert-equal reduce [int1 int2 "other"] find int-container int2 "find without /same - should find equal integer (first occurrence)"
+assert-equal reduce [int1 int2 "other"] find int-container int3 "`find` without `/same` - should find equal integer using same reference"
+assert-equal reduce [int1 int2 "other"] find int-container int2 "`fin`d without `/same` - should find equal integer (first occurrence)"
 
 ;;-----------------------------------------------------------------------------
-;; PROBING /ANY REFINEMENT (WILDCARDS)
+;; PROBING `/any` REFINEMENT (WILDCARDS)
 ;;-----------------------------------------------------------------------------
-
-print "^/--- Probing /any Refinement (Wildcards) ---"
-;; HYPOTHESIS: /any should enable * and ? wildcards for pattern matching
+print "^/--- Probing the `/any` Refinement (Wildcards) ---"
+;; HYPOTHESIS: `/any` should enable the `*` and `?` wildcard characters for pattern matching.
 
 wildcard-string: "Hello World Programming"
 assert-equal "World Programming" find/any wildcard-string "W*d" "find/any - should match * wildcard"
