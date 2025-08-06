@@ -1,8 +1,8 @@
 REBOL [
     Title: "Enhanced Rebol Snippet Database System"
-    Version: 1.2.7
+    Version: 1.2.8
     Author: "Gemini Pro AI Assistant"
-    Date: 30-Jul-2025
+    Date: 06-Aug-2025
     File: %Rebol-3-code-snippets-knowledgebase.r3
     Purpose: "Load and search Rebol 3 code snippets with flexible search modes."
 ]
@@ -30,7 +30,7 @@ make object! [
 
 	make object! [
 		code: {BACKSPACE_CHAR: #"^H"}
-		tags: ['BACKSPACE_CHAR 'backspace 'bs 'char! 'character 'constant 'define 'caret 'H 'special 'invisible]
+		tags: ['BACKSPACE_CHAR 'backspace 'BS 'char! 'character 'constant 'define 'caret 'H 'special 'invisible]
 		desc: "Define a named constant for the backspace character."
 		category: "character"
 	]
@@ -233,15 +233,50 @@ make object! [
 
 	make object! [
 		code: {not none? find "haystack" "needle"}
-		tags: ['string 'haystack 'find 'locate 'needle 'contains 'substring 'search 'exists 'Boolean 'logic! 'found? 'stristr 'letter 'case 'insensitive 'ignore]
-		desc: "Convert `find` result to a Boolean return value & return `true` if `haystack` contains `needle` (lettercase insensitive)."
+		tags: ['string 'haystack 'find 'locate 'needle 'contains 'substring 'search 'exist 'bool 'logic! 'bstristr 'letter 'case 'insensitive 'ignore]
+		desc: "Return `true` if `haystack` contains `needle` (lettercase insensitive)."
 		category: "string"
 	]
 
 	make object! [
 		code: {not none? find/case "haystack" "needle"}
-		tags: ['string 'haystack 'find 'locate 'needle 'contains 'substring 'search 'exists 'Boolean 'logic! 'found? 'strstr 'letter 'case 'sensitive]
-		desc: "Convert `find` result to a Boolean return value & return `true` if `haystack` contains `needle` (lettercase sensitive)."
+		tags: ['string 'haystack 'find 'locate 'needle 'contains 'substring 'search 'exist 'bool 'logic! 'bstrstr 'exact 'letter 'case 'sensitive]
+		desc: "Return `true` if `haystack` contains `needle` (lettercase sensitive)."
+		category: "string"
+	]
+
+	make object! [
+		code: {not none? find/case/part "haystack" "needle" range}
+		tags: ['string 'haystack 'find 'locate 'needle 'contains 'substring 'search 'exist 'bool 'logic! 'bstrnstr 'exact 'letter 'case 'sensitive 'part 'length]
+		desc: "Return `true` if `haystack` contains `needle` (lettercase sensitive), within the specified  range including an index pair."
+		category: "string"
+	]
+
+	make object! [
+		code: {not none? find/part "haystack" "needle" range}
+		tags: ['string 'haystack 'find 'locate 'needle 'contains 'substring 'search 'exist 'bool 'logic! 'bstrinstr 'letter 'case 'insensitive 'ignore 'part 'length]
+		desc: "Return `true` if `haystack` contains `needle` (lettercase insensitive), within the specified range including an index pair."
+		category: "string"
+	]
+
+	make object! [
+		code: {not none? find/case/tail "haystack" "needle"}
+		tags: ['string 'haystack 'find 'locate 'needle 'contains 'substring 'search 'exist 'bool 'logic! 'bstrrstr 'exact 'letter 'case 'sensitive 'opposite]
+		desc: "Return `true` if `haystack` contains `needle` (lettercase sensitive), tail search (right-to-left from the tail end)."
+		category: "string"
+	]
+
+	make object! [
+		code: {not none? find/tail "haystack" "needle"}
+		tags: ['string 'haystack 'find 'locate 'needle 'contains 'substring 'search 'exist 'bool 'logic! 'bstrirstr 'ignore 'letter 'case 'insensitive 'opposite]
+		desc: "Return `true` if `haystack` contains `needle` (lettercase insensitive), tail search (right-to-left from the tail end)."
+		category: "string"
+	]
+
+	make object! [
+		code: {not none? find/case/part/tail "haystack" "needle" range}
+		tags: ['string 'haystack 'find 'locate 'needle 'contains 'substring 'search 'exist 'bool 'logic! 'bstrnrstr 'exact 'letter 'case 'sensitive 'part 'length 'opposite]
+		desc: "Return `true` if `haystack` contains `needle` (lettercase sensitive), within the specified  range including an index pair via a tail to head search (right-to-left from the end)."
 		category: "string"
 	]
 
@@ -528,30 +563,44 @@ make object! [
 
 	make object! [
 		code: {isalpha?: funct [chr [char!]] [to-logic find LETTER_CHARSET chr]}
-		tags: ['isalpha? 'ask 'is 'single 'alphabet 'letter 'case 'insensitive 'character 'group 'type 'LETTER_CHARSET]
+		tags: ['isalpha? 'ask 'is 'single 'alphabet 'letter 'case 'insensitive 'character 'group 'type]
 		desc: {Determine if a character is an alphabetic letter.  Usage: `isalpha? #"a"`}
 		category: "character"
 	]
 
 	make object! [
 		code: {islower?: funct [chr [char!]] [to-logic find/case LETTER_CHARSET chr]}
-		tags: ['islower? 'ask 'is 'single 'alphabet 'letter 'lower 'case 'lowercase 'sensitive 'character 'group 'type 'LETTER_CHARSET]
+		tags: ['islower? 'ask 'is 'single 'alphabet 'letter 'lower 'case 'lowercase 'sensitive 'character 'group 'type]
 		desc: {Determine if a character is a lowercase alphabetic letter.  Usage: `islower? #"a"`}
 		category: "character"
 	]
 
     make object! [
         code: {PUNCT_CHARSET: protect charset {~`!@#$%&*()_+-={}[]|\:;'<>?,./^^"} protect 'PUNCT_CHARSET}
-        tags: ['charset 'punctuate 'characters 'constant 'immutable 'read-only 'bitset 'protect 'ispunct? 'PUNCT_CHARSET]
+        tags: ['charset 'punctuate 'characters 'constant 'immutable 'read-only 'bitset 'protect 'ispunct?]
         desc: {Create an immutable constant for all standard punctuate characters.}
         category: "character"
     ]
 
 	make object! [
 		code: {ispunct?: funct [chr [char!]] [to-logic find/case PUNCT_CHARSET chr]}
-		tags: ['ispunct? 'ask 'is 'single 'punctuate 'charset 'charset! 'symbol 'character 'group 'type 'PUNCT_CHARSET]
+		tags: ['ispunct? 'ask 'is 'single 'punctuate 'charset 'charset! 'symbol 'character 'group 'type]
 		desc: "Determine if a character is a punctuate symbol. Usage: `ispunct? #";"`"
 		category: "character"
+	]
+
+	make object! [
+		code: {LINUX_SHELL_UNSAFE_CHARSET: protect charset {"|&;><`$()"} protect 'LINUX_SHELL_UNSAFE_CHARSET}
+		tags: ['charset 'Linux 'UNIX 'shell 'BASH 'sanitize 'inject 'command 'meta 'character 'constant 'define 'immutable 'read-only 'protect 'bitset 'pipe 'redirect 'safe 'secure 'group 'type]
+		desc: "Define a protected, immutable charset dangerous in Linux/UNIX shell commands to sanitize."
+		category: "define"
+	]
+
+	make object! [
+		code: {WINDOWS_SHELL_UNSAFE_CHARSET: protect charset {"&|><^""%"} protect 'WINDOWS_SHELL_UNSAFE_CHARSET}
+		tags: ['charset 'Microsoft 'Windows 'cmd 'PowerShell 'secure 'sanitize 'inject 'command 'meta 'characters 'constant 'immutable 'read-only 'protect 'safe 'bitset 'pipe 'redirect 'percent 'caret 'group 'type]
+		desc: "Define a protected, immutable charset dangerous in Windows (cmd.exe/PowerShell) commands to sanitize."
+		category: "define"
 	]
 
 	make object! [
@@ -569,11 +618,11 @@ make object! [
 	]
 ]
 
-;print rejoin ["Success Rate: " round/to (pass-count * 100.0) / test-count 0.1 "%"]
 
 comment {
     category: "character"
     category: "convert"
+    category: "define"
     category: "format-data"
     category: "handle-data"
     category: "header"
