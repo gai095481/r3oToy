@@ -45,6 +45,7 @@ REFINEMENTS:
 Notes:
 - Decimal indices/keys are not supported for blocks/paths; treated as no-ops.
 - Negative or zero indexes are no-ops.
+- Negative indices for `block!` are supported: -1 is last, -2 second-to-last, …, -len is first. Out-of-bounds negatives are no-ops. Negative indices do not trigger growth even with `/create`.
 
 ## Path traversal (/path)
 A path is a `block!` of steps. Each step navigates one level deeper:
@@ -70,6 +71,10 @@ Security note: Because `/path` may evaluate expressions found immediately after 
 ; Block by index
 blk: [a b c]
 sling blk 2 "X"             ; => blk is [a "X" c]
+; Negative indexing
+sling blk -1 "Z"             ; => blk is [a "X" "Z"] (last)
+sling blk -2 "Y"             ; => blk is [a "Y" "Z"] (second-to-last)
+sling blk -5 "X"             ; => no-op (out-of-bounds)
 
 ; Block by key
 blk: [name: "Alice" age: 25]
@@ -96,6 +101,7 @@ data: [
     port: 8080
     database: make map! [host: "localhost"]
   ]
+  rows: [1 2 3 4]
 ]
 
 ; Set nested port
@@ -109,6 +115,10 @@ sling/path data ['config 'database 'host] "db.example.com"
 ; Create a missing key under a nested block
 sling/path/create data ['config 'debug] true
 ; => grab/path data ['config 'debug] is true
+
+; Negative indexing inside a path
+sling/path data ['rows -1] 99
+; => grab/path data ['rows 4] is 99
 ```
 
 ### Creating missing intermediate containers
@@ -169,7 +179,7 @@ can-object?:      in obj 'age
 - **Blocks with set-words**: If a `set-word!` is present, `sling` will either descend into the literal block that follows, or evaluate the value expression and replace it in place. Best practice: keep these expressions side-effect free.
 - **Map traversal**: Creation must happen at the parent. `sling` maintains a parent reference and inserts a new `map!` into the parent when `/create` is used and an intermediate step is missing or not a container.
 - **Object traversal**: Only traverses existing fields via `in`/`get`. It does not add fields. To add new fields, construct a new `object!` or extend your type ahead of time.
-- **Indices**: Block indices are 1-based. Out-of-bounds, zero, or negative are no-ops.
+- **Indices**: Block indices are 1-based for positive integers. Negative indices are supported for reverse indexing (-1 last, -2 second-to-last, …). Out-of-bounds negatives and zero are no-ops. Negative indices never trigger growth; use positive indices with `/create` to extend.
 - **Decimals**: Decimal keys/indices are ignored (no-ops) for blocks/paths.
 
 ## Troubleshooting

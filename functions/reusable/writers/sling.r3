@@ -306,7 +306,9 @@ sling: function [
         case [
             block? container [
                 either integer? last key [
-                    if all [last key >= 1 last key <= length? container] [poke container last key value
+                    actual-index-final: either (last key) < 0 [ (length? container) + (last key) + 1 ] [ last key ]
+                    if all [actual-index-final >= 1 actual-index-final <= length? container] [
+                        poke container actual-index-final value
                         changed?: true
                     ]
                 ][
@@ -431,6 +433,17 @@ assert-equal 30 select test-map 'age "Map/Word: Should set value for an existing
 sling test-map 'city "Boston"
 assert-equal false (not none? find test-map 'city) "Map/Word (no-create): Should NOT create a new key 'city'."
 
+;; --- Block Negative Indexing ---
+neg-block: [a b c d]
+sling neg-block -1 "Z"
+assert-equal [a b c "Z"] neg-block "Block/Int (negative): -1 should set the last item."
+
+sling neg-block -2 "Y"
+assert-equal [a b "Y" "Z"] neg-block "Block/Int (negative): -2 should set second-to-last item."
+
+sling neg-block -5 "X"
+assert-equal [a b "Y" "Z"] neg-block "Block/Int (negative): Out-of-bounds negative index should be a no-op."
+
 print "^/--- Phase 2: /create Refinement Tests ---"
 
 ;; --- Block /create ---
@@ -458,6 +471,7 @@ path-data: [
             host: "localhost"
         ]
     ]
+    rows: [1 2 3 4]
 ]
 
 sling/path path-data ['config 'port] 9090
@@ -465,6 +479,10 @@ assert-equal 9090 grab/path path-data ['config 'port] "Path/Block: Should set va
 
 sling/path path-data ['config 'database 'host] "db.example.com"
 assert-equal "db.example.com" grab/path path-data ['config 'database 'host] "Path/Map: Should set value in a nested map."
+
+;; Negative indexing in /path traversal
+sling/path path-data ['rows -1] 99
+assert-equal 99 grab/path path-data ['rows 4] "Path/Block (negative): -1 should set the last item."
 
 ;; --- Path with /create ---
 path-create-data: [config: [a: 1]]
