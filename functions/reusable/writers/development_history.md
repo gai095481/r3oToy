@@ -33,6 +33,6 @@
 
 #### Future Improvements
 - Add richer test coverage for `object!` traversal, negative cases, and edge datatypes.
-- Remove remaining `'else` in `case` branches and standardize on preferred style.
+- Replaced `'else` with `true` in `case` default branch to standardize the code using the preferred style.
 - Consider explicit handling or removal of `decimal!` keys in `sling`’s spec.
 - Explore `/secure` refinement once core functionality remains stable over time.
