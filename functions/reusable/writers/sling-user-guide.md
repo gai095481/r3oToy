@@ -5,10 +5,11 @@ This guide teaches you how to use `sling` to modify Rebol data structures safely
 Tested with: Rebol/Bulk 3.19.0 (Oldes Branch)
 
 ## Overview
-`slings` is a super-setter that modifies data structures in place. It unifies common mutation patterns across `block!`, `map!`, and `object!` and adds:
+`sling` is a super-setter that modifies data structures in place. It unifies common mutation patterns across `block!`, `map!`, and `object!` and adds:
 - `/path` traversal for deeply nested modifications
 - `/create` to create missing keys/containers along the way
 - Safe, non-erroring behavior on invalid inputs
+- `/report` to return whether a change actually occurred
 
 ## API
 ```
@@ -25,9 +26,11 @@ PARAMETERS:
 REFINEMENTS:
   /path     ; Treat key as a path (a block of steps)
   /create   ; Create missing keys/containers on the path
+  /report   ; Return logic! changed? instead of data
 ```
 
-- Returns the (possibly modified) `data` you passed in. Modifies it in place.
+- Without `/report`, returns the (possibly modified) `data` you passed in; modifies it in place.
+- With `/report`, returns a `logic!` indicating whether the operation made a change (`true`) or was a no-op (`false`).
 - Never raises errors; invalid operations become no-ops.
 
 ## Supported containers and keys
@@ -130,8 +133,38 @@ sling/path/create sys ['users 'first 'meta 'active] true
 ; => grab/path sys ['users 'first 'meta 'active] is true
 ```
 
+## Detecting no-ops and confirming success (no copying required)
+Because `sling` is non-erroring by design, use one of the following methods to know if a call had any effect:
+
+- Use `/report` (simplest)
+  - Returns `true` if a change occurred, `false` if it was a no-op.
+  ```rebol
+changed?: sling/report blk 'age 30
+changed?: sling/path/report data ['config 'port] 9090
+changed?: sling/path/create/report mp ['config 'b] 2
+  ```
+
+- Targeted post-condition check (without copying the whole structure)
+  - Check the specific cell/path you intended to mutate.
+  ```rebol
+; Single-level
+ok?: equal? select mp 'age 31
+
+; Path
+ok?: equal? grab/path data ['config 'database 'host] "db.example.com"
+  ```
+
+- Optional preflight checks (fast guards)
+  - Validate the target exists or `/create` is used before calling `sling`.
+  ```rebol
+can-block-index?: all [block? blk integer? idx idx >= 1 idx <= length? blk]
+can-block-key?:   any [find blk to-set-word 'age create]
+can-map?:         any [find mp 'host create]
+can-object?:      in obj 'age
+  ```
+
 ## Behavior reference and nuances
-- **In-place modification**: All mutations occur on the original container; the return value is the same reference you passed.
+- **In-place modification**: All mutations occur on the original container; without `/report`, the return value is the same reference you passed. With `/report`, a `logic!` is returned.
 - **Safe failure**: Invalid container types, unsupported key types, or missing keys without `/create` result in no-ops rather than errors.
 - **Blocks with set-words**: If a `set-word!` is present, `sling` will either descend into the literal block that follows, or evaluate the value expression and replace it in place. Best practice: keep these expressions side-effect free.
 - **Map traversal**: Creation must happen at the parent. `sling` maintains a parent reference and inserts a new `map!` into the parent when `/create` is used and an intermediate step is missing or not a container.
@@ -140,13 +173,14 @@ sling/path/create sys ['users 'first 'meta 'active] true
 - **Decimals**: Decimal keys/indices are ignored (no-ops) for blocks/paths.
 
 ## Troubleshooting
-- **Nothing changed**: Verify you used `/create` when targeting a missing key/path segment. Confirm your `/path` steps are a `block!` of `word!`s/`integer!`s.
+- **Nothing changed**: Use `/report` to detect a no-op, or verify with a targeted read via `grab`/`grab/path`. Ensure you used `/create` when adding keys/containers.
 - **Unexpected results with expressions**: If a `set-word!` is followed by an expression (e.g., `make map! [...]`), it will be evaluated once and replaced. Ensure expressions are idempotent and safe to evaluate.
 - **Object fields not created**: This is by design. Create or extend the object’s fields before using `sling`.
 
 ## Best practices
 - **Prefer words as map keys** for consistency in examples and readability.
 - **Be explicit with `/create`** when you expect to add keys or intermediate containers.
+- **Use `/report`** if you need to branch logic based on success/failure.
 - **Keep traversal expressions simple** behind `set-word!`s to avoid side effects during evaluation.
 - **Use `grab` to verify results** after a `sling` operation:
 ```rebol
