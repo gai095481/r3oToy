@@ -244,6 +244,18 @@ sling: function [
                     ]
                     container: select container step
                 ]
+                object? container [
+                    either word? step [
+                        bound-word: in container step
+                        either bound-word [
+                            container: get bound-word
+                        ][
+                            return data
+                        ]
+                    ][
+                        return data
+                    ]
+                ]
                 'else [return data]  ; Invalid container type
             ]
         ]
@@ -284,12 +296,19 @@ sling: function [
                     'else [data]  ; Return original if nothing changed
                 ]
             ]
+            object? container [
+                if word? last key [
+                    if in container last key [
+                        put container last key value
+                    ]
+                ]
+            ]
         ]
         return data   
         
     ][
         ; --- Single-Level Logic (Optimized) ---
-        if not any [block? data map? data] [return data]
+        if not any [block? data map? data object? data] [return data]
         if block? data [
             if integer? key [
                 if all [key >= 1 key <= (length? data)] [poke data key value]
@@ -302,6 +321,14 @@ sling: function [
                     if create [append data reduce [to-set-word key value]]
                 ]
                 return data
+            ]
+            return data
+        ]
+        if object? data [
+            if word? key [
+                if in data key [
+                    put data key value
+                ]
             ]
             return data
         ]
