@@ -1,7 +1,7 @@
 REBOL [
-    Title: "The `sling` Super-Setter Function"
-    Version: 0.1.1
-    Author: "AI Assistant & Human Orchestrator"
+    	Title: "The `sling` Super-Setter Function"
+	Version: 0.2.1
+	Author: "AI Assistant & Human Orchestrator"
     Date: 19-Jun-2025
     Status: "Four Phase 3 QA tests are failing."
     File: %sling.r3
