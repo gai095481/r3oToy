@@ -1,7 +1,7 @@
 REBOL [
-    Title: "The `sling` Super-Setter Function"
-    Version: 0.1.1
-    Author: "AI Assistant & Human Orchestrator"
+    	Title: "The `sling` Super-Setter Function"
+	Version: 0.2.1
+	Author: "AI Assistant & Human Orchestrator"
     Date: 19-Jun-2025
     Status: "Four Phase 3 QA tests are failing."
     File: %sling.r3
@@ -197,11 +197,13 @@ sling: function [
     value [any-type!] "The value to set."
     /path "Treat key as a path for nested structure navigation."
     /create "Allow creation of new keys if they don't exist."
+    /report "Return a logic! indicating whether a change occurred, instead of the data."
 ][
+    changed?: false
     either path [
         ; --- Revised Path Logic ---
-        if not block? key [return data]
-        if empty? key [return data]
+        if not block? key [return either report [false] [data]]
+        if empty? key [return either report [false] [data]]
         
         container: data
         path-to-walk: copy/part key (length? key) - 1
@@ -210,41 +212,93 @@ sling: function [
             case [
                 block? container [
                     either integer? step [
-                        ; Positional access in blocks
-                        unless all [step >= 1 step <= length? container] [
-                            either create [
-                                insert/dup tail container none step - length? container
-                            ][
-                                return data
+                        ; Positional access in blocks (support negative indices)
+                        actual-index: either step < 0 [ (length? container) + step + 1 ] [ step ]
+                        if any [none? actual-index actual-index < 1 actual-index > length? container] [
+                            ; Only allow growth for positive indices with /create
+                            if all [create step > 0 actual-index > length? container] [
+                                insert/dup tail container none actual-index - length? container
+                            ] else [
+                                return either report [false] [data]
                             ]
                         ]
-                        container: container/:step
+                        container: container/:actual-index
                     ][
                         ; Key-based access in blocks
                         pos: find container to-set-word step
                         either pos [
-                            container: second pos
+                            value-after: second pos
+                            either block? :value-after [
+                                ; If the immediate value is a literal block, descend directly
+                                container: :value-after
+                            ][
+                                ; Otherwise, evaluate the value-expression (up to next top-level set-word)
+                                value-expression: copy next pos
+                                next-setword-pos: none
+                                foreach item value-expression [
+                                    if set-word? item [
+                                        next-setword-pos: find value-expression item
+                                        break
+                                    ]
+                                ]
+                                if next-setword-pos [
+                                    value-expression: copy/part value-expression next-setword-pos
+                                ]
+                                if any [none? value-expression empty? value-expression] [
+                                    return either report [false] [data]
+                                ]
+                                result: try [do value-expression]
+                                if error? result [
+                                    return either report [false] [data]
+                                ]
+                                ; Replace expression with evaluated result to stabilize further traversal
+                                idx: index? pos
+                                expr-len: length? value-expression
+                                change/part at container idx + 1 reduce [:result] expr-len
+                                container: :result
+                            ]
                         ][
                             either create [
                                 repend container [to-set-word step make map! []]
                                 container: select container step
                             ][
-                                return data
+                                return either report [false] [data]
                             ]
                         ]
                     ]
                 ]
                 map? container [
-                    unless select container step [
+                    parent: container
+                    selected: select parent step
+                    unless selected [
                         either create [
-                            put container step make map! []
+                            put parent step make map! []
+                            selected: select parent step
                         ][
-                            return data
+                            return either report [false] [data]
                         ]
                     ]
-                    container: select container step
+                    unless any [block? :selected map? :selected object? :selected] [
+                        if create [
+                            put parent step make map! []
+                            selected: select parent step
+                        ]
+                    ]
+                    container: selected
                 ]
-                'else [return data]  ; Invalid container type
+                object? container [
+                    either word? step [
+                        bound-word: in container step
+                        either bound-word [
+                            container: get bound-word
+                        ][
+                            return either report [false] [data]
+                        ]
+                    ][
+                        return either report [false] [data]
+                    ]
+                ]
+                'else [return either report [false] [data]]  ; Invalid container type
             ]
         ]
         
@@ -252,66 +306,77 @@ sling: function [
         case [
             block? container [
                 either integer? last key [
-                    if all [last key >= 1 last key <= length? container] [
-                        poke container last key value
+                    actual-index-final: either (last key) < 0 [ (length? container) + (last key) + 1 ] [ last key ]
+                    if all [actual-index-final >= 1 actual-index-final <= length? container] [
+                        poke container actual-index-final value
+                        changed?: true
                     ]
                 ][
                     either find container to-set-word last key [
                         put container to-set-word last key value
+                        changed?: true
                     ][
-                        if create [append container reduce [to-set-word last key value]]
+                        if create [append container reduce [to-set-word last key value] changed?: true]
                     ]
                 ]
             ]
             map? container [
-                ; Clearer nested map handling that won't break existing cases
-                case [
-                    find container last key [
+                either find container last key [
+                    put container last key value
+                    changed?: true
+                ][
+                    if create [put container last key value changed?: true]
+                ]
+            ]
+            object? container [
+                if word? last key [
+                    if in container last key [
                         put container last key value
+                        changed?: true
                     ]
-                    create [
-                        ; Special handling only when we detect nested path creation
-                        either all [
-                            block? key 
-                            block? value
-                            empty? value
-                        ][
-                            put container last key make map! []
-                        ][
-                            put container last key value
-                        ]
-                    ]
-                    'else [data]  ; Return original if nothing changed
                 ]
             ]
         ]
-        return data   
+        return either report [changed?] [data]  
         
     ][
         ; --- Single-Level Logic (Optimized) ---
-        if not any [block? data map? data] [return data]
+        if not any [block? data map? data object? data] [return either report [false] [data]]
         if block? data [
             if integer? key [
-                if all [key >= 1 key <= (length? data)] [poke data key value]
-                return data
+                ; Support negative indices for blocks
+                actual-index: either key < 0 [ (length? data) + key + 1 ] [ key ]
+                if all [actual-index >= 1 actual-index <= (length? data)] [poke data actual-index value changed?: true]
+                return either report [changed?] [data]
             ]
             if word? key [
                 either find data to-set-word key [
                     put data to-set-word key value
+                    changed?: true
                 ][
-                    if create [append data reduce [to-set-word key value]]
+                    if create [append data reduce [to-set-word key value] changed?: true]
                 ]
-                return data
+                return either report [changed?] [data]
             ]
-            return data
+            return either report [false] [data]
+        ]
+        if object? data [
+            if word? key [
+                if in data key [
+                    put data key value
+                    changed?: true
+                ]
+            ]
+            return either report [changed?] [data]
         ]
         if map? data [
             if any [find data key create] [
                 put data key value
+                changed?: true
             ]
-            return data
+            return either report [changed?] [data]
         ]
-        return data
+        return either report [false] [data]
     ]
 ]
 
@@ -368,6 +433,17 @@ assert-equal 30 select test-map 'age "Map/Word: Should set value for an existing
 sling test-map 'city "Boston"
 assert-equal false (not none? find test-map 'city) "Map/Word (no-create): Should NOT create a new key 'city'."
 
+;; --- Block Negative Indexing ---
+neg-block: [a b c d]
+sling neg-block -1 "Z"
+assert-equal [a b c "Z"] neg-block "Block/Int (negative): -1 should set the last item."
+
+sling neg-block -2 "Y"
+assert-equal [a b "Y" "Z"] neg-block "Block/Int (negative): -2 should set second-to-last item."
+
+sling neg-block -5 "X"
+assert-equal [a b "Y" "Z"] neg-block "Block/Int (negative): Out-of-bounds negative index should be a no-op."
+
 print "^/--- Phase 2: /create Refinement Tests ---"
 
 ;; --- Block /create ---
@@ -395,6 +471,7 @@ path-data: [
             host: "localhost"
         ]
     ]
+    rows: [1 2 3 4]
 ]
 
 sling/path path-data ['config 'port] 9090
@@ -402,6 +479,10 @@ assert-equal 9090 grab/path path-data ['config 'port] "Path/Block: Should set va
 
 sling/path path-data ['config 'database 'host] "db.example.com"
 assert-equal "db.example.com" grab/path path-data ['config 'database 'host] "Path/Map: Should set value in a nested map."
+
+;; Negative indexing in /path traversal
+sling/path path-data ['rows -1] 99
+assert-equal 99 grab/path path-data ['rows 4] "Path/Block (negative): -1 should set the last item."
 
 ;; --- Path with /create ---
 path-create-data: [config: [a: 1]]
