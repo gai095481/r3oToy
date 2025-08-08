@@ -197,11 +197,13 @@ sling: function [
     value [any-type!] "The value to set."
     /path "Treat key as a path for nested structure navigation."
     /create "Allow creation of new keys if they don't exist."
+    /report "Return a logic! indicating whether a change occurred, instead of the data."
 ][
+    changed?: false
     either path [
         ; --- Revised Path Logic ---
-        if not block? key [return data]
-        if empty? key [return data]
+        if not block? key [return either report [false] [data]]
+        if empty? key [return either report [false] [data]]
         
         container: data
         path-to-walk: copy/part key (length? key) - 1
@@ -215,7 +217,7 @@ sling: function [
                             either create [
                                 insert/dup tail container none step - length? container
                             ][
-                                return data
+                                return either report [false] [data]
                             ]
                         ]
                         container: container/:step
@@ -241,11 +243,11 @@ sling: function [
                                     value-expression: copy/part value-expression next-setword-pos
                                 ]
                                 if any [none? value-expression empty? value-expression] [
-                                    return data
+                                    return either report [false] [data]
                                 ]
                                 result: try [do value-expression]
                                 if error? result [
-                                    return data
+                                    return either report [false] [data]
                                 ]
                                 ; Replace expression with evaluated result to stabilize further traversal
                                 idx: index? pos
@@ -258,7 +260,7 @@ sling: function [
                                 repend container [to-set-word step make map! []]
                                 container: select container step
                             ][
-                                return data
+                                return either report [false] [data]
                             ]
                         ]
                     ]
@@ -271,7 +273,7 @@ sling: function [
                             put parent step make map! []
                             selected: select parent step
                         ][
-                            return data
+                            return either report [false] [data]
                         ]
                     ]
                     unless any [block? :selected map? :selected object? :selected] [
@@ -288,81 +290,88 @@ sling: function [
                         either bound-word [
                             container: get bound-word
                         ][
-                            return data
+                            return either report [false] [data]
                         ]
                     ][
-                        return data
+                        return either report [false] [data]
                     ]
                 ]
-                'else [return data]  ; Invalid container type
+                'else [return either report [false] [data]]  ; Invalid container type
             ]
         ]
         
         ; Final setting operation - fully type-safe
-        print rejoin ["DEBUG final container type: " mold type? :container]
         case [
             block? container [
                 either integer? last key [
-                    if all [last key >= 1 last key <= length? container] [poke container last key value]
+                    if all [last key >= 1 last key <= length? container] [
+                        poke container last key value
+                        changed?: true
+                    ]
                 ][
                     either find container to-set-word last key [
                         put container to-set-word last key value
+                        changed?: true
                     ][
-                        if create [append container reduce [to-set-word last key value]]
+                        if create [append container reduce [to-set-word last key value] changed?: true]
                     ]
                 ]
             ]
             map? container [
-                ; Clearer nested map handling that won't break existing cases
                 either find container last key [
                     put container last key value
+                    changed?: true
                 ][
-                    if create [put container last key value]
+                    if create [put container last key value changed?: true]
                 ]
             ]
             object? container [
                 if word? last key [
                     if in container last key [
                         put container last key value
+                        changed?: true
                     ]
                 ]
             ]
         ]
-        return data   
+        return either report [changed?] [data]  
         
     ][
         ; --- Single-Level Logic (Optimized) ---
-        if not any [block? data map? data object? data] [return data]
+        if not any [block? data map? data object? data] [return either report [false] [data]]
         if block? data [
             if integer? key [
-                if all [key >= 1 key <= (length? data)] [poke data key value]
-                return data
+                if all [key >= 1 key <= (length? data)] [poke data key value changed?: true]
+                return either report [changed?] [data]
             ]
             if word? key [
                 either find data to-set-word key [
                     put data to-set-word key value
+                    changed?: true
                 ][
-                    if create [append data reduce [to-set-word key value]]
+                    if create [append data reduce [to-set-word key value] changed?: true]
                 ]
-                return data
+                return either report [changed?] [data]
             ]
-            return data
+            return either report [false] [data]
         ]
         if object? data [
             if word? key [
                 if in data key [
                     put data key value
+                    changed?: true
                 ]
             ]
-            return data
+            return either report [changed?] [data]
         ]
         if map? data [
             if any [find data key create] [
                 put data key value
+                changed?: true
             ]
-            return data
+            return either report [changed?] [data]
         ]
-        return data
+        return either report [false] [data]
     ]
 ]
 
