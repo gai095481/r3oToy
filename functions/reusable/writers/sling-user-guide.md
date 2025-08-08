@@ -191,3 +191,60 @@ grab/path data ['config 'database 'host]
 - Version: `sling` v0.2.1
 - Interpreter: Rebol/Bulk 3.19.0
 - The QA suite validates the behaviors described above, including nested map creation and block expression handling.
+
+## Design rationale: why `/report` is opt-in (not default)
+- **Backward compatibility**: Existing call sites may rely on `sling` returning the (modified) data for chaining and REPL workflows. Flipping the default to `logic!` would be a silent breaking change.
+- **Idiomatic mutator style**: Many Rebol mutators (`append`, `change`, `put`) return the mutated series/object. `sling` follows this convention for fluent composition.
+- **Chaining and composition**: Returning the container enables one-liners (e.g., mutate then render/serialize) without introducing temp variables.
+- **REPL ergonomics**: In interactive sessions, returning the container lets you immediately inspect the new state.
+- **Symmetry with potential non-destructive variants**: Keeping the return type as the container eases future swapping with a non-destructive version without reworking call sites.
+
+If you primarily care about success/failure, use `/report` (or the wrapper below) to get a boolean without losing the default ergonomics for other users.
+
+## Ergonomic wrapper for boolean-first style
+Add a small alias that defaults to reporting success:
+```rebol
+; sling? behaves like sling but returns logic! changed? by default
+sling?: func [
+  data [block! map! object! none!]
+  key  [any-word! integer! decimal! block!]
+  value [any-type!]
+  /path /create
+][
+  sling/:path/:create/report data key value
+]
+```
+Usage examples:
+```rebol
+assert sling?/path/create data ['config 'db 'host] "db.example.com"
+if sling?/report data 'flag true [render data]
+```
+
+## Safer chaining patterns
+Chaining can hide no-ops unless you check for success. Use one of these patterns when a change is required:
+- **Gate downstream work with `/report`**
+  ```rebol
+if sling/path/create/report data ['config 'port] 9090 [
+  render data
+]
+  ```
+- **Preflight guards (fast checks before calling)**
+  ```rebol
+all [block? blk integer? i i >= 1 i <= length? blk]              ; block index
+any [find blk to-set-word 'k create]                             ; block key
+any [find mp 'k create]                                          ; map key
+in obj 'field                                                    ; object field
+  ```
+- **Post-condition asserts (critical writes)**
+  ```rebol
+assert equal? grab/path data ['config 'database 'host] "db.example.com"
+  ```
+- **Optional strict wrapper (fail-fast)**
+  ```rebol
+sling-strict: func [data key value /path /create][
+  if not sling/:path/:create/report data key value [
+    cause-error 'user 'message "sling: no change"
+  ]
+  data
+]
+  ```
