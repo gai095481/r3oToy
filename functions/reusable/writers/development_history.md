@@ -25,18 +25,20 @@
 - Adopted a QA-first approach, running the test suite via Rebol/Bulk 3.19.0 to validate changes end-to-end.
 - Added targeted debug prints temporarily to inspect container types and structures, then removed once stabilized.
 
+#### Post-Stabilization Updates (2025-08-08)
+- Added `/report` refinement to `sling` that returns a `logic!` indicating whether a change occurred, preserving default behavior when not used.
+- Updated documentation: user’s guide, PRD, project status; added development history.
+- Repository hygiene: removed interpreter binary from version control and added ignore rules to prevent accidental inclusion in PRs.
+- Re-ran the full QA suite on Rebol/Bulk 3.19.0 after these changes: all tests passed.
+- Implemented negative indexing for `block!` (single-level and `/path`): `-1` last, `-2` second-to-last, etc. Negative indices do not trigger growth, preserving creation semantics.
+- Added targeted QA for negative indexing and documented the behavior in the user’s guide.
+
 #### Lessons Learned
 - Maintain parent references when mutating nested associative structures; creation must occur at the parent, not the selected child.
 - When parsing block layouts, replace entire expression spans after `set-word!` to avoid desynchronization and duplicate entries.
 - Keep setters and getters separate; retrieval helpers that normalize values can be harmful in write paths.
 - Favor explicit returns and non-erroring flows for robust library code.
 - Expose an explicit status channel (e.g., `/report`) so callers can detect no-ops without comparing whole structures.
-
-#### Post-Stabilization Updates (2025-08-08)
-- Added `/report` refinement to `sling` that returns a `logic!` indicating whether a change occurred, preserving default behavior when not used.
-- Updated documentation: user’s guide, PRD, project status; added development history.
-- Repository hygiene: removed interpreter binary from version control and added ignore rules to prevent accidental inclusion in PRs.
-- Re-ran the full QA suite on Rebol/Bulk 3.19.0 after these changes: all tests passed.
 
 #### Future Improvements
 - Add richer test coverage for `object!` traversal, negative cases, and edge datatypes.
