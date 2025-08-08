@@ -212,15 +212,17 @@ sling: function [
             case [
                 block? container [
                     either integer? step [
-                        ; Positional access in blocks
-                        unless all [step >= 1 step <= length? container] [
-                            either create [
-                                insert/dup tail container none step - length? container
-                            ][
+                        ; Positional access in blocks (support negative indices)
+                        actual-index: either step < 0 [ (length? container) + step + 1 ] [ step ]
+                        if any [none? actual-index actual-index < 1 actual-index > length? container] [
+                            ; Only allow growth for positive indices with /create
+                            if all [create step > 0 actual-index > length? container] [
+                                insert/dup tail container none actual-index - length? container
+                            ] else [
                                 return either report [false] [data]
                             ]
                         ]
-                        container: container/:step
+                        container: container/:actual-index
                     ][
                         ; Key-based access in blocks
                         pos: find container to-set-word step
@@ -304,8 +306,7 @@ sling: function [
         case [
             block? container [
                 either integer? last key [
-                    if all [last key >= 1 last key <= length? container] [
-                        poke container last key value
+                    if all [last key >= 1 last key <= length? container] [poke container last key value
                         changed?: true
                     ]
                 ][
@@ -341,7 +342,9 @@ sling: function [
         if not any [block? data map? data object? data] [return either report [false] [data]]
         if block? data [
             if integer? key [
-                if all [key >= 1 key <= (length? data)] [poke data key value changed?: true]
+                ; Support negative indices for blocks
+                actual-index: either key < 0 [ (length? data) + key + 1 ] [ key ]
+                if all [actual-index >= 1 actual-index <= (length? data)] [poke data actual-index value changed?: true]
                 return either report [changed?] [data]
             ]
             if word? key [
