@@ -223,7 +223,36 @@ sling: function [
                         ; Key-based access in blocks
                         pos: find container to-set-word step
                         either pos [
-                            container: second pos
+                            value-after: second pos
+                            either block? :value-after [
+                                ; If the immediate value is a literal block, descend directly
+                                container: :value-after
+                            ][
+                                ; Otherwise, evaluate the value-expression (up to next top-level set-word)
+                                value-expression: copy next pos
+                                next-setword-pos: none
+                                foreach item value-expression [
+                                    if set-word? item [
+                                        next-setword-pos: find value-expression item
+                                        break
+                                    ]
+                                ]
+                                if next-setword-pos [
+                                    value-expression: copy/part value-expression next-setword-pos
+                                ]
+                                if any [none? value-expression empty? value-expression] [
+                                    return data
+                                ]
+                                result: try [do value-expression]
+                                if error? result [
+                                    return data
+                                ]
+                                ; Replace expression with evaluated result to stabilize further traversal
+                                idx: index? pos
+                                expr-len: length? value-expression
+                                change/part at container idx + 1 reduce [:result] expr-len
+                                container: :result
+                            ]
                         ][
                             either create [
                                 repend container [to-set-word step make map! []]
@@ -264,9 +293,7 @@ sling: function [
         case [
             block? container [
                 either integer? last key [
-                    if all [last key >= 1 last key <= length? container] [
-                        poke container last key value
-                    ]
+                    if all [last key >= 1 last key <= length? container] [poke container last key value]
                 ][
                     either find container to-set-word last key [
                         put container to-set-word last key value
@@ -277,23 +304,10 @@ sling: function [
             ]
             map? container [
                 ; Clearer nested map handling that won't break existing cases
-                case [
-                    find container last key [
-                        put container last key value
-                    ]
-                    create [
-                        ; Special handling only when we detect nested path creation
-                        either all [
-                            block? key 
-                            block? value
-                            empty? value
-                        ][
-                            put container last key make map! []
-                        ][
-                            put container last key value
-                        ]
-                    ]
-                    'else [data]  ; Return original if nothing changed
+                either find container last key [
+                    put container last key value
+                ][
+                    if create [put container last key value]
                 ]
             ]
             object? container [
@@ -428,6 +442,8 @@ sling/path path-data ['config 'port] 9090
 assert-equal 9090 grab/path path-data ['config 'port] "Path/Block: Should set value in a nested block."
 
 sling/path path-data ['config 'database 'host] "db.example.com"
+print rejoin ["DEBUG path-data after set: " mold path-data]
+print rejoin ["DEBUG db host now: " mold grab/path path-data ['config 'database 'host]]
 assert-equal "db.example.com" grab/path path-data ['config 'database 'host] "Path/Map: Should set value in a nested map."
 
 ;; --- Path with /create ---
@@ -437,6 +453,9 @@ assert-equal 2 grab/path path-create-data ['config 'b] "Path/Create: Should crea
 
 path-create-map: make map! [config: make map! [a: 1]]
 sling/path/create path-create-map ['config 'b] 2
+print rejoin ["DEBUG path-create-map after set: " mold path-create-map]
+print rejoin ["DEBUG config map now: " mold select path-create-map 'config]
+print rejoin ["DEBUG value of config/b: " mold grab/path path-create-map ['config 'b]]
 assert-equal 2 grab/path path-create-map ['config 'b] "Path/Create: Should create a key in a nested map."
 
 ;; --- Path Creation (Deep) ---
