@@ -264,14 +264,23 @@ sling: function [
                     ]
                 ]
                 map? container [
-                    unless select container step [
+                    parent: container
+                    selected: select parent step
+                    unless selected [
                         either create [
-                            put container step make map! []
+                            put parent step make map! []
+                            selected: select parent step
                         ][
                             return data
                         ]
                     ]
-                    container: select container step
+                    unless any [block? :selected map? :selected object? :selected] [
+                        if create [
+                            put parent step make map! []
+                            selected: select parent step
+                        ]
+                    ]
+                    container: selected
                 ]
                 object? container [
                     either word? step [
@@ -290,6 +299,7 @@ sling: function [
         ]
         
         ; Final setting operation - fully type-safe
+        print rejoin ["DEBUG final container type: " mold type? :container]
         case [
             block? container [
                 either integer? last key [
@@ -442,8 +452,6 @@ sling/path path-data ['config 'port] 9090
 assert-equal 9090 grab/path path-data ['config 'port] "Path/Block: Should set value in a nested block."
 
 sling/path path-data ['config 'database 'host] "db.example.com"
-print rejoin ["DEBUG path-data after set: " mold path-data]
-print rejoin ["DEBUG db host now: " mold grab/path path-data ['config 'database 'host]]
 assert-equal "db.example.com" grab/path path-data ['config 'database 'host] "Path/Map: Should set value in a nested map."
 
 ;; --- Path with /create ---
@@ -453,9 +461,6 @@ assert-equal 2 grab/path path-create-data ['config 'b] "Path/Create: Should crea
 
 path-create-map: make map! [config: make map! [a: 1]]
 sling/path/create path-create-map ['config 'b] 2
-print rejoin ["DEBUG path-create-map after set: " mold path-create-map]
-print rejoin ["DEBUG config map now: " mold select path-create-map 'config]
-print rejoin ["DEBUG value of config/b: " mold grab/path path-create-map ['config 'b]]
 assert-equal 2 grab/path path-create-map ['config 'b] "Path/Create: Should create a key in a nested map."
 
 ;; --- Path Creation (Deep) ---
