@@ -1,4 +1,4 @@
-### PROJECT SNAPSHOT: 2025-08-08
+### PROJECT SNAPSHOT: 2025-08-09
 
 **COMPLETED THIS SESSION:**
 *   Implemented `object!` support in `sling` for single-level sets and `/path` traversal (existing fields only).
@@ -28,13 +28,13 @@
 
 ---
 ```
-=== Starting QA tests for `sling` v0.2.1 ===
+=== Starting QA tests for `sling` v0.2.2 ===
 
 --- `grab` Integrity Test (for sling) ---
 ✅ PASSED: grab Integrity: Should retrieve the container block correctly.
 ✅ PASSED: grab Integrity: Should return a LOGIC! true, not the word! 'true, when picking by index.
 
---- Phase 1: Simple Set Tests (Revised) ---
+--- Phase 1: Simple Set Tests ---
 ✅ PASSED: Block/Int: Should set value at a valid index.
 ✅ PASSED: Block/Int: Should do nothing for an out-of-bounds index.
 ✅ PASSED: Block/Word: Should set value for an existing key.
@@ -42,18 +42,52 @@
 ✅ PASSED: Map/Word: Key 'age should still exist.
 ✅ PASSED: Map/Word: Should set value for an existing key.
 ✅ PASSED: Map/Word (no-create): Should NOT create a new key 'city'.
+✅ PASSED: Block/Int (negative): -1 should set the last item.
+✅ PASSED: Block/Int (negative): -2 should set second-to-last item.
+✅ PASSED: Block/Int (negative): Out-of-bounds negative index should be a no-op.
+✅ PASSED: Object: Should set existing field.
+✅ PASSED: Object: Should not create missing field.
 
---- Phase 2: /create Refinement Tests ---
+--- Phase 2: `/create` Refinement Tests ---
 ✅ PASSED: Block/create: Should create a new key-value pair.
 ✅ PASSED: Map/create: Should create a new key-value pair.
 ✅ PASSED: Map/no-create: Should not create a key without the refinement.
 
---- Phase 3: /path Refinement Tests ---
+--- Phase 3: `/path` Refinement Tests ---
 ✅ PASSED: Path/Block: Should set value in a nested block.
 ✅ PASSED: Path/Map: Should set value in a nested map.
+✅ PASSED: Path/Block (negative): -1 should set the last item.
 ✅ PASSED: Path/Create: Should create a key in a nested block.
 ✅ PASSED: Path/Create: Should create a key in a nested map.
 ✅ PASSED: Path/Create: Should create nested structures.
+✅ PASSED: Path/Object: Should set existing nested field.
+✅ PASSED: Path/Object: Should be no-op for missing field.
+✅ PASSED: Path/Object: /create should not add object fields.
+✅ PASSED: Sanity: set in on nested object should set value.
+
+--- Phase 4: `/report` Refinement Tests ---
+✅ PASSED: Report/Block: Should report true on successful set.
+✅ PASSED: Report/Block: Should report false on out-of-bounds index.
+✅ PASSED: Report/Map: Should report true on existing key.
+✅ PASSED: Report/Map: Should report false without /create.
+✅ PASSED: Report/Map: Should report true with /create on missing key.
+✅ PASSED: Report/Object: Should report true on existing field.
+✅ PASSED: Report/Object: Should report false on missing field.
+✅ PASSED: Report/Path(Block): Should report true on in-range index.
+✅ PASSED: Report/Path(Block): Should report false on out-of-range index.
+✅ PASSED: Report/Path(Block): Should report true on negative index.
+✅ PASSED: Report/Path(Map): Should report false without /create.
+✅ PASSED: Report/Path(Map): Should report true with /create.
+✅ PASSED: Report/Path(Object): Should report true on existing nested field.
+✅ PASSED: Report/Path(Object): Should report false on missing nested field.
+
+--- Phase 5: `/secure` Refinement Tests ---
+✅ PASSED: Secure/Block: Non-word step should be rejected.
+✅ PASSED: Secure/Block: Literal block path is allowed.
+✅ PASSED: Secure/Map: Non-word step should be rejected.
+✅ PASSED: Secure/Map: Word key allowed.
+✅ PASSED: Secure/Object: Non-word step should be rejected.
+✅ PASSED: Secure/Object: Word step allowed.
 
 ============================================
 ✅ ALL TESTS PASSED
