@@ -1,8 +1,8 @@
 REBOL [
     Title: "Enhanced Rebol Snippet Database System"
-    Version: 1.2.8
-    Author: "Gemini Pro AI Assistant"
-    Date: 06-Aug-2025
+    Version: 1.2.9
+    Author: "Qwen 3 Coder AI Assistant"
+    Date: 10-Aug-2025
     File: %Rebol-3-code-snippets-knowledgebase.r3
     Purpose: "Load and search Rebol 3 code snippets with flexible search modes."
 ]
@@ -156,22 +156,22 @@ make object! [
 
 	make object! [
 		code: {funct [a b] [a = b]}
-		tags: ['haystack 'string 'strict 'equal 'match 'lettercase 'insensitive 'ignore 'compare 'function 'letter 'case 'ask]
+		tags: ['haystack 'string 'relaxed 'equal 'match 'lettercase 'insensitive 'ignore 'compare 'function 'letter 'case 'ask]
 		desc: "Compare two strings for equality lettercase-insensitive."
 		category: "string"
 	]
 
 	make object! [
 		code: {funct [a b] [a == b]}
-		tags: ['haystack 'string 'relaxed 'equal 'match 'lettercase 'sensitive 'compare 'function 'letter 'case 'ask]
+		tags: ['haystack 'string 'strict 'equal 'match 'lettercase 'sensitive 'compare 'function 'letter 'case 'ask]
 		desc: "Compare two strings for equality lettercase-sensitive."
 		category: "string"
 	]
 
 	make object! [
 		code: {none? find/case "search this string" complement charset " aceghinrst"}
-		tags: ['haystack 'string 'needle 'charset 'find 'locate 'match 'all 'everything 'ask]
-		desc: "If string haystack ONLY has the characters in the specified charset."
+		tags: ['haystack 'string 'needle 'charset 'find 'locate 'match 'all 'everything 'entire 'ask]
+		desc: "If string haystack contains ONLY characters from the specified charset (i.e., NO characters outside of it)."
 		category: "string"
 	]
 
@@ -218,16 +218,23 @@ make object! [
 	]
 
 	make object! [
-		code: {funct [haystack [string!]] [not none? find haystack needle]}
-		tags: ['string 'haystack 'select 'needle 'charset 'character 'discard 'remove 'reformat 'strip 'subtract 'letter 'case 'insensitive 'ignore]
-		desc: "Discard the specified charset from a string (lettercase insensitive)."
+		code: {found?: funct [value] [not none? value]}
+		tags: ['found? 'not 'none? 'exists 'find 'select 'validate 'search 'bool 'logic! 'logic 'predicate 'alias 'helper 'read]
+		desc: "A helper function alias for `not none?`. Use to convert a `find` or `select` function call into a `true` or `false` `logic!` value."
+		category: "search"
+	]
+
+	make object! [
+		code: {funct [haystack [string!] needle [string!]] [not none? find haystack needle]}
+		tags: ['string 'haystack 'find 'locate 'needle 'has 'substring 'search 'exist 'bool 'logic! 'bstristr 'letter 'case 'insensitive 'ignore]
+		desc: "A function to determine if `haystack` has `needle` (case-insensitive)."
 		category: "string"
 	]
 
 	make object! [
-		code: {funct [haystack [string!]] [not none? find/case haystack needle]}
-		tags: ['string 'haystack 'select 'needle 'charset 'character 'discard 'remove 'reformat 'strip 'subtract 'letter 'case 'sensitive]
-		desc: "Discard the specified charset from a string (lettercase sensitive)."
+		code: {funct [haystack [string!] needle [string!]] [not none? find/case haystack needle]}
+		tags: ['string 'haystack 'find 'locate 'needle 'has 'substring 'search 'exist 'bool 'logic! 'bstrstr 'exact 'letter 'case 'sensitive]
+		desc: "A function to determine if `haystack` has `needle` (case-sensitive)."
 		category: "string"
 	]
 
@@ -296,9 +303,9 @@ make object! [
 
 	make object! [
 		;; set-to-convert: alphabet-charset: charset [#"A" - #"Z" #"a" - #"z"]
-		code: {result: charset-to-string: (function [set-to-convert] [rejoin collect [repeat index 256 [char: to-char (index - 1) if find set-to-convert char [keep char]]]])}
+		code: {charset-to-string: (function [set-to-convert] [rejoin collect [repeat index 255 [char: to-char index if find set-to-convert char [keep char]]]])}
 		tags: ['convert 'charset 'bitset 'to 'human 'readable 'string 'representation 'ASCII 'character 'all 'set]
-		desc: "Convert a `charset!` / `bitset!` to a human readable string representation with all of its member characters (ASCII 0-255)."
+		desc: "Convert a `charset!` / `bitset!` to a human readable string representation with all of its member characters (ASCII 1-255), excluding the null character."
 		category: "convert"
 	]
 
@@ -486,23 +493,30 @@ make object! [
 
 	make object! [
 		code: {ajoin/with ["x" "y"] reduce [tab]}
-		tags: ['ajoin 'concatenate 'combine 'join 'delimit 'separate 'field 'tab 'character 'sequence 'format 'merge 'string 'sprintf  'reduce 'block!]
+		tags: ['ajoin 'concatenate 'combine 'join 'delimit 'separate 'field 'tab 'character 'sequence 'format 'merge 'string 'sprintf 'reduce 'block!]
 		desc: "Concatenate a Rebol tab character sequence `^-`, delimited string with data fields.  Any `none` values are excluded."
 		category: "format-data"
 	]
 
 	make object! [
 		code: {ajoin/with ["x" "y"] reduce [lf]}
-		tags: ['ajoin 'concatenate 'combine 'join 'delimit 'separate 'field 'lf 'newline 'character 'sequence 'format 'merge 'string 'sprintf  'reduce 'block!]
+		tags: ['ajoin 'concatenate 'combine 'join 'delimit 'separate 'field 'lf 'newline 'character 'sequence 'format 'merge 'string 'sprintf 'reduce 'block!]
 		desc: "Concatenate a Rebol newline character sequence `^-`, delimited string with data fields.  Any `none` values are excluded."
 		category: "format-data"
 	]
 
 	make object! [
 		code: {either error? set/any 'tried try [ajoin [%/path/ %to/ %file]] [print :tried] [print "Success"]}
-		tags: ['ajoin 'concatenate 'combine 'join 'delimit 'separate 'field 'slash 'path 'file 'file! 'folder 'directory 'merge 'string 'sprintf  'reduce 'block!]
-		desc: "Concatenate the individual components of a file path delimited by the forward slash character.  Any `none` values are excluded."
+		tags: ['ajoin 'concatenate 'combine 'join 'field 'path 'file 'file! 'folder 'directory 'merge 'string 'block! 'error? 'try 'safe]
+		desc: "Join `file!` path components into a single path string. Any `none` values are excluded. Includes error handling."
 		category: "format-data"
+	]
+
+	make object! [
+		code: {rejoin [to-file "path" 'to 'file]}
+		tags: ['path 'file 'construct 'build 'create 'join 'directory 'folder 'to-file 'rejoin 'file! 'append 'slash]
+		desc: "Construct a file path by joining components using `to-file` and `rejoin`. This is a standard Rebol idiom for building paths."
+		category: "filesystem"
 	]
 
 	make object! [
@@ -528,14 +542,14 @@ make object! [
 
 	make object! [
 		code: {to-integer #{8000000000000000}}
-		tags: ['minimum 'signed 'integer 'value 'lower 'limit 'underflow 'number 'numeric 'floor 'min 'int 'integer! 'smallest 'possible 'int64_t 'system 'size 'capacity 'range #-9223372036854775807]
-		desc: "The smallest integer value possible without causing an underflow error is -9223372036854775807."
+		tags: ['minimum 'signed 'integer 'value 'lower 'limit 'underflow 'number 'numeric 'floor 'min 'int 'integer! 'smallest 'possible 'int64_t 'system 'size 'capacity 'range #-9223372036854775808]
+		desc: "The smallest integer value possible without causing an underflow error is -9223372036854775808."
 		category: "limits"
 	]
 
 	make object! [
 		code: {system/build/arch = 'x64}
-		tags: ['OS 'architecture 'x64 #64 'integer 'range 'limit 'number 'numeric 'int 'integer! 'int64_t 'system 'word 'size 'capacity #9223372036854775807 #-9223372036854775807]
+		tags: ['OS 'architecture 'x64 #64 'integer 'range 'limit 'number 'numeric 'int 'integer! 'int64_t 'system 'word 'size 'capacity #9223372036854775807 #-9223372036854775808]
 		desc: "Determine if the the script is running on a 64-bit operating system."
 		category: "platform"
 	]
@@ -555,21 +569,21 @@ make object! [
 	]
 
     make object! [
-        code: {LETTER_CHARSET: protect charset {abcdefghijklmnopqrstuvwxyz} protect 'LETTER_CHARSET}
-        tags: ['LETTER_CHARSET 'charset 'letter 'alphabet 'character 'constant 'immutable 'read-only 'bitset 'protect 'isalpha?]
+        code: {LOWERCASE_CHARSET: protect charset {abcdefghijklmnopqrstuvwxyz} protect 'LOWERCASE_CHARSET}
+        tags: ['charset 'letter 'alphabet 'character 'constant 'immutable 'read-only 'bitset 'protect 'isalpha?]
         desc: {Create an immutable constant for all standard alphabetic letter characters.}
         category: "character"
     ]
 
 	make object! [
-		code: {isalpha?: funct [chr [char!]] [to-logic find LETTER_CHARSET chr]}
+		code: {isalpha?: funct [chr [char!]] [to-logic find LOWERCASE_CHARSET chr]}
 		tags: ['isalpha? 'ask 'is 'single 'alphabet 'letter 'case 'insensitive 'character 'group 'type]
 		desc: {Determine if a character is an alphabetic letter.  Usage: `isalpha? #"a"`}
 		category: "character"
 	]
 
 	make object! [
-		code: {islower?: funct [chr [char!]] [to-logic find/case LETTER_CHARSET chr]}
+		code: {islower?: funct [chr [char!]] [to-logic find/case LOWERCASE_CHARSET chr]}
 		tags: ['islower? 'ask 'is 'single 'alphabet 'letter 'lower 'case 'lowercase 'sensitive 'character 'group 'type]
 		desc: {Determine if a character is a lowercase alphabetic letter.  Usage: `islower? #"a"`}
 		category: "character"
@@ -604,7 +618,7 @@ make object! [
 	]
 
 	make object! [
-		code: {obj-has-word?: funct [an-obj [object!] a-word [word!]][return not none! find words-of an-obj a-word]}
+		code: {obj-has-word?: funct [an-obj [object!] a-word [word!]][return not none? find words-of an-obj a-word]}
 		tags: ['object 'ask 'has 'exist 'Rebol 'word 'symbol 'validate 'function 'find 'words-of]
 		desc: "Validate if a Rebol word exists in an object"
 		category: "object"
