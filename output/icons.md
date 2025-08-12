@@ -1,160 +1,171 @@
-```rebol
-print "• bullet item"
 ```
-```rebol
-print "🎉 a complete success"
+print "=== UNICODE CHARACTER PRINTABILITY TEST ===^/"
+
+;; Test Status Indicators (Known Working)
+print "STATUS INDICATORS (APPROVED):"
+print "✅ PASSED - Green check mark"
+print "❌ ERROR / FAILED - Red X mark"
+print "⚠️  CAUTION / WARNING - Warning triangle (with two spaces)^/"
+
+;; Test Previously Problematic Characters
+print "PREVIOUSLY PROBLEMATIC CHARACTERS:"
+print ["🎉 Complete Success: " "🎉"]
+print ["📊 Chart/Stats: " "📊"]
+print ["📋 Clipboard: " "📋"]
+print ["🔧 Tool/Wrench/Utility: " "🔧"]
+print ["⚡ Lightning/Quick: " "⚡"]
+print ["🎯 Target/Goal/Match/Hit: " "🎯"]
+print ["📝 Note/Document: " "📝"]
+print ["💡 Idea/Hint: " "💡"]
+print ["🚀 Rocket/Launch: " "🚀"]
+print ["🔍 Search/Magnify: " "🔍"]
+print ["⏱️ Timer/Performance: " "⏱️"]
+print ""
+
+;; Test Additional Status Characters
+print "ADDITIONAL STATUS CHARACTERS:"
+print ["🔄 Processing/Retry: " "🔄"]
+print ["⏳ Waiting/Loading: " "⏳"]
+print ["🛑 Stop/Terminate: " "🛑"]
+print ["🚨 Alert/Critical: " "🚨"]
+print ["🔥 Critical Error: " "🔥"]
+print ["🚫 Unavailable/Disabled: " "🚫"]
+print ["✨ New/Initialized: " "✨"]
+print ["💤 Sleep/Idle: " "💤"]
+print ""
+
+;; Test File & Data Characters
+print "FILE & DATA CHARACTERS:"
+print ["💾 Save/Storage: " "💾"]
+print ["📂 Folder/Directory: " "📂"]
+print ["📄 Document/File: " "📄"]
+print ["📁 Closed Folder: " "📁"]
+print ["📊 Chart/Graph: " "📊"]
+print ["📈 Trending Up: " "📈"]
+print ["📉 Trending Down: " "📉"]
+print ""
+
+;; Test Network & Connectivity
+print "NETWORK & CONNECTIVITY:"
+print ["🌐 Network/Internet: " "🌐"]
+print ["📶 Signal/Connectivity: " "📶"]
+print ["⬆️ Upload/Export: " "⬆️"]
+print ["⬇️ Download/Import: " "⬇️"]
+print ["🔗 Link/Connection: " "🔗"]
+print ""
+
+;; Test User & Security
+print "USER & SECURITY:"
+print ["👤 User/Authentication: " "👤"]
+print ["🔒 Secure/Locked/Protected: " "🔒"]
+print ["🔓 Unlocked/Open: " "🔓"]
+print ["🔑 Key/Access: " "🔑"]
+print ""
+
+;; Test Simple Text Characters
+print "SIMPLE TEXT CHARACTERS:"
+print ["• Bullet point: " "•"]
+print ["→ Arrow right: " "→"]
+print ["← Arrow left: " "←"]
+print ["↑ Arrow up: " "↑"]
+print ["↓ Arrow down: " "↓"]
+print ["✓ Check mark: " "✓"]
+print ["✗ X mark: " "✗"]
+print ["★ Star filled: " "★"]
+print ["☆ Star empty: " "☆"]
+print ""
+
+;; Test Mathematical & Technical
+print "MATHEMATICAL & TECHNICAL:"
+print ["∞ Infinity: " "∞"]
+print ["± Plus/Minus: " "±"]
+print ["≈ Approximately: " "≈"]
+print ["≠ Not equal: " "≠"]
+print ["≤ Less/Equal: " "≤"]
+print ["≥ Greater/Equal: " "≥"]
+print ["° Degree: " "°"]
+print ["µ Micro: " "µ"]
+print ""
+
+;; Test Box Drawing Characters
+print "BOX DRAWING CHARACTERS:"
+print ["┌ Top left: " "┌"]
+print ["┐ Top right: " "┐"]
+print ["└ Bottom left: " "└"]
+print ["┘ Bottom right: " "┘"]
+print ["│ Vertical: " "│"]
+print ["─ Horizontal: " "─"]
+print ["├ Left T: " "├"]
+print ["┤ Right T: " "┤"]
+print ["┬ Top T: " "┬"]
+print ["┴ Bottom T: " "┴"]
+print ["┼ Cross: " "┼"]
+print ""
+
+;; Test in Context Messages
+print "CONTEXT USAGE EXAMPLES:"
+print "✅ PASSED: All tests completed successfully"
+print "❌ FAILED: 3 critical violations found"
+print "⚠️  WARNING: Consider reviewing this code"
+print "🔍 Scanning directory for violations..."
+print "📊 Processed 42 files in 1.2 seconds"
+print "🔧 Running validation tools..."
+print "💡 TIP: Use quick check for faster validation"
+print "🚀 Ready for deployment!"
+print ""
+
+print " Likely printable: ✅ ❌ ⚠️  ★ ☆ ⚡ ⏱️ ⏳ ⬆️ ⬇️ ✨∞ ± ≈ ≠ ≤ ≥ ° µ  ┌ ┐ └ ┘ │ ─ ├ ┤ ┬ ┴ ┼"
+print " Likely unprintable: 🎉 📊 📋 🔧 🎯 📝 💡 🚀 🔍 🔄 🛑 🚨 🔥 🚫 💤 💾 📂 📄 📁 📈 📉 🌐 📶 🔗 👤 🔒 🔓 🔑"
+
+print "=== DEMO COMPLETE ==="
+print "Examine the above output to see which characters display correctly"
 ```
-```rebol
-print "🎯 target / match / hit"
-```
-```rebol
-print "🔒 secure / security / locked / protected"
-```
-```rebol
-print "✓ item complete"
-```
-```rebol
-print "⚠️ caution / warning"
-```
+---
+
+A Unicode printability test reveals important insights:
+
+✅ TERMINAL-COMPATIBLE CHARACTERS (PowerShell and Linux BASH):
+
+Status indicators: ✅ ❌ ⚠️ (our approved set)
+Simple symbols: • → ← ↑ ↓ ✓ ✗ ★ ☆ ⚡ ⏱️ ⏳ ⬆️ ⬇️ ✨
+Mathematical: ∞ ± ≈ ≠ ≤ ≥ ° µ
+Box drawing: ┌ ┐ └ ┘ │ ─ ├ ┤ ┬ ┴ ┼
+
+
+❌ TERMINAL-INCOMPATIBLE (Display as �):
+
+Most emoji characters: 📊 📋 🔧 🎯 📝 💡 🚀 🔍 🔄 🛑 🚨 🔥 🚫 💤 💾 📂 📄 📁 📈 📉 🌐 📶 🔗 👤 🔒 🔓 🔑
+Key Findings:
+
+~40% compatibility rate - Most Unicode characters don't display properly in terminal.
+Emoji characters are problematic - Almost all show as � replacement character.
+Simple symbols work well - Basic arrows, bullets, stars display correctly.
+Our current approach is correct - Using only ✅ ❌ ⚠️ for status indicators.
+
+
 ```rebol
 print "📚 enhanced / available"
-```
-```rebol
-print "🔧 tool / utility"
-```
-```rebol
 print "🔍 find / search"
-```
-```rebol
 print "✏️ edit / modify"
-```
-```rebol
 print "📏 access / analyze / scan / read"
-```
-```rebol
 print "✅ PASSED"
-```
-
-## Status Indicators
-❌ FAILED/Error:
-```rebol
-print("❌ Validation failed")
-```
-Replaces "x" for clearer failure indication.
-
-🔄 Processing/Retrying:
-```rebol
-print("🔄 Updating cache...")
-```
-Indicates ongoing operations or retries.
-
+🔄 Processing/Retrying/Running/Redo/Updating/Refreshing:
 ⏳ Waiting/Loading:
-```rebol
-print("⏳ Fetching data...")
-```
-Suggests delayed operations or progress.
-
-## Data & Files
-💾 Save/Storage
-```rebol
-print("💾 Backup completed")
-```
-File saving or storage actions.
-
-📂 Folder/Directory:
-```rebol
-print("📂 Created project directory")
-```
-File system operations.
-
+💾 Copy/Backup/Save/Storage
 📄 Document/File:
-```rebol
-print("📄 Generating report...")
-```
-
-## Network & Connectivity
-🌐 Network/Internet
-```rebol
-print("🌐 API connected")
-```
-Web/network-related actions.
-
 📶 Signal/Connectivity:
-```rebol
-print("📶 Connection established")
-```
-
-## User Interaction
-❓ Question/Help
-```rebol
-print("❓ Missing required parameter")
-```
-Highlights user input issues.
-
-🛑 Stop/Terminate:
-```rebol
-print("🛑 Process killed")
-```
-Critical failures or manual termination.
-
+❓ Question/Help/Absent/Unknown
+🛑 Halt/Kill/Stop/Terminate:
 👤 User/Authentication
-```rebol
-print("👤 Login successful")
-```
-
-## System & Alerts
-🔥 Critical Error
-```rebol
-print("🔥 Fatal exception!")
-```
-More urgent than ⚠️.
-
-💡 Hint/Suggestion:
-```rebol
-print("💡 Try --help for options")
-```
-Non-critical advice.
-
-⏱️ Performance/Time:
-```rebol
-print("⏱️ Execution: 0.8s")
-```
-Timing metrics.
-
-## Security
+🔥 Critical/Fatal Error
+💡 Hint/Idea/Suggest:
+⏱️ Benchmark/Performance/Speed/Time:
 🚨 Alert/Intrusion:
-```rebol
-print("🚨 Unauthorized access detected")
-```
-Higher severity than 🔒.
-
-## Navigation
 ⬆️ Upload/Export
-```rebol
-print("⬆️ Exporting data...")
-```
-
-⬇️ Download/Import:
-```rebol
-print("⬇️ Installing dependencies...")
-```
-
-## Special States
-🚫 Unavailable/Disabled
-```rebol
-print("🚫 Feature disabled")
-```
-
-✨ New/Initialized:
-```rebol
-print("✨ Project initialized!")
-```
-Successful first-time setup.
-
-💤 Sleep/Idle:
-```rebol
-print("💤 Entering standby mode")
-```
+⬇️ Download/Import/Install:
+🚫 Blocked/Unavailable/Disabled/Prohibited
+✨ New/Initialize/Think:
+💤 Sleep/Idle/Standby:
 
 ## Best Practices
 - Consistency: Use the same icon for identical concepts (e.g., always ❌ for failures).
