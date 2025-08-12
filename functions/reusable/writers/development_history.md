@@ -1,6 +1,7 @@
 ### Development History: `sling` Super-Setter (v0.2.2)
 
 #### Timeline Highlights
+- 2025-08-12: Jules AI determines it cannot refactor the `sling` function (but says it needs refactoring), due to its complexity and gives up.
 - Initial architecture: single `sling` function, then briefly split into `sling` (path orchestrator) and `set-in` (single-level worker); reverted to a single function after complexity and instability.
 - Early blockers: nested `/path` modification failed to maintain a live reference into containers, especially with `map!`.
 - Stabilization phase: added comprehensive QA; installed Rebol/Bulk 3.19.0 and drove fixes via failing tests.
