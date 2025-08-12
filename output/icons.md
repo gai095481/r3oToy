@@ -1,14 +1,13 @@
 ```
-print "=== UNICODE CHARACTER PRINTABILITY TEST ===^/"
+print "=== UNICODE CHARACTER PRINTABILITY TEST ==="
 
-;; Test Status Indicators (Known Working)
-print "STATUS INDICATORS (APPROVED):"
+;; Test uNICODE Status Indicators:
+print "^/STATUS INDICATORS (MOST PRINTABLE):"
 print "✅ PASSED - Green check mark"
 print "❌ ERROR / FAILED - Red X mark"
-print "⚠️  CAUTION / WARNING - Warning triangle (with two spaces)^/"
+print "⚠️  CAUTION / WARNING - Warning triangle (uses two trailing spaces due to known problem)"
 
-;; Test Previously Problematic Characters
-print "PREVIOUSLY PROBLEMATIC CHARACTERS:"
+print "^/TEST USUALLY PROBLEMATIC TERMINAL CHARACTERS:"
 print ["🎉 Complete Success: " "🎉"]
 print ["📊 Chart/Stats: " "📊"]
 print ["📋 Clipboard: " "📋"]
@@ -20,10 +19,9 @@ print ["💡 Idea/Hint: " "💡"]
 print ["🚀 Rocket/Launch: " "🚀"]
 print ["🔍 Search/Magnify: " "🔍"]
 print ["⏱️ Timer/Performance: " "⏱️"]
-print ""
+print ["📚 Enhanced/Available: " "📚"]
 
-;; Test Additional Status Characters
-print "ADDITIONAL STATUS CHARACTERS:"
+print "^/TEST ADDITIONAL STATUS CHARACTERS:"
 print ["🔄 Processing/Retry: " "🔄"]
 print ["⏳ Waiting/Loading: " "⏳"]
 print ["🛑 Stop/Terminate: " "🛑"]
@@ -34,8 +32,7 @@ print ["✨ New/Initialized: " "✨"]
 print ["💤 Sleep/Idle: " "💤"]
 print ""
 
-;; Test File & Data Characters
-print "FILE & DATA CHARACTERS:"
+print "^/TEST FILE & DATA CHARACTERS:"
 print ["💾 Save/Storage: " "💾"]
 print ["📂 Folder/Directory: " "📂"]
 print ["📄 Document/File: " "📄"]
@@ -45,8 +42,7 @@ print ["📈 Trending Up: " "📈"]
 print ["📉 Trending Down: " "📉"]
 print ""
 
-;; Test Network & Connectivity
-print "NETWORK & CONNECTIVITY:"
+print "^/TEST NETWORK & CONNECTIVITY:"
 print ["🌐 Network/Internet: " "🌐"]
 print ["📶 Signal/Connectivity: " "📶"]
 print ["⬆️ Upload/Export: " "⬆️"]
@@ -54,16 +50,14 @@ print ["⬇️ Download/Import: " "⬇️"]
 print ["🔗 Link/Connection: " "🔗"]
 print ""
 
-;; Test User & Security
-print "USER & SECURITY:"
+print "^/TEST USER & SECURITY:"
 print ["👤 User/Authentication: " "👤"]
 print ["🔒 Secure/Locked/Protected: " "🔒"]
 print ["🔓 Unlocked/Open: " "🔓"]
 print ["🔑 Key/Access: " "🔑"]
 print ""
 
-;; Test Simple Text Characters
-print "SIMPLE TEXT CHARACTERS:"
+print "^/TEST BASIC TEXT CHARACTERS:"
 print ["• Bullet point: " "•"]
 print ["→ Arrow right: " "→"]
 print ["← Arrow left: " "←"]
@@ -75,8 +69,7 @@ print ["★ Star filled: " "★"]
 print ["☆ Star empty: " "☆"]
 print ""
 
-;; Test Mathematical & Technical
-print "MATHEMATICAL & TECHNICAL:"
+print "^/TEST MATHEMATICAL & TECHNICAL:"
 print ["∞ Infinity: " "∞"]
 print ["± Plus/Minus: " "±"]
 print ["≈ Approximately: " "≈"]
@@ -87,8 +80,7 @@ print ["° Degree: " "°"]
 print ["µ Micro: " "µ"]
 print ""
 
-;; Test Box Drawing Characters
-print "BOX DRAWING CHARACTERS:"
+print "TEST BOX DRAWING CHARACTERS:"
 print ["┌ Top left: " "┌"]
 print ["┐ Top right: " "┐"]
 print ["└ Bottom left: " "└"]
@@ -102,8 +94,7 @@ print ["┴ Bottom T: " "┴"]
 print ["┼ Cross: " "┼"]
 print ""
 
-;; Test in Context Messages
-print "CONTEXT USAGE EXAMPLES:"
+print "TEST CONTEXT USAGE EXAMPLES:"
 print "✅ PASSED: All tests completed successfully"
 print "❌ FAILED: 3 critical violations found"
 print "⚠️  WARNING: Consider reviewing this code"
@@ -115,7 +106,7 @@ print "🚀 Ready for deployment!"
 print ""
 
 print " Likely printable: ✅ ❌ ⚠️  ★ ☆ ⚡ ⏱️ ⏳ ⬆️ ⬇️ ✨∞ ± ≈ ≠ ≤ ≥ ° µ  ┌ ┐ └ ┘ │ ─ ├ ┤ ┬ ┴ ┼"
-print " Likely unprintable: 🎉 📊 📋 🔧 🎯 📝 💡 🚀 🔍 🔄 🛑 🚨 🔥 🚫 💤 💾 📂 📄 📁 📈 📉 🌐 📶 🔗 👤 🔒 🔓 🔑"
+print " Likely unprintable: 🎉 📊 📋 🔧 🎯 📝 💡 🚀 🔍 🔄 🛑 🚨 🔥 🚫 💤 💾 📂 📄 📁 📈 📉 🌐 📶 🔗 👤 🔒 🔓 🔑 📚"
 
 print "=== DEMO COMPLETE ==="
 print "Examine the above output to see which characters display correctly"
@@ -134,7 +125,7 @@ Box drawing: ┌ ┐ └ ┘ │ ─ ├ ┤ ┬ ┴ ┼
 
 ❌ TERMINAL-INCOMPATIBLE (Display as �):
 
-Most emoji characters: 📊 📋 🔧 🎯 📝 💡 🚀 🔍 🔄 🛑 🚨 🔥 🚫 💤 💾 📂 📄 📁 📈 📉 🌐 📶 🔗 👤 🔒 🔓 🔑
+Most emoji characters: 🎉 📊 📋 🔧 🎯 📝 💡 🚀 🔍 🔄 🛑 🚨 🔥 🚫 💤 💾 📂 📄 📁 📈 📉 🌐 📶 🔗 👤 🔒 🔓 🔑 📚
 Key Findings:
 
 ~40% compatibility rate - Most Unicode characters don't display properly in terminal.
@@ -144,7 +135,7 @@ Our current approach is correct - Using only ✅ ❌ ⚠️ for status indicator
 
 
 ```rebol
-print "📚 enhanced / available"
+
 print "🔍 find / search"
 print "✏️ edit / modify"
 print "📏 access / analyze / scan / read"
