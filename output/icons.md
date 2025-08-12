@@ -15,25 +15,26 @@ print ["🔧 Tool/Wrench/Utility: " "🔧"]
 print ["⚡ Lightning/Quick: " "⚡"]
 print ["🎯 Target/Goal/Match/Hit: " "🎯"]
 print ["📝 Note/Document: " "📝"]
-print ["💡 Idea/Hint: " "💡"]
+print ["💡 Idea/Hint/Sugeestion/Tip: " "💡"]
 print ["🚀 Rocket/Launch: " "🚀"]
-print ["🔍 Search/Magnify: " "🔍"]
-print ["⏱️ Timer/Performance: " "⏱️"]
+print ["🔍 Find/Examine/Inspect/Locate/Scan/Search/Magnify: " "🔍"]
+print ["⏱️ Benchmark/Clock/Profiler/Speed/Timer/Performance: " "⏱️"]
 print ["📚 Enhanced/Available: " "📚"]
 
 print "^/TEST ADDITIONAL STATUS CHARACTERS:"
-print ["🔄 Processing/Retry: " "🔄"]
+print ["🔄 Process/Retry/Running/Redo/Update/Refresh: " "🔄"]
 print ["⏳ Waiting/Loading: " "⏳"]
-print ["🛑 Stop/Terminate: " "🛑"]
-print ["🚨 Alert/Critical: " "🚨"]
-print ["🔥 Critical Error: " "🔥"]
-print ["🚫 Unavailable/Disabled: " "🚫"]
-print ["✨ New/Initialized: " "✨"]
-print ["💤 Sleep/Idle: " "💤"]
-print ""
-
+print ["🛑 Halt/Kill/Stop/Terminate: " "🛑"]
+print ["🚨 Alert/Alarm/Attention/Important/Intrusion: " "🚨"]
+print ["🔥 Crisis: " "🔥"]
+print ["🚫 Banned/Blocked/Unavailable/Disabled/Prohibited: " "🚫"]
+print ["✨ New/Initialized/Think: " "✨"]
+print ["💤 Sleep/Hibernate/Idle/Standby: " "💤"]
+print ["❓ Question/Help/Absent/Missing/Predicate/Unknown: " "❓"]
+ 
 print "^/TEST FILE & DATA CHARACTERS:"
-print ["💾 Save/Storage: " "💾"]
+print ["💾 Copy/Backup/Save/Storage: " "💾"]
+print ["✏️ Edit/Modify/Write: " "✏️"]
 print ["📂 Folder/Directory: " "📂"]
 print ["📄 Document/File: " "📄"]
 print ["📁 Closed Folder: " "📁"]
@@ -45,8 +46,8 @@ print ""
 print "^/TEST NETWORK & CONNECTIVITY:"
 print ["🌐 Network/Internet: " "🌐"]
 print ["📶 Signal/Connectivity: " "📶"]
-print ["⬆️ Upload/Export: " "⬆️"]
-print ["⬇️ Download/Import: " "⬇️"]
+print ["⬆️ Up/Upload/Export: " "⬆️"]
+print ["⬇️ Down/Download/Import/Install: " "⬇️"]
 print ["🔗 Link/Connection: " "🔗"]
 print ""
 
@@ -67,7 +68,6 @@ print ["✓ Check mark: " "✓"]
 print ["✗ X mark: " "✗"]
 print ["★ Star filled: " "★"]
 print ["☆ Star empty: " "☆"]
-print ""
 
 print "^/TEST MATHEMATICAL & TECHNICAL:"
 print ["∞ Infinity: " "∞"]
@@ -78,9 +78,8 @@ print ["≤ Less/Equal: " "≤"]
 print ["≥ Greater/Equal: " "≥"]
 print ["° Degree: " "°"]
 print ["µ Micro: " "µ"]
-print ""
 
-print "TEST BOX DRAWING CHARACTERS:"
+print "^/TEST BOX DRAWING CHARACTERS:"
 print ["┌ Top left: " "┌"]
 print ["┐ Top right: " "┐"]
 print ["└ Bottom left: " "└"]
@@ -92,9 +91,8 @@ print ["┤ Right T: " "┤"]
 print ["┬ Top T: " "┬"]
 print ["┴ Bottom T: " "┴"]
 print ["┼ Cross: " "┼"]
-print ""
 
-print "TEST CONTEXT USAGE EXAMPLES:"
+print "^/TEST CONTEXT USAGE EXAMPLES:"
 print "✅ PASSED: All tests completed successfully"
 print "❌ FAILED: 3 critical violations found"
 print "⚠️  WARNING: Consider reviewing this code"
@@ -103,13 +101,12 @@ print "📊 Processed 42 files in 1.2 seconds"
 print "🔧 Running validation tools..."
 print "💡 TIP: Use quick check for faster validation"
 print "🚀 Ready for deployment!"
-print ""
 
-print " Likely printable: ✅ ❌ ⚠️  ★ ☆ ⚡ ⏱️ ⏳ ⬆️ ⬇️ ✨∞ ± ≈ ≠ ≤ ≥ ° µ  ┌ ┐ └ ┘ │ ─ ├ ┤ ┬ ┴ ┼"
-print " Likely unprintable: 🎉 📊 📋 🔧 🎯 📝 💡 🚀 🔍 🔄 🛑 🚨 🔥 🚫 💤 💾 📂 📄 📁 📈 📉 🌐 📶 🔗 👤 🔒 🔓 🔑 📚"
+print "^/Likely printable: ✅ ❌ ⚠️  ★ ☆ ⚡ ⏱️ ⏳ ⬆️ ⬇️ ✨∞ ± ≈ ≠ ≤ ≥ ° µ  ┌ ┐ └ ┘ │ ─ ├ ┤ ┬ ┴ ┼"
+print "Likely unprintable: 🎉 📊 📋 🔧 🎯 📝 💡 🚀 🔍 🔄 🛑 🚨 🔥 🚫 💤 💾 📂 📄 📁 📈 📉 🌐 📶 🔗 👤 🔒 🔓 🔑 📚 ✏️ 📏 ❓"
 
-print "=== DEMO COMPLETE ==="
-print "Examine the above output to see which characters display correctly"
+print "=== Unicode printability DEMO COMPLETE ==="
+print "Examine the above output to see which characters display correctly."
 ```
 ---
 
@@ -125,7 +122,7 @@ Box drawing: ┌ ┐ └ ┘ │ ─ ├ ┤ ┬ ┴ ┼
 
 ❌ TERMINAL-INCOMPATIBLE (Display as �):
 
-Most emoji characters: 🎉 📊 📋 🔧 🎯 📝 💡 🚀 🔍 🔄 🛑 🚨 🔥 🚫 💤 💾 📂 📄 📁 📈 📉 🌐 📶 🔗 👤 🔒 🔓 🔑 📚
+Most emoji characters: 🎉 📊 📋 🔧 🎯 📝 💡 🚀 🔍 🔄 🛑 🚨 🔥 🚫 💤 💾 📂 📄 📁 📈 📉 🌐 📶 🔗 👤 🔒 🔓 🔑 📚 ✏️ 📏 ❓
 Key Findings:
 
 ~40% compatibility rate - Most Unicode characters don't display properly in terminal.
@@ -133,33 +130,8 @@ Emoji characters are problematic - Almost all show as � replacement character.
 Simple symbols work well - Basic arrows, bullets, stars display correctly.
 Our current approach is correct - Using only ✅ ❌ ⚠️ for status indicators.
 
-
-```rebol
-
-print "🔍 find / search"
-print "✏️ edit / modify"
-print "📏 access / analyze / scan / read"
-print "✅ PASSED"
-🔄 Processing/Retrying/Running/Redo/Updating/Refreshing:
-⏳ Waiting/Loading:
-💾 Copy/Backup/Save/Storage
-📄 Document/File:
-📶 Signal/Connectivity:
-❓ Question/Help/Absent/Unknown
-🛑 Halt/Kill/Stop/Terminate:
-👤 User/Authentication
-🔥 Critical/Fatal Error
-💡 Hint/Idea/Suggest:
-⏱️ Benchmark/Performance/Speed/Time:
-🚨 Alert/Intrusion:
-⬆️ Upload/Export
-⬇️ Download/Import/Install:
-🚫 Blocked/Unavailable/Disabled/Prohibited
-✨ New/Initialize/Think:
-💤 Sleep/Idle/Standby:
-
 ## Best Practices
 - Consistency: Use the same icon for identical concepts (e.g., always ❌ for failures).
 - Accessibility: Pair icons with text (e.g., ✅ PASSED not just ✅).
 - Context: Choose universally recognizable symbols (e.g., 📂 for folders is clearer than 📁).
-- Sparingly: Overuse reduces impact – reserve for key statuses.
+- Sparingly: Overuse reduces impact, reserve for key statuses.
