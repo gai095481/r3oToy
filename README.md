@@ -10,6 +10,7 @@ To comprehensively demonstrate a *specified target Rebol function* in Rebol 3 Ol
 ### Technical Stack:
 -   Rebol 3 Oldes branch (specifically Bulk build 3.19.0, 11-Apr-2025 or latest available).
 -   Runs as a Command Line Interface (CLI) script.
+-   PowerShell for Recycle Bin usage under Microsoft Windows.
 -   No external libraries beyond standard Rebol natives available in the specified build.
 ### Key Reliability Goals (Specific Examples):
 -   The script executes from start to finish without any Rebol syntax or runtime errors (e.g., "missing argument," "no value", "datatype mismatches"), when demonstrating the *target function*.
