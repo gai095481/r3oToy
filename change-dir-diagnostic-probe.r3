@@ -70,6 +70,12 @@ original-directory: what-dir
 print ["Original working directory:" mold original-directory]
 print ""
 
+;; Create a temporary directory for navigation tests
+temp-dir-name: %temp-test-dir/
+make-dir temp-dir-name
+print ["Created temporary directory for testing:" mold temp-dir-name]
+print ""
+
 ;;============================================
 ;; SECTION 1: Probing Basic Directory Navigation
 ;;============================================
@@ -80,34 +86,19 @@ print ""
 ;; HYPOTHESIS: change-dir should return the new current directory path
 ;; HYPOTHESIS: what-dir should reflect the directory change
 
-;; Test basic directory change to parent directory
-parent-dir: %../
-print ["Testing change to parent directory:" mold parent-dir]
-; Add error handling for sandboxed environments where changing to '..' is forbidden.
-parent-change-error: try/with [
-    result-parent: change-dir parent-dir
-    current-after-parent: what-dir
-    print ["Result of change-dir:" mold result-parent]
-    print ["Current directory after change:" mold current-after-parent]
-] func [error] [error]
+;; HYPOTHESIS: change-dir should navigate to a parent directory
+print ["Changing into temp directory:" mold temp-dir-name]
+change-dir temp-dir-name
 
-either error? parent-change-error [
-    print [
-        "⚠️ WARNING: Could not change to parent directory."
-        "Caught error:" parent-change-error/id
-        "This is expected in a sandboxed environment. Skipping some navigation tests."
-    ]
-    ; Since we couldn't change dir, we can assume we are still in the original directory.
-    assert-equal original-directory what-dir "Directory should be unchanged after failed parent-dir change"
-] [
-    ;; Test basic directory change back to original
-    print ["^/Testing change back to original directory:" mold original-directory]
-    result-original: change-dir original-directory
-    current-after-original: what-dir
-    print ["Result of change-dir:" mold result-original]
-    print ["Current directory after change:" mold current-after-original]
-    assert-equal original-directory current-after-original "change-dir should return to original directory"
-]
+print ["Testing change to parent directory from temp dir..."]
+result-parent: change-dir %../
+current-after-parent: what-dir
+
+assert-equal original-directory result-parent "Return value should be the parent directory"
+assert-equal original-directory current-after-parent "what-dir should reflect change to parent directory"
+
+;; Clean up from this test by returning to original dir
+change-dir original-directory
 
 ;;============================================
 ;; SECTION 2: Probing Return Value Behavior
@@ -142,25 +133,6 @@ result-current-ref: change-dir current-dir-ref
 current-after-ref: what-dir
 print ["Result:" mold result-current-ref]
 print ["Directory after change:" mold current-after-ref]
-
-;; Test parent directory navigation
-parent-path: %../
-print ["^/Testing parent directory navigation:" mold parent-path]
-; Add error handling for sandboxed environments
-parent-nav-error: try/with [
-    before-parent: what-dir
-    result-parent-nav: change-dir parent-path
-    after-parent: what-dir
-    print ["Before parent change:" mold before-parent]
-    print ["After parent change:" mold after-parent]
-    print ["Result:" mold result-parent-nav]
-    ; Return to original for consistency
-    change-dir original-directory
-] func [error] [error]
-
-if error? parent-nav-error [
-    print ["⚠️ WARNING: Skipping parent navigation test due to security error."]
-]
 
 ;;============================================
 ;; SECTION 4: Probing Edge Cases and Error Conditions
@@ -371,4 +343,9 @@ assert-equal original-directory final-directory "Should be back in original dire
 ;;============================================
 ;; TEST SUMMARY
 ;;============================================
+; Clean up the temporary directory created at the start of the test
+print [""]
+print ["Cleaning up temporary directory:" mold temp-dir-name]
+attempt [delete-dir temp-dir-name]
+
 print-test-summary
