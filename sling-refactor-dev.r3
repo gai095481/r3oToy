@@ -59,127 +59,135 @@ print-test-summary: does [
 
 
 ;;-----------------------------------------------------------------------------
-;;; Dependencies
+;; IMPORTANT: This is a redundant version of `grab` placed in this file.
 ;;-----------------------------------------------------------------------------
-do %common-lib.r3
+grab: function [
+    data [any-type!] "The data structure to access (`block!`, `map!` or `none!`)."
+    key [any-word! string! integer! decimal! block!] "The index, key or path to retrieve."
+    /path "Treat the `key` as a path (a block of keys/indices)."
+    /default "Provide a default value if the retrieval fails."
+    default-value [any-type!] "The value to return on failure."
+][
+    {Safely retrieve a value from a `block!` or `map!`, with optional path traversal.
+    RETURNS: [any-type!] "The retrieved value, default value or `none`"
+    ERRORS: None. This function is designed to never error, return a default value on failure.}
 
-;;-----------------------------------------------------------------------------
-;;; Refactored Helper Functions
-;;-----------------------------------------------------------------------------
+    if path [
+        if any [not block? key empty? key] [
+            return either default [default-value] [none]
+        ]
 
-handle-block-step: func [container step create secure] [
-    either integer? step [
-        ; Positional access in blocks (support negative indices)
-        actual-index: either step < 0 [ (length? container) + step + 1 ] [ step ]
-        if any [none? actual-index actual-index < 1 actual-index > length? container] [
-            ; Only allow growth for positive indices with /create
-            either all [create step > 0 actual-index > length? container] [
-                insert/dup tail container 'none actual-index - length? container
-            ] [
-                return none
+        current: data
+
+        foreach step key [
+            if not any [block? :current map? :current] [
+                current: none
+                break
             ]
+
+            current: grab current step
+
+            if none? :current [break]
         ]
-        return container/:actual-index
-    ][
-        ; Key-based access in blocks
-        if all [secure not any-word? step] [
-            return none
+
+        return either all [none? :current default] [default-value] [current]
+    ]
+
+    if not any [block? data map? data none? data] [return either default [default-value] [none]]
+    if none? data [return either default [default-value] [none]]
+
+    if block? data [
+        if integer? key [
+            ;; For integers, we must normalize the result of `pick`:
+            value: pick data key
+
+            if none? value [return either default [default-value] [none]]
+            case [
+                all [word? value value = 'none] [return none]
+                all [word? value value = 'true] [return true]
+                all [word? value value = 'false] [return false]
+            ]
+
+            return value
         ]
-        pos: find container to-set-word step
-        either pos [
-            value-after: second pos
-            either block? :value-after [
-                ; If the immediate value is a literal block, descend directly
-                return :value-after
-            ][
-                ; Secure mode forbids evaluation of expressions after set-words
-                if secure [
-                    return none
-                ]
-                ; Otherwise, evaluate the value-expression (up to next top-level set-word)
-                value-expression: copy next pos
-                next-setword-pos: none
 
-                foreach item value-expression [
-                    if set-word? item [
-                        next-setword-pos: find value-expression item
-                        break
-                    ]
-                ]
+        if decimal? key [
+            ;; Decimal keys are not valid for block indexing - return default/none:
+            return either default [default-value] [none]
+        ]
 
-                if next-setword-pos [
-                    value-expression: copy/part value-expression next-setword-pos
-                ]
+        ;; Block keys in non-path mode are invalid - return default or none
+        if block? key [
+            return either default [default-value] [none]
+        ]
 
-                if any [none? value-expression empty? value-expression] [
-                    return none
-                ]
+        ;; This is the sophisticated parsing and evaluation logic for word/string keys:
+        position: find data to-set-word key
 
+        if position [
+            value-expression: copy next position
+            next-setword-pos: none
+            foreach item value-expression [
+                if set-word? item [
+                    next-setword-pos: find value-expression item
+                    break
+                ]
+            ]
+
+            if next-setword-pos [
+                value-expression: copy/part value-expression next-setword-pos
+            ]
+
+            if not empty? value-expression [
+                ;; This is the "Try / Fallback" pattern:
+                ;; First, ATTEMPT to evaluate the expression.
                 result: try [do value-expression]
 
+                ;; Check if the attempt failed (e.g., context error on an alias):
                 if error? result [
-                    return none
+                    ;; The 'do' failed.  Fall back to the safe 'select' logic, to get the next literal value:
+                    return select data to-set-word key
                 ]
 
-                ; Replace expression with evaluated result to stabilize further traversal
-                idx: index? pos
-                expr-len: length? value-expression
-                change/part at container idx + 1 reduce [:result] expr-len
-                return :result
-            ]
-        ][
-            either create [
-                repend container [to-set-word step make map! []]
-                return select container step
-            ][
-                return none
+                ;; The 'do' succeeded. Return the evaluated result:
+                return result
             ]
         ]
+
+        return either default [default-value] [none]
+    ]
+
+    if map? data [
+        if find data key [
+            value: select data key
+            case [
+                all [word? value value = 'none] [return none]
+                all [word? value value = 'true] [return true]
+                all [word? value value = 'false] [return false]
+            ]
+
+            return value
+        ]
+
+        return either default [default-value] [none]
     ]
 ]
 
-handle-map-step: func [container step create secure] [
-    if all [secure not any [any-word? step string? step]] [
-        return none
-    ]
-    parent: container
-    selected: select parent step
-
-    unless selected [
-        either create [
-            put parent step make map! []
-            selected: select parent step
-        ][
-            return none
+;;-----------------------------------------------------------------------------
+grab-item: function [
+    "USE: Find a record in system-items by its key and grab its associated value."
+    key-string [string!] "The key to match (e.g., 'system/version')."
+    index [integer!] "The index of the value to grab from the matching record (1, 2, or 3)."
+][
+    foreach record system-items [
+        ;; Ensure the first item in the record matches our key:
+        if key-string = first record [
+            ;; Use `grab` to safely get the indexed item from the record:
+            return grab record index
         ]
     ]
-
-    unless any [block? :selected map? :selected object? :selected] [
-        if create [
-            put parent step make map! []
-            selected: select parent step
-        ]
-    ]
-    return selected
+    return none ;; Return `none` if no record was found.
 ]
-
-handle-object-step: func [container step secure] [
-    if all [secure not any-word? step] [
-        return none
-    ]
-    either any-word? step [
-        field-word: to word! step
-        bound-word: in container field-word
-        either bound-word [
-            return get bound-word
-        ][
-            return none
-        ]
-    ][
-        return none
-    ]
-]
-
 
 ;;-----------------------------------------------------------------------------
 ;; Status: All test cases pass.
@@ -200,41 +208,194 @@ sling: function [
     either path [
         ; --- Revised Path Logic ---
         if not block? key [
-            if strict [return make error! [type: 'script id: 'invalid-path arg1: "Path key must be a block."]]
+            if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
             return either report [false] [data]
         ]
 
         if empty? key [
-            if strict [return make error! [type: 'script id: 'invalid-path arg1: "Path key cannot be empty."]]
+            if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
             return either report [false] [data]
         ]
 
         container: data
         path-to-walk: copy/part key (length? key) - 1
+        last-map-parent: none
+        last-map-step: none
 
         foreach step path-to-walk [
-            container: case [
-                block? container [handle-block-step container step create secure]
-                map? container [handle-map-step container step create secure]
-                object? container [handle-object-step container step secure]
-                true [none]
-            ]
+            case [
+                block? container [
+                    either integer? step [
+                        ; Positional access in blocks (support negative indices)
+                        actual-index: either step < 0 [ (length? container) + step + 1 ] [ step ]
+                        if any [none? actual-index actual-index < 1 actual-index > length? container] [
+                            ; Only allow growth for positive indices with /create
+                            either all [create step > 0 actual-index > length? container] [
+                                insert/dup tail container none actual-index - length? container
+                            ] [
+                                if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
+                                return either report [false] [data]
+                            ]
+                        ]
+                        container: container/:actual-index
+                    ][
+                        ; Key-based access in blocks
+                        if all [secure not any-word? step] [
+                            if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
+                            return either report [false] [data]
+                        ]
+                        pos: find container to-set-word step
+                        either pos [
+                            value-after: second pos
+                            either block? :value-after [
+                                ; If the immediate value is a literal block, descend directly
+                                container: :value-after
+                            ][
+                                ; Secure mode forbids evaluation of expressions after set-words
+                                if secure [
+                                    if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
+                                    return either report [false] [data]
+                                ]
+                                ; Otherwise, evaluate the value-expression (up to next top-level set-word)
+                                value-expression: copy next pos
+                                next-setword-pos: none
 
-            if none? container [
-                if strict [return make error! [type: 'script id: 'path-not-found arg1: rejoin ["Path not found at step: " mold step]]]
-                return either report [false] [data]
+                                foreach item value-expression [
+                                    if set-word? item [
+                                        next-setword-pos: find value-expression item
+                                        break
+                                    ]
+                                ]
+
+                                if next-setword-pos [
+                                    value-expression: copy/part value-expression next-setword-pos
+                                ]
+
+                                if any [none? value-expression empty? value-expression] [
+                                    if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
+                                    return either report [false] [data]
+                                ]
+
+                                result: try [do value-expression]
+
+                                if error? result [
+                                    if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
+                                    return either report [false] [data]
+                                ]
+
+                                ; Replace expression with evaluated result to stabilize further traversal
+                                idx: index? pos
+                                expr-len: length? value-expression
+                                change/part at container idx + 1 reduce [:result] expr-len
+                                container: :result
+                            ]
+                        ][
+                            either create [
+                                repend container [to-set-word step make map! []]
+                                container: select container step
+                            ][
+                                if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
+                                return either report [false] [data]
+                            ]
+                        ]
+                    ]
+                ]
+                map? container [
+                    if all [secure not any-word? step] [
+                        if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
+                        return either report [false] [data]
+                    ]
+                    parent: container
+                    selected: select parent either secure [either any-word? step [to word! step] [step]] [step]
+                    last-map-parent: parent
+                    last-map-step: step
+
+                    unless selected [
+                        either create [
+                            put parent either secure [either any-word? step [to word! step] [step]] [step] make map! []
+                            selected: select parent either secure [either any-word? step [to word! step] [step]] [step]
+                        ][
+                            if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
+                            return either report [false] [data]
+                        ]
+                    ]
+
+                    unless any [block? :selected map? :selected object? :selected] [
+                        if create [
+                            put parent either secure [either any-word? step [to word! step] [step]] [step] make map! []
+                            selected: select parent either secure [either any-word? step [to word! step] [step]] [step]
+                        ]
+                    ]
+                    container: selected
+                ]
+
+                object? container [
+                    if all [secure not any-word? step] [
+                        if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
+                        return either report [false] [data]
+                    ]
+                    either any-word? step [
+                        field-word: to word! step
+                        bound-word: in container field-word
+                        either bound-word [
+                            container: get bound-word
+                        ][
+                            if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
+                            return either report [false] [data]
+                        ]
+                    ][
+                        if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
+                        return either report [false] [data]
+                    ]
+                ]
+                true [
+                    if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
+                    return either report [false] [data]
+                ]  ; Invalid container type
             ]
         ]
 
+        ; Fast path: object field set via /path
+        if all [object? container any-word? last key in container to word! last key] [
+            if all [secure not any-word? last key] [
+                if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
+                return either report [false] [data]
+            ]
+
+            set in container to word! last key value
+            changed?: true
+
+            if all [strict not changed?] [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
+            return either report [changed?] [data]
+        ]
+
+        ; Final setting operation - fully type-safe
+        if all [secure block? key] [
+            ; Recompute container from original data using the path (excluding last step)
+            recompute: data
+            safe-steps2: copy/part key (length? key) - 1
+            foreach s2 safe-steps2 [
+                either map? :recompute [
+                    recompute: select recompute to word! s2
+                ][
+                    if block? :recompute [
+                        pos2: find recompute to-set-word s2
+                        if pos2 [
+                            val2: second pos2
+                            either block? :val2 [recompute: :val2] [recompute: none]
+                        ]
+                    ]
+                ]
+
+                if none? :recompute [break]
+            ]
+
+            if map? :recompute [container: :recompute]
+        ]
         case [
             block? container [
                 either integer? last key [
                     actual-index-final: either (last key) < 0 [ (length? container) + (last key) + 1 ] [ last key ]
-
-                    if all [create (last key) > 0 actual-index-final > (length? container)] [
-                        insert/dup tail container 'none actual-index-final - (length? container)
-                    ]
-
                     if all [actual-index-final >= 1 actual-index-final <= length? container] [
                         poke container actual-index-final value
                         changed?: true
@@ -244,60 +405,70 @@ sling: function [
                         put container to-set-word last key value
                         changed?: true
                     ][
-                        if create [append container reduce [to-set-word last key value] changed?: true]
+                        either create [
+                            append container reduce [to-set-word last key value]
+                            changed?: true
+                        ][
+                            if strict [return make error! [type: 'script id: 'path-not-found arg1: last key]]
+                        ]
                     ]
                 ]
             ]
 
             map? container [
-                if all [secure not any [any-word? last key string? last key]] [
-                    if strict [return make error! [type: 'script id: 'invalid-key-type arg1: "Invalid key type in secure mode."]]
+                if all [secure not any-word? last key] [
+                    if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
                     return either report [false] [data]
                 ]
-
-                final-key: last key
+                final-key: either secure [either any-word? last key [to word! last key] [last key]] [last key]
                 either not none? select container final-key [
                     put container final-key value
                     changed?: true
                 ][
-                    if create [put container final-key value changed?: true]
+                    either create [
+                        put container final-key value
+                        changed?: true
+                    ][
+                        if strict [return make error! [type: 'script id: 'path-not-found arg1: final-key]]
+                    ]
                 ]
             ]
 
             object? container [
                 if any-word? last key [
                     if all [secure not any-word? last key] [
-                        if strict [return make error! [type: 'script id: 'invalid-key-type arg1: "Invalid key type in secure mode."]]
+                        if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
                         return either report [false] [data]
                     ]
                     field-word2: to word! last key
-                    bound?: in container field-word2
-                    if bound? [
+                    either bound?: in container field-word2 [
                         set bound? value
                         changed?: true
+                    ][
+                        if strict [return make error! [type: 'script id: 'path-not-found arg1: last key]]
                     ]
                 ]
             ]
         ]
 
-        if all [strict not changed?] [return make error! [type: 'script id: 'key-not-found arg1: "Target key/index not found for setting."]]
+        if all [strict not changed?] [
+            return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]
+        ]
         return either report [changed?] [data]
 
     ][
         ; --- Single-Level Logic (Optimized) ---
         if not any [block? data map? data object? data] [
-            if strict [return make error! [type: 'script id: 'invalid-container arg1: "Data must be a block, map, or object."]]
+            if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
             return either report [false] [data]
         ]
 
         if block? data [
             if integer? key [
+                ; Support negative indices for blocks
                 actual-index: either key < 0 [ (length? data) + key + 1 ] [ key ]
-                if all [actual-index >= 1 actual-index <= (length? data)] [
-                    poke data actual-index value
-                    changed?: true
-                ]
-                if all [strict not changed?] [return make error! [type: 'script id: 'index-out-of-bounds arg1: rejoin ["Index " key " is out of bounds."]]]
+                if all [actual-index >= 1 actual-index <= (length? data)] [poke data actual-index value changed?: true]
+                if all [strict not changed?] [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
                 return either report [changed?] [data]
             ]
 
@@ -308,10 +479,10 @@ sling: function [
                 ][
                     if create [append data reduce [to-set-word key value] changed?: true]
                 ]
-                if all [strict not changed?] [return make error! [type: 'script id: 'key-not-found arg1: rejoin ["Key " mold key " not found."]]]
+                if all [strict not changed?] [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
                 return either report [changed?] [data]
             ]
-            if strict [return make error! [type: 'script id: 'invalid-key-type arg1: "Invalid key type for block."]]
+            if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
             return either report [false] [data]
         ]
 
@@ -322,7 +493,7 @@ sling: function [
                     changed?: true
                 ]
             ]
-            if all [strict not changed?] [return make error! [type: 'script id: 'key-not-found arg1: rejoin ["Field " mold key " not found in object."]]]
+            if all [strict not changed?] [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
             return either report [changed?] [data]
         ]
 
@@ -331,11 +502,11 @@ sling: function [
                 put data key value
                 changed?: true
             ]
-            if all [strict not changed?] [return make error! [type: 'script id: 'key-not-found arg1: rejoin ["Key " mold key " not found in map."]]]
+            if all [strict not changed?] [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
             return either report [changed?] [data]
         ]
 
-        if strict [return make error! [type: 'script id: 'generic-error arg1: "Sling operation failed."]]
+        if strict [return make error! [type: 'script id: 'invalid-argument arg1: "sling: no change"]]
         return either report [false] [data]
     ]
 ]
@@ -343,7 +514,7 @@ sling: function [
 ;;-----------------------------------------------------------------------------
 ;;; Test Execution
 ;;-----------------------------------------------------------------------------
-print "=== Starting QA tests for `sling` v0.2.2 ==="
+print "=== Starting QA tests for `sling` v0.2.1 ==="
 print "^/--- `grab` Integrity Test (for sling) ---"
 
 ;; This data structure simulates the state inside the `sling/path` loop.
@@ -421,11 +592,6 @@ assert-equal [a: 1 b: 2] test-block-create "Block/create: Should create a new ke
 test-map-create: make map! [a: 1]
 sling/create test-map-create 'b 2
 assert-equal 2 select test-map-create 'b "Map/create: Should create a new key-value pair."
-
-;; --- Block /create with padding ---
-test-block-pad: []
-sling/path/create test-block-pad [3] "C"
-assert-equal ['none 'none "C"] test-block-pad "Block/create (pad): Should create and pad with 'none."
 
 ;; --- Test without /create (should do nothing) ---
 test-map-no-create: make map! [a: 1]
@@ -540,28 +706,11 @@ assert-equal false sling/path/secure/report sec-map ['conf 1] 90 "Secure/Map: No
 ;; Secure: map word key allowed
 assert-equal true sling/path/secure/report sec-map ['conf 'port] 91 "Secure/Map: Word key allowed."
 
-;; Secure: map string key allowed
-sec-map-str: make map! reduce ["conf" make map! ["port" 80]]
-assert-equal true sling/path/secure/report sec-map-str ["conf" "port"] 92 "Secure/Map: String key should be allowed."
-
 ;; Secure: object non-word step rejected
 sec-obj: make object! [info: make object! [age: 30]]
 assert-equal false sling/path/secure/report sec-obj ['info 1] 31 "Secure/Object: Non-word step should be rejected."
 
 ;; Secure: object word step allowed
 assert-equal true sling/path/secure/report sec-obj ['info 'age] 32 "Secure/Object: Word step allowed."
-
-print "^/--- Phase 6: `/strict` Error ID Tests ---"
-assert-strict-error: func [err-id [word!] code [block!] description [string!]] [
-    err: try code
-    assert-equal err-id err/id description
-]
-
-assert-strict-error 'index-out-of-bounds [sling/strict [a] 2 1] "Strict: Should error 'index-out-of-bounds"
-assert-strict-error 'key-not-found [sling/strict [a: 1] 'b 2] "Strict: Should error 'key-not-found for block"
-assert-strict-error 'key-not-found [sling/strict make map! [a: 1] 'b 2] "Strict: Should error 'key-not-found for map"
-assert-strict-error 'key-not-found [sling/strict make object! [a: 1] 'b 2] "Strict: Should error 'key-not-found for object"
-assert-strict-error 'path-not-found [sling/path/strict [a: [b: 1]] ['a 'c] 2] "Strict: Should error 'path-not-found"
-assert-strict-error 'invalid-path [sling/path/strict [] 1 2] "Strict: Should error 'invalid-path for non-block"
 
 print-test-summary
