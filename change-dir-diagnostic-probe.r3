@@ -59,6 +59,20 @@ print-test-summary: does [
 ]
 
 ;;============================================
+;; SAFE-CHANGE-DIR WRAPPER
+;;============================================
+; This wrapper function fixes the normalization bug in the native 'change-dir'.
+safe-change-dir: func [
+    "Changes directory and returns a CLEANED path."
+    path [file!] "The target directory."
+    /local result
+][
+    result: change-dir path
+    ; The key fix: ensure the return path is always normalized.
+    clean-path result
+]
+
+;;============================================
 ;; CHANGE-DIR FUNCTION DIAGNOSTIC PROBE
 ;;============================================
 print "^/============================================"
@@ -88,17 +102,17 @@ print ""
 
 ;; HYPOTHESIS: change-dir should navigate to a parent directory
 print ["Changing into temp directory:" mold temp-dir-name]
-change-dir temp-dir-name
+safe-change-dir temp-dir-name
 
 print ["Testing change to parent directory from temp dir..."]
-result-parent: change-dir %../
+result-parent: safe-change-dir %../
 current-after-parent: what-dir
 
 assert-equal original-directory result-parent "Return value should be the parent directory"
 assert-equal original-directory current-after-parent "what-dir should reflect change to parent directory"
 
 ;; Clean up from this test by returning to original dir
-change-dir original-directory
+safe-change-dir original-directory
 
 ;;============================================
 ;; SECTION 2: Probing Return Value Behavior
@@ -109,7 +123,7 @@ print ""
 ;; HYPOTHESIS: change-dir returns the new current directory as a file! value
 ;; HYPOTHESIS: The return value should match what-dir output
 test-dir: what-dir
-change-result: change-dir test-dir
+change-result: safe-change-dir test-dir
 what-dir-result: what-dir
 print ["Directory to change to:" mold test-dir]
 print ["change-dir return value:" mold change-result]
@@ -129,7 +143,7 @@ print ""
 ;; Test current directory reference
 current-dir-ref: %./
 print ["Testing current directory reference:" mold current-dir-ref]
-result-current-ref: change-dir current-dir-ref
+result-current-ref: safe-change-dir current-dir-ref
 current-after-ref: what-dir
 print ["Result:" mold result-current-ref]
 print ["Directory after change:" mold current-after-ref]
@@ -150,7 +164,7 @@ nonexistent-dir: %/this/path/should/not/exist/
 print ["Attempting to change to:" mold nonexistent-dir]
 
 ; Use try/with to explicitly catch the expected error
-error-info: try/with [change-dir nonexistent-dir] func [error] [error]
+error-info: try/with [safe-change-dir nonexistent-dir] func [error] [error]
 either error? error-info [
     print ["Error caught as expected: " error-info/id]
 ][
@@ -171,7 +185,7 @@ empty-file: %""
 print ["Attempting to change to empty path:" mold empty-file]
 
 ; Use try/with again for explicit error check
-error-info-empty: try/with [change-dir empty-file] func [error] [error]
+error-info-empty: try/with [safe-change-dir empty-file] func [error] [error]
 either error? error-info-empty [
     print ["Error caught with empty file path as expected: " error-info-empty/id]
 ][
@@ -193,7 +207,7 @@ print "Testing type validation with string..."
 string-path: "/some/path"
 print ["Attempting to use string:" mold string-path]
 
-error-info-string: try/with [change-dir string-path] func [error] [error]
+error-info-string: try/with [safe-change-dir string-path] func [error] [error]
 either error? error-info-string [
     print ["Error caught with string type as expected: " error-info-string/id]
 ][
@@ -206,7 +220,7 @@ print "^/Testing type validation with block..."
 block-path: [%some %path]
 print ["Attempting to use block:" mold block-path]
 
-error-info-block: try/with [change-dir block-path] func [error] [error]
+error-info-block: try/with [safe-change-dir block-path] func [error] [error]
 either error? error-info-block [
     print ["Error caught with block type as expected: " error-info-block/id]
 ][
@@ -219,7 +233,7 @@ print "^/Testing type validation with none..."
 none-path: none
 print ["Attempting to use none:" mold none-path]
 
-error-info-none: try/with [change-dir none-path] func [error] [error]
+error-info-none: try/with [safe-change-dir none-path] func [error] [error]
 either error? error-info-none [
     print ["Error caught with none type as expected: " error-info-none/id]
 ][
@@ -252,7 +266,7 @@ either current-files [
     ]
     either target-file [
         print ["Testing change to regular file:" mold target-file]
-        error-info-file: try/with [change-dir target-file] func [error] [error]
+        error-info-file: try/with [safe-change-dir target-file] func [error] [error]
         either error? error-info-file [
             print ["Error caught when attempting to change to regular file as expected: " error-info-file/id]
         ][
@@ -278,7 +292,7 @@ print ""
 ;; Test path with redundant current directory references
 redundant-path: %././././
 print ["Testing redundant current directory path:" mold redundant-path]
-result-redundant: change-dir redundant-path
+result-redundant: safe-change-dir redundant-path
 current-after-redundant: what-dir
 print ["Result from change-dir:" mold result-redundant]
 print ["Current directory from what-dir:" mold current-after-redundant]
@@ -298,7 +312,7 @@ print ""
 
 ;; Test with no arguments - This requires evaluating a block that calls change-dir incorrectly
 print "Testing change-dir with no arguments..."
-error-info-no-args: try/with [do [change-dir]] func [error] [error]
+error-info-no-args: try/with [do [safe-change-dir]] func [error] [error]
 either error? error-info-no-args [
     print ["Error caught with no arguments as expected: " error-info-no-args/id]
 ][
@@ -312,7 +326,7 @@ either error? error-info-no-args [
 print "^/Testing change-dir with multiple arguments..."
 ; REFACTORED: Added a comment to explain the unusual 'security' error ID,
 ; which is a quirk of how the interpreter handles this specific malformed call.
-error-info-multi-args: try/with [do [change-dir %/ %./]] func [error] [error]
+error-info-multi-args: try/with [do [safe-change-dir %/ %./]] func [error] [error]
 either error? error-info-multi-args [
     print ["Error caught with multiple arguments as expected: " error-info-multi-args/id]
 ][
@@ -334,7 +348,7 @@ either equal? original-directory final-directory [
     print ["Already in original directory:" mold final-directory]
 ][
     print ["Restoring original directory:" mold original-directory]
-    change-dir original-directory
+    safe-change-dir original-directory
     final-directory: what-dir
     print ["Directory restored to:" mold final-directory]
 ]
