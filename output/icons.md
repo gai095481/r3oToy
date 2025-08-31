@@ -6,6 +6,7 @@ print "^/STATUS INDICATORS (MOST PRINTABLE):"
 print "✅ PASSED - Green check mark"
 print "❌ ERROR / FAILED - Red X mark"
 print "⚠️  CAUTION / WARNING - Warning triangle (uses two trailing spaces due to known problem)"
+print ["🚧 Road block/Construction: " "🚧"]
 print ["✨ New/Initialized/Think: " "✨"]
 print ["⏳ Waiting/Loading: " "⏳"]
 print ["⚡ Lightning/Quick: " "⚡"]
