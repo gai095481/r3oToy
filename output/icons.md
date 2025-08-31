@@ -12,6 +12,8 @@ print ["⚡ Lightning/Quick: " "⚡"]
 print ["⏱️ Benchmark/Clock/Profiler/Speed/Timer/Performance: " "⏱️"]
 print ["❓ Question/Help/Absent/Missing/Predicate/Unknown: " "❓"]
 print ["✏️ Edit/Modify/Write: " "✏️"]
+print ["💥 Burst/Explode/Shatter: " "💥"]
+
 
 print "^/TEST USUALLY PROBLEMATIC TERMINAL CHARACTERS:"
 print ["🎉 Complete Success: " "🎉"]
